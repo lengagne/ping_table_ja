@@ -10,6 +10,7 @@ from .contraintes import (
     MemePouleInterdite,
     RangsMatchImposes,
     RangsParticipantsImposes,
+    RangsPositionImposes,
 )
 from .modele import Match, PositionTableau
 
@@ -78,14 +79,34 @@ def _matchs_cibles(cible, matchs):
         if not resultat:
             raise ValueError("Niveau ciblé introuvable : {!r}".format(niveau))
         return resultat
+    if type_cible == "matchs":
+        numeros = [int(numero) for numero in cible.get("numeros", [])]
+        if not numeros:
+            raise ValueError("La cible doit contenir au moins un match")
+        manquants = [numero for numero in numeros if numero not in matchs]
+        if manquants:
+            raise ValueError("Match(s) ciblé(s) introuvable(s) : {}".format(manquants))
+        return [matchs[numero] for numero in numeros]
     raise ValueError("Type de cible inconnu : {!r}".format(type_cible))
 
 
-def _contraintes_depuis_json(definitions, matchs):
+def _contraintes_depuis_json(definitions, matchs, taille_tableau):
     resultat = []
     for definition in definitions:
         type_contrainte = definition.get("type")
-        cibles = _matchs_cibles(definition.get("cible", {}), matchs)
+        cible = definition.get("cible", {})
+        if type_contrainte == "rangs_position":
+            if cible.get("type") != "position":
+                raise ValueError("La contrainte rangs_position doit cibler une position")
+            position = int(cible.get("numero", 0))
+            if not 1 <= position <= taille_tableau:
+                raise ValueError("Position ciblée invalide : {}".format(position))
+            rangs = definition.get("rangs", [])
+            if not rangs:
+                raise ValueError("La contrainte rangs_position attend au moins un rang")
+            resultat.append(RangsPositionImposes(position, rangs))
+            continue
+        cibles = _matchs_cibles(cible, matchs)
         for match in cibles:
             if type_contrainte == "poules_differentes":
                 resultat.append(MemePouleInterdite(match))
@@ -118,7 +139,9 @@ def _charger_configuration_v2(donnees):
         raise ValueError("La configuration doit contenir au moins un match")
     return ConfigurationTournoi(
         matchs=matchs,
-        contraintes=_contraintes_depuis_json(donnees.get("contraintes", []), matchs),
+        contraintes=_contraintes_depuis_json(
+            donnees.get("contraintes", []), matchs, taille_tableau
+        ),
         nombre_positions=taille_tableau,
         onglet_excel=str(donnees.get("onglet_excel", "classement poules")),
         onglet_sortie=str(donnees.get("onglet_sortie", "TropFortSeb")),

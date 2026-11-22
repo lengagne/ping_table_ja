@@ -19,6 +19,7 @@ from ping_table_ja.editeur_configuration import (
     calculer_profondeurs_matchs,
     formater_reference,
     indices_contraintes_du_match,
+    indices_contraintes_de_position,
     parser_reference,
 )
 from ping_table_ja.generateur_tableau import generer_configuration_standard, niveaux_principaux
@@ -95,6 +96,32 @@ class TestConfigurationFichier(unittest.TestCase):
             {"type": "rangs_match", "cible": {"type": "match", "numero": 8}},
         ]
         self.assertEqual(indices_contraintes_du_match(match, contraintes), [0, 1])
+
+    def test_cibles_position_et_ensemble_de_matchs(self):
+        donnees = generer_configuration_standard(
+            8, classement_integral=False, barrages_1_contre_4=True
+        )
+        donnees["contraintes"].extend([
+            {
+                "type": "rangs_position",
+                "cible": {"type": "position", "numero": 1},
+                "rangs": [1],
+            },
+            {
+                "type": "poules_differentes",
+                "cible": {"type": "matchs", "numeros": [1, 2]},
+            },
+        ])
+        self.assertEqual(
+            indices_contraintes_de_position(1, donnees["contraintes"]),
+            [4],
+        )
+        self.assertIn(5, indices_contraintes_du_match(donnees["matchs"][0], donnees["contraintes"]))
+        with tempfile.TemporaryDirectory() as dossier:
+            chemin = Path(dossier) / "cibles.json"
+            enregistrer_configuration(chemin, donnees)
+            configuration = charger_configuration(chemin)
+        self.assertEqual(len(configuration.contraintes), 7)
 
     def test_generation_tableau_standard_sans_classement(self):
         donnees = generer_configuration_standard(16, classement_integral=False)
