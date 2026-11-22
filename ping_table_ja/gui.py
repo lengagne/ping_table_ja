@@ -15,6 +15,35 @@ from .solveur import resoudre
 PREFERENCES = Path.home() / ".ping_table_ja" / "preferences.json"
 
 
+def construire_matrice_classements(classements):
+    """Transforme les classements en lignes de rang et colonnes de poules."""
+    numeros_poules = sorted(classements)
+    rang_maximum = max(
+        (int(joueur["rang"]) for joueurs in classements.values() for joueur in joueurs),
+        default=0,
+    )
+    joueurs_par_poule_et_rang = {
+        (numero_poule, int(joueur["rang"])): joueur
+        for numero_poule, joueurs in classements.items()
+        for joueur in joueurs
+    }
+
+    lignes = []
+    for rang in range(1, rang_maximum + 1):
+        valeurs = [rang]
+        for numero_poule in numeros_poules:
+            joueur = joueurs_par_poule_et_rang.get((numero_poule, rang))
+            if joueur is None:
+                valeurs.append("")
+                continue
+            nom = joueur["nom"]
+            club = joueur.get("club", "")
+            valeurs.append("{} — {}".format(nom, club) if club else nom)
+        lignes.append(valeurs)
+
+    return numeros_poules, lignes
+
+
 class Application(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent, padding=24)
@@ -51,23 +80,22 @@ class Application(ttk.Frame):
 
         self.apercu = ttk.Treeview(
             cadre_apercu,
-            columns=("poule", "rang", "nom", "club"),
+            columns=("rang",),
             show="headings",
-            height=10,
+            height=6,
         )
-        self.apercu.heading("poule", text="Poule")
         self.apercu.heading("rang", text="Rang")
-        self.apercu.heading("nom", text="Nom")
-        self.apercu.heading("club", text="Club")
-        self.apercu.column("poule", width=65, anchor="center", stretch=False)
         self.apercu.column("rang", width=65, anchor="center", stretch=False)
-        self.apercu.column("nom", width=220)
-        self.apercu.column("club", width=180)
         self.apercu.grid(row=0, column=0, sticky="nsew")
 
-        defilement = ttk.Scrollbar(cadre_apercu, orient="vertical", command=self.apercu.yview)
-        defilement.grid(row=0, column=1, sticky="ns")
-        self.apercu.configure(yscrollcommand=defilement.set)
+        defilement_vertical = ttk.Scrollbar(cadre_apercu, orient="vertical", command=self.apercu.yview)
+        defilement_vertical.grid(row=0, column=1, sticky="ns")
+        defilement_horizontal = ttk.Scrollbar(cadre_apercu, orient="horizontal", command=self.apercu.xview)
+        defilement_horizontal.grid(row=1, column=0, sticky="ew")
+        self.apercu.configure(
+            yscrollcommand=defilement_vertical.set,
+            xscrollcommand=defilement_horizontal.set,
+        )
 
         self.bouton_calcul = ttk.Button(self, text="Calculer", style="Accent.TButton", command=self._demarrer_calcul)
         self.bouton_calcul.grid(row=7, column=0, columnspan=2, sticky="ew", ipady=7)
@@ -126,16 +154,21 @@ class Application(ttk.Frame):
         try:
             configuration = charger_configuration(Path(self.config_var.get()).expanduser())
             classements = lire_classement(chemin_excel, configuration.onglet_excel)
-            nombre_joueurs = 0
-            for numero_poule, joueurs in classements.items():
-                for joueur in joueurs:
-                    self.apercu.insert("", "end", values=(
-                        numero_poule,
-                        joueur["rang"],
-                        joueur["nom"],
-                        joueur["club"],
-                    ))
-                    nombre_joueurs += 1
+            numeros_poules, lignes = construire_matrice_classements(classements)
+            colonnes = ("rang",) + tuple(
+                "poule_{}".format(numero) for numero in numeros_poules
+            )
+            self.apercu.configure(columns=colonnes)
+            self.apercu.heading("rang", text="Rang")
+            self.apercu.column("rang", width=65, anchor="center", stretch=False)
+            for numero_poule in numeros_poules:
+                colonne = "poule_{}".format(numero_poule)
+                self.apercu.heading(colonne, text="Poule {}".format(numero_poule))
+                self.apercu.column(colonne, width=190, minwidth=130, anchor="w")
+            for valeurs in lignes:
+                self.apercu.insert("", "end", values=valeurs)
+
+            nombre_joueurs = sum(len(joueurs) for joueurs in classements.values())
             self.statut_var.set(
                 "{} joueur{} chargé{} — prêt à lancer le calcul.".format(
                     nombre_joueurs,
@@ -200,8 +233,8 @@ class Application(ttk.Frame):
 def main():
     racine = tk.Tk()
     racine.title("Ping Table JA")
-    racine.geometry("760x650")
-    racine.minsize(650, 560)
+    racine.geometry("1100x610")
+    racine.minsize(700, 540)
     style = ttk.Style(racine)
     style.configure("Title.TLabel", font=("TkDefaultFont", 18, "bold"))
     style.configure("Accent.TButton", font=("TkDefaultFont", 11, "bold"))
