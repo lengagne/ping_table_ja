@@ -30,6 +30,7 @@ class Application(ttk.Frame):
         self.parent.columnconfigure(0, weight=1)
         self.parent.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
+        self.rowconfigure(6, weight=1)
 
         ttk.Label(self, text="Génération du tableau", style="Title.TLabel").grid(
             row=0, column=0, columnspan=2, sticky="w", pady=(0, 20)
@@ -42,11 +43,37 @@ class Application(ttk.Frame):
         ttk.Entry(self, textvariable=self.excel_var).grid(row=4, column=0, sticky="ew", padx=(0, 8), pady=(4, 20))
         ttk.Button(self, text="Parcourir…", command=self._choisir_excel).grid(row=4, column=1, pady=(4, 20))
 
+        ttk.Label(self, text="Aperçu des joueurs chargés").grid(row=5, column=0, columnspan=2, sticky="w")
+        cadre_apercu = ttk.Frame(self)
+        cadre_apercu.grid(row=6, column=0, columnspan=2, sticky="nsew", pady=(4, 20))
+        cadre_apercu.columnconfigure(0, weight=1)
+        cadre_apercu.rowconfigure(0, weight=1)
+
+        self.apercu = ttk.Treeview(
+            cadre_apercu,
+            columns=("poule", "rang", "nom", "club"),
+            show="headings",
+            height=10,
+        )
+        self.apercu.heading("poule", text="Poule")
+        self.apercu.heading("rang", text="Rang")
+        self.apercu.heading("nom", text="Nom")
+        self.apercu.heading("club", text="Club")
+        self.apercu.column("poule", width=65, anchor="center", stretch=False)
+        self.apercu.column("rang", width=65, anchor="center", stretch=False)
+        self.apercu.column("nom", width=220)
+        self.apercu.column("club", width=180)
+        self.apercu.grid(row=0, column=0, sticky="nsew")
+
+        defilement = ttk.Scrollbar(cadre_apercu, orient="vertical", command=self.apercu.yview)
+        defilement.grid(row=0, column=1, sticky="ns")
+        self.apercu.configure(yscrollcommand=defilement.set)
+
         self.bouton_calcul = ttk.Button(self, text="Calculer", style="Accent.TButton", command=self._demarrer_calcul)
-        self.bouton_calcul.grid(row=5, column=0, columnspan=2, sticky="ew", ipady=7)
+        self.bouton_calcul.grid(row=7, column=0, columnspan=2, sticky="ew", ipady=7)
         self.progression = ttk.Progressbar(self, mode="indeterminate")
-        self.progression.grid(row=6, column=0, columnspan=2, sticky="ew", pady=(14, 8))
-        ttk.Label(self, textvariable=self.statut_var, wraplength=580).grid(row=7, column=0, columnspan=2, sticky="w")
+        self.progression.grid(row=8, column=0, columnspan=2, sticky="ew", pady=(14, 8))
+        ttk.Label(self, textvariable=self.statut_var, wraplength=580).grid(row=9, column=0, columnspan=2, sticky="w")
 
     def _charger_preferences(self):
         configuration = configuration_par_defaut()
@@ -79,6 +106,8 @@ class Application(ttk.Frame):
         if chemin:
             self.config_var.set(chemin)
             self._sauver_preferences()
+            if Path(self.excel_var.get()).is_file():
+                self._charger_apercu(Path(self.excel_var.get()))
 
     def _choisir_excel(self):
         chemin = filedialog.askopenfilename(
@@ -87,7 +116,36 @@ class Application(ttk.Frame):
         )
         if chemin:
             self.excel_var.set(chemin)
-            self.statut_var.set("Prêt à lancer le calcul.")
+            self._charger_apercu(Path(chemin))
+
+    def _charger_apercu(self, chemin_excel):
+        """Lit le classeur sélectionné et affiche ses joueurs dans le tableau."""
+        for ligne in self.apercu.get_children():
+            self.apercu.delete(ligne)
+
+        try:
+            configuration = charger_configuration(Path(self.config_var.get()).expanduser())
+            classements = lire_classement(chemin_excel, configuration.onglet_excel)
+            nombre_joueurs = 0
+            for numero_poule, joueurs in classements.items():
+                for joueur in joueurs:
+                    self.apercu.insert("", "end", values=(
+                        numero_poule,
+                        joueur["rang"],
+                        joueur["nom"],
+                        joueur["club"],
+                    ))
+                    nombre_joueurs += 1
+            self.statut_var.set(
+                "{} joueur{} chargé{} — prêt à lancer le calcul.".format(
+                    nombre_joueurs,
+                    "s" if nombre_joueurs > 1 else "",
+                    "s" if nombre_joueurs > 1 else "",
+                )
+            )
+        except Exception as erreur:
+            self.statut_var.set("Impossible de charger l'aperçu.")
+            messagebox.showerror("Erreur de lecture", str(erreur))
 
     def _demarrer_calcul(self):
         configuration = Path(self.config_var.get()).expanduser()
@@ -142,8 +200,8 @@ class Application(ttk.Frame):
 def main():
     racine = tk.Tk()
     racine.title("Ping Table JA")
-    racine.geometry("680x390")
-    racine.minsize(580, 340)
+    racine.geometry("760x650")
+    racine.minsize(650, 560)
     style = ttk.Style(racine)
     style.configure("Title.TLabel", font=("TkDefaultFont", 18, "bold"))
     style.configure("Accent.TButton", font=("TkDefaultFont", 11, "bold"))
