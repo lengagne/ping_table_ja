@@ -362,6 +362,7 @@ class EditeurConfiguration(tk.Toplevel):
         self.integral_var = tk.BooleanVar()
         self.barrages_var = tk.BooleanVar()
         self.onglet_excel_var = tk.StringVar()
+        self.chemin_var = tk.StringVar()
         self._construire()
         self._charger_variables()
         self._rafraichir_tout()
@@ -447,6 +448,10 @@ class EditeurConfiguration(tk.Toplevel):
         self.texte_json.pack(fill="both", expand=True)
         actions = ttk.Frame(self, padding=(12, 0, 12, 12))
         actions.grid(row=1, column=0, sticky="ew")
+        ttk.Label(
+            actions,
+            textvariable=self.chemin_var,
+        ).pack(side="left", fill="x", expand=True)
         ttk.Button(actions, text="Fermer", command=self.destroy).pack(side="right")
         ttk.Button(actions, text="Enregistrer sous…", command=self._enregistrer_sous).pack(
             side="right", padx=8
@@ -512,6 +517,7 @@ class EditeurConfiguration(tk.Toplevel):
 
     def _construire_visualisation(self):
         self.cible_visualisation = None
+        self.filtrer_contraintes_visualisation = False
         self.cible_visualisation_var = tk.StringVar(value="Cible : aucune sélection")
         self.onglet_visualisation.columnconfigure(0, weight=1)
         self.onglet_visualisation.columnconfigure(2, weight=0)
@@ -613,6 +619,11 @@ class EditeurConfiguration(tk.Toplevel):
             text="Supprimer",
             command=lambda: self._supprimer_contrainte(self.table_contraintes_visu),
         ).pack(side="left")
+        ttk.Button(
+            panneau,
+            text="Afficher toutes les contraintes du tableau",
+            command=self._afficher_toutes_contraintes_visualisation,
+        ).grid(row=3, column=0, columnspan=2, sticky="ew", pady=(8, 0))
 
     def _texte_cible_visualisation(self, cible):
         if not cible:
@@ -627,24 +638,10 @@ class EditeurConfiguration(tk.Toplevel):
 
     def _selectionner_cible_visualisation(self, cible):
         self.cible_visualisation = cible
+        self.filtrer_contraintes_visualisation = cible is not None
         self.cible_visualisation_var.set(self._texte_cible_visualisation(cible))
-        indices = []
-        contraintes = self.donnees.get("contraintes", [])
-        if cible and cible.get("type") == "position":
-            indices = indices_contraintes_de_position(cible["numero"], contraintes)
-        elif cible:
-            numeros = (
-                [cible["numero"]]
-                if cible.get("type") == "match"
-                else cible.get("numeros", [])
-            )
-            matchs = {int(match["numero"]): match for match in self.donnees.get("matchs", [])}
-            indices = sorted({
-                index
-                for numero in numeros
-                if int(numero) in matchs
-                for index in indices_contraintes_du_match(matchs[int(numero)], contraintes)
-            })
+        indices = self._indices_contraintes_cible(cible)
+        self._rafraichir_contraintes_visualisation()
         if indices and hasattr(self, "table_contraintes_visu"):
             self.table_contraintes_visu.selection_set(str(indices[0]))
             self.table_contraintes_visu.see(str(indices[0]))
@@ -652,6 +649,34 @@ class EditeurConfiguration(tk.Toplevel):
             self.table_contraintes_visu.selection_remove(
                 *self.table_contraintes_visu.selection()
             )
+        self._rafraichir_visualisation()
+
+    def _indices_contraintes_cible(self, cible):
+        contraintes = self.donnees.get("contraintes", [])
+        if not cible:
+            return list(range(len(contraintes)))
+        if cible.get("type") == "position":
+            return indices_contraintes_de_position(cible["numero"], contraintes)
+        numeros = (
+            [cible["numero"]]
+            if cible.get("type") == "match"
+            else cible.get("numeros", [])
+        )
+        matchs = {
+            int(match["numero"]): match for match in self.donnees.get("matchs", [])
+        }
+        return sorted({
+            index
+            for numero in numeros
+            if int(numero) in matchs
+            for index in indices_contraintes_du_match(matchs[int(numero)], contraintes)
+        })
+
+    def _afficher_toutes_contraintes_visualisation(self):
+        self.cible_visualisation = None
+        self.filtrer_contraintes_visualisation = False
+        self.cible_visualisation_var.set("Toutes les contraintes du tableau")
+        self._rafraichir_contraintes_visualisation()
         self._rafraichir_visualisation()
 
     def _clic_cible_visualisation(self, evenement):
@@ -935,12 +960,16 @@ class EditeurConfiguration(tk.Toplevel):
     def _mettre_a_jour_titre(self):
         nom = self.chemin.name if self.chemin else "Nouvelle configuration"
         self.title("Éditeur de configuration — {}".format(nom))
+        self.chemin_var.set(
+            "Fichier JSON : {}".format(self.chemin if self.chemin else "non enregistré")
+        )
 
     def _remplacer_configuration(self, donnees, chemin=None):
         self.donnees = donnees
         self.chemin = Path(chemin) if chemin else None
         if hasattr(self, "cible_visualisation_var"):
             self.cible_visualisation = None
+            self.filtrer_contraintes_visualisation = False
             self.cible_visualisation_var.set("Cible : aucune sélection")
         self._charger_variables()
         self._rafraichir_tout()
@@ -1018,10 +1047,6 @@ class EditeurConfiguration(tk.Toplevel):
 
     def _rafraichir_contraintes(self):
         self.table_contraintes.delete(*self.table_contraintes.get_children())
-        if hasattr(self, "table_contraintes_visu"):
-            self.table_contraintes_visu.delete(
-                *self.table_contraintes_visu.get_children()
-            )
         for index, contrainte in enumerate(self.donnees.get("contraintes", [])):
             cible = contrainte.get("cible", {})
             valeur = cible.get("numero", cible.get("niveau", ""))
@@ -1033,13 +1058,33 @@ class EditeurConfiguration(tk.Toplevel):
                 texte_cible,
                 self._description_contrainte(contrainte),
             ))
-            if hasattr(self, "table_contraintes_visu"):
-                self.table_contraintes_visu.insert(
-                    "",
-                    "end",
-                    iid=str(index),
-                    values=(contrainte.get("type", ""), texte_cible),
-                )
+        self._rafraichir_contraintes_visualisation()
+
+    def _rafraichir_contraintes_visualisation(self):
+        if not hasattr(self, "table_contraintes_visu"):
+            return
+        self.table_contraintes_visu.delete(
+            *self.table_contraintes_visu.get_children()
+        )
+        contraintes = self.donnees.get("contraintes", [])
+        indices = (
+            self._indices_contraintes_cible(self.cible_visualisation)
+            if self.filtrer_contraintes_visualisation
+            else list(range(len(contraintes)))
+        )
+        for index in indices:
+            contrainte = contraintes[index]
+            cible = contrainte.get("cible", {})
+            valeur = cible.get("numero", cible.get("niveau", ""))
+            if cible.get("type") == "matchs":
+                valeur = ", ".join(str(n) for n in cible.get("numeros", []))
+            texte_cible = "{} : {}".format(cible.get("type", ""), valeur)
+            self.table_contraintes_visu.insert(
+                "",
+                "end",
+                iid=str(index),
+                values=(contrainte.get("type", ""), texte_cible),
+            )
 
     def _rafraichir_json(self):
         try:
@@ -1141,6 +1186,7 @@ class EditeurConfiguration(tk.Toplevel):
             return
         self.donnees = nouvelles
         self.cible_visualisation = None
+        self.filtrer_contraintes_visualisation = False
         self.cible_visualisation_var.set("Cible : aucune sélection")
         self._charger_variables()
         self._rafraichir_tout()
@@ -1153,6 +1199,7 @@ class EditeurConfiguration(tk.Toplevel):
             self.donnees["matchs"] = []
             self.donnees["contraintes"] = []
             self.cible_visualisation = None
+            self.filtrer_contraintes_visualisation = False
             self.cible_visualisation_var.set("Cible : aucune sélection")
             self._rafraichir_tout()
 
