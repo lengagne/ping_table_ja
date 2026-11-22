@@ -481,7 +481,7 @@ class Application(ttk.Frame):
         try:
             configuration = charger_configuration(chemin_configuration)
             classements = lire_classement(chemin_excel, configuration.onglet_excel)
-            joueurs = creer_liste_joueurs(classements)
+            joueurs = creer_liste_joueurs(classements, configuration.nombre_positions)
             if len(joueurs) != configuration.nombre_positions:
                 raise ValueError(
                     "{} joueurs trouvés ; {} sont attendus.".format(len(joueurs), configuration.nombre_positions)

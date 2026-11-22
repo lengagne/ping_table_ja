@@ -10,7 +10,11 @@ from ping_table_ja.configuration_fichier import (
     configuration_par_defaut,
     enregistrer_configuration,
 )
-from ping_table_ja.excel import creer_fichier_solution, mettre_a_jour_tirage_choisi
+from ping_table_ja.excel import (
+    creer_fichier_solution,
+    creer_liste_joueurs,
+    mettre_a_jour_tirage_choisi,
+)
 from ping_table_ja.editeur_configuration import (
     calculer_profondeurs_matchs,
     formater_reference,
@@ -40,18 +44,25 @@ class TestConfigurationFichier(unittest.TestCase):
 
     def test_generation_tableau_standard_integral(self):
         donnees = generer_configuration_standard(8, classement_integral=True)
-        self.assertEqual(len(donnees["matchs"]), 12)
-        self.assertEqual([match["numero"] for match in donnees["matchs"]], list(range(1, 13)))
+        self.assertEqual(len(donnees["matchs"]), 10)
+        self.assertEqual([match["numero"] for match in donnees["matchs"]], list(range(1, 11)))
         self.assertEqual(niveaux_principaux(8), ["1/4", "1/2", "finale"])
-        premiers_matchs = donnees["matchs"][:4]
-        self.assertEqual(
-            [match["participant_1"]["numero"] for match in premiers_matchs],
-            [1, 3, 5, 7],
+        self.assertEqual(donnees["matchs"][0]["niveau"], "barrage_2_3")
+        self.assertEqual(donnees["matchs"][0]["participant_1"]["numero"], 2)
+        self.assertEqual(donnees["matchs"][0]["participant_2"]["numero"], 3)
+        self.assertEqual(donnees["matchs"][1]["participant_1"]["numero"], 1)
+        self.assertEqual(donnees["matchs"][1]["participant_2"], {"type": "vainqueur", "match": 1})
+        self.assertEqual(donnees["matchs"][2]["participant_1"], {"type": "perdant", "match": 1})
+        self.assertEqual(donnees["matchs"][2]["participant_2"]["numero"], 4)
+        self.assertEqual(len(donnees["contraintes"]), 6)
+
+    def test_generation_avec_barrages_1_4_et_2_3(self):
+        donnees = generer_configuration_standard(
+            8, classement_integral=True, barrages_1_contre_4=True
         )
-        self.assertEqual(
-            [match["participant_2"]["numero"] for match in premiers_matchs],
-            [2, 4, 6, 8],
-        )
+        self.assertEqual(len(donnees["matchs"]), 12)
+        self.assertEqual(donnees["contraintes"][0]["rangs"], [1, 4])
+        self.assertEqual(donnees["contraintes"][1]["rangs"], [2, 3])
 
     def test_references_de_match_de_l_editeur(self):
         self.assertEqual(parser_reference("position:12"), {"type": "position", "numero": 12})
@@ -64,7 +75,9 @@ class TestConfigurationFichier(unittest.TestCase):
             parser_reference("joueur 3")
 
     def test_profondeurs_pour_visualiser_le_tableau(self):
-        donnees = generer_configuration_standard(8, classement_integral=False)
+        donnees = generer_configuration_standard(
+            8, classement_integral=False, barrages_1_contre_4=True
+        )
         profondeurs = calculer_profondeurs_matchs(donnees["matchs"])
         self.assertEqual([profondeurs[n] for n in range(1, 5)], [1, 1, 1, 1])
         self.assertEqual(max(profondeurs.values()), 3)
@@ -75,10 +88,12 @@ class TestConfigurationFichier(unittest.TestCase):
 
     def test_generation_tableau_standard_sans_classement(self):
         donnees = generer_configuration_standard(16, classement_integral=False)
-        self.assertEqual(len(donnees["matchs"]), 15)
+        self.assertEqual(len(donnees["matchs"]), 18)
 
     def test_configuration_v2_charge_matchs_et_contraintes(self):
-        donnees = generer_configuration_standard(8, classement_integral=False)
+        donnees = generer_configuration_standard(
+            8, classement_integral=False, barrages_1_contre_4=True
+        )
         donnees["contraintes"] = [
             {
                 "type": "poules_differentes",
@@ -99,6 +114,25 @@ class TestConfigurationFichier(unittest.TestCase):
         self.assertEqual(len(configuration.matchs), 7)
         self.assertEqual(len(configuration.contraintes), 5)
         self.assertEqual(configuration.matchs[1].niveau, "1/4")
+
+    def test_poule_de_trois_completee_par_un_quatrieme_vide(self):
+        classements = {
+            1: [
+                {"rang": 1, "nom": "A", "club": "Club A"},
+                {"rang": 2, "nom": "B", "club": "Club B"},
+                {"rang": 3, "nom": "C", "club": "Club C"},
+            ],
+            2: [
+                {"rang": rang, "nom": "J{}".format(rang), "club": "Club D"}
+                for rang in range(1, 5)
+            ],
+        }
+        joueurs = creer_liste_joueurs(classements, nombre_positions=8)
+        self.assertEqual(len(joueurs), 8)
+        absent = [joueur for joueur in joueurs if joueur.get("absent")]
+        self.assertEqual(absent, [{
+            "nom": "", "club": "", "poule": 1, "rang_poule": 4, "absent": True,
+        }])
 
     def test_classements_presentes_par_poule_et_par_rang(self):
         classements = {

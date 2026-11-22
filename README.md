@@ -41,6 +41,14 @@ Après l'installation, lancez :
 
 Sous Windows, double-cliquez sur `lancer_interface.bat`.
 
+Pour ouvrir directement l'éditeur de configuration sans l'écran de calcul :
+
+```bash
+./configurer_tableau.sh
+```
+
+Sous Windows, double-cliquez sur `configurer_tableau.bat`.
+
 L'interface :
 
 1. affiche au démarrage le dernier fichier de configuration utilisé ;
@@ -59,8 +67,11 @@ bas, matchs répartis par tour et liaisons `V` (vainqueur) ou `P` (perdant).
 Le dessin est défilable et dispose de commandes de zoom.
 
 L'éditeur prend en charge les tailles 8, 16, 32, 64, 128, 256 ou une puissance
-de deux supérieure, le classement intégral et la présence de barrages 1er
-contre 4e. Chaque participant d'un match se note sous la forme `position:1`,
+de deux supérieure et le classement intégral. Si les barrages 1er-4e ne sont
+pas activés, les 2es et 3es jouent un barrage : le gagnant rejoint un 1er dans
+le tableau supérieur et le perdant rejoint un 4e dans le tableau inférieur.
+Une poule de trois est automatiquement complétée par un 4e joueur vide.
+Chaque participant d'un match se note sous la forme `position:1`,
 `vainqueur:2` ou `perdant:2`.
 
 Le résultat est créé à côté du fichier Excel avec le suffixe
