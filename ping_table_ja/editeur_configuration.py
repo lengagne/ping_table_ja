@@ -47,7 +47,10 @@ DESCRIPTIONS_CIBLES = {
     "position": "La valeur de cible est le numéro de la position, par exemple 12.",
     "match": "La valeur de cible est le numéro d'un match, par exemple 7.",
     "matchs": "Saisissez plusieurs numéros de matchs séparés par des virgules : 3,7,12.",
-    "niveau": "Saisissez le nom exact du niveau, par exemple 1/8, 1/4 ou finale.",
+    "niveau": (
+        "Saisissez le nom exact du niveau, par exemple 1/8, 1/4 ou finale. "
+        "Le champ « Matchs exclus » permet de surcharger la règle pour certains matchs."
+    ),
 }
 
 
@@ -125,6 +128,9 @@ def indices_contraintes_du_match(match, contraintes):
         ) or (
             cible.get("type") == "niveau"
             and str(cible.get("niveau", "")) == str(match.get("niveau", ""))
+            and int(match["numero"]) not in {
+                int(numero) for numero in cible.get("exclusions_matchs", [])
+            }
         )
         if correspond:
             resultat.append(index)
@@ -156,6 +162,7 @@ def _liste_entiers(texte, obligatoire=False):
 class _DialogueBase(tk.Toplevel):
     def __init__(self, parent, titre):
         super().__init__(parent)
+        self.parent_dialogue = parent
         self.title(titre)
         self.transient(parent)
         self.resizable(False, False)
@@ -241,6 +248,10 @@ class DialogueContrainte(_DialogueBase):
             value=contrainte.get("type", type_par_defaut)
         )
         self.type_cible = tk.StringVar(value=cible.get("type", "match"))
+        self.exclusions_matchs = list(cible.get("exclusions_matchs", []))
+        self.exclusions_var = tk.StringVar(
+            value=",".join(str(numero) for numero in self.exclusions_matchs)
+        )
         valeur_cible = cible.get("numero", cible.get("niveau", ""))
         if cible.get("type") == "matchs":
             valeur_cible = ",".join(str(n) for n in cible.get("numeros", []))
@@ -271,6 +282,7 @@ class DialogueContrainte(_DialogueBase):
             ("Rangs du match", self.rangs),
             ("Rangs participant 1", self.rangs_1),
             ("Rangs participant 2", self.rangs_2),
+            ("Matchs exclus du niveau", self.exclusions_var),
         )
         self.entrees_parametres = []
         for ligne, (libelle, variable) in enumerate(champs, start=2):
@@ -281,7 +293,7 @@ class DialogueContrainte(_DialogueBase):
             )
             self.entrees_parametres.append((variable, entree))
         cadre_aide = ttk.LabelFrame(self.corps, text="Comment remplir cette contrainte", padding=10)
-        cadre_aide.grid(row=6, column=0, columnspan=2, sticky="ew", pady=(12, 0))
+        cadre_aide.grid(row=7, column=0, columnspan=2, sticky="ew", pady=(12, 0))
         self.aide_var = tk.StringVar()
         ttk.Label(
             cadre_aide,
@@ -305,6 +317,11 @@ class DialogueContrainte(_DialogueBase):
         for variable, entree in self.entrees_parametres:
             if variable is self.valeur_cible:
                 entree.state(["!disabled"])
+            elif variable is self.exclusions_var:
+                if self.type_cible.get() == "niveau":
+                    entree.state(["!disabled"])
+                else:
+                    entree.state(["disabled"])
             elif any(variable is active for active in champs_actifs):
                 entree.state(["!disabled"])
             else:
@@ -322,9 +339,25 @@ class DialogueContrainte(_DialogueBase):
             elif type_cible == "position":
                 cible["numero"] = int(valeur)
             elif type_cible == "matchs":
-                cible["numeros"] = _liste_entiers(valeur, obligatoire=True)
+                numeros = _liste_entiers(valeur, obligatoire=True)
+                matchs = {
+                    int(match["numero"]): match
+                    for match in getattr(self.parent_dialogue, "donnees", {}).get("matchs", [])
+                }
+                niveaux = {
+                    str(matchs[numero].get("niveau", ""))
+                    for numero in numeros if numero in matchs
+                }
+                if len(niveaux) > 1:
+                    raise ValueError(
+                        "Sélectionnez uniquement des matchs du même niveau"
+                    )
+                cible["numeros"] = numeros
             else:
                 cible["niveau"] = valeur
+                exclusions = _liste_entiers(self.exclusions_var.get())
+                if exclusions:
+                    cible["exclusions_matchs"] = sorted(set(exclusions))
             resultat = {"type": self.type_contrainte.get(), "cible": cible}
             if resultat["type"] == "rangs_position" and type_cible != "position":
                 raise ValueError("La contrainte rangs_position doit cibler une position")
@@ -671,6 +704,14 @@ class EditeurConfiguration(tk.Toplevel):
             if int(numero) in matchs
             for index in indices_contraintes_du_match(matchs[int(numero)], contraintes)
         })
+
+    def _numeros_matchs_cible_visualisation(self):
+        cible = self.cible_visualisation or {}
+        if cible.get("type") == "match":
+            return [int(cible["numero"])]
+        if cible.get("type") == "matchs":
+            return [int(numero) for numero in cible.get("numeros", [])]
+        return []
 
     def _afficher_toutes_contraintes_visualisation(self):
         self.cible_visualisation = None
@@ -1045,14 +1086,23 @@ class EditeurConfiguration(tk.Toplevel):
             )
         return ""
 
+    def _texte_cible_contrainte(self, contrainte):
+        cible = contrainte.get("cible", {})
+        valeur = cible.get("numero", cible.get("niveau", ""))
+        if cible.get("type") == "matchs":
+            valeur = ", ".join(str(n) for n in cible.get("numeros", []))
+        texte = "{} : {}".format(cible.get("type", ""), valeur)
+        exclusions = cible.get("exclusions_matchs", [])
+        if exclusions:
+            texte += " (sauf {})".format(
+                ", ".join("M{}".format(numero) for numero in exclusions)
+            )
+        return texte
+
     def _rafraichir_contraintes(self):
         self.table_contraintes.delete(*self.table_contraintes.get_children())
         for index, contrainte in enumerate(self.donnees.get("contraintes", [])):
-            cible = contrainte.get("cible", {})
-            valeur = cible.get("numero", cible.get("niveau", ""))
-            if cible.get("type") == "matchs":
-                valeur = ", ".join(str(n) for n in cible.get("numeros", []))
-            texte_cible = "{} : {}".format(cible.get("type", ""), valeur)
+            texte_cible = self._texte_cible_contrainte(contrainte)
             self.table_contraintes.insert("", "end", iid=str(index), values=(
                 contrainte.get("type", ""),
                 texte_cible,
@@ -1074,11 +1124,7 @@ class EditeurConfiguration(tk.Toplevel):
         )
         for index in indices:
             contrainte = contraintes[index]
-            cible = contrainte.get("cible", {})
-            valeur = cible.get("numero", cible.get("niveau", ""))
-            if cible.get("type") == "matchs":
-                valeur = ", ".join(str(n) for n in cible.get("numeros", []))
-            texte_cible = "{} : {}".format(cible.get("type", ""), valeur)
+            texte_cible = self._texte_cible_contrainte(contrainte)
             self.table_contraintes_visu.insert(
                 "",
                 "end",
@@ -1161,7 +1207,61 @@ class EditeurConfiguration(tk.Toplevel):
     def _supprimer_contrainte(self, table=None):
         table = table or self.table_contraintes
         index = self._index_selectionne(table)
-        if index is not None and messagebox.askyesno(
+        if index is None:
+            return
+        contrainte = self.donnees["contraintes"][index]
+        cible = contrainte.get("cible", {})
+        depuis_visualisation = (
+            hasattr(self, "table_contraintes_visu")
+            and table is self.table_contraintes_visu
+            and self.cible_visualisation
+        )
+        if depuis_visualisation and cible.get("type") == "niveau":
+            numeros = self._numeros_matchs_cible_visualisation()
+            niveau = str(cible.get("niveau", ""))
+            matchs = {
+                int(match["numero"]): match for match in self.donnees.get("matchs", [])
+            }
+            numeros = [
+                numero for numero in numeros
+                if numero in matchs and str(matchs[numero].get("niveau", "")) == niveau
+            ]
+            if numeros and messagebox.askyesno(
+                "Retirer la contrainte héritée",
+                "Retirer cette contrainte de niveau uniquement des matchs {} ?\n\n"
+                "La contrainte restera active sur les autres matchs du niveau {}.".format(
+                    ", ".join(map(str, numeros)), niveau
+                ),
+                parent=self,
+            ):
+                exclusions = {int(n) for n in cible.get("exclusions_matchs", [])}
+                exclusions.update(numeros)
+                numeros_niveau = {
+                    numero for numero, match in matchs.items()
+                    if str(match.get("niveau", "")) == niveau
+                }
+                if numeros_niveau and numeros_niveau.issubset(exclusions):
+                    del self.donnees["contraintes"][index]
+                else:
+                    cible["exclusions_matchs"] = sorted(exclusions)
+                self._rafraichir_tout()
+            return
+        if depuis_visualisation and cible.get("type") == "matchs":
+            selection = set(self._numeros_matchs_cible_visualisation())
+            actuels = [int(n) for n in cible.get("numeros", [])]
+            restants = [numero for numero in actuels if numero not in selection]
+            if len(restants) != len(actuels) and messagebox.askyesno(
+                "Retirer des matchs",
+                "Retirer cette contrainte des matchs sélectionnés ?",
+                parent=self,
+            ):
+                if restants:
+                    cible["numeros"] = restants
+                else:
+                    del self.donnees["contraintes"][index]
+                self._rafraichir_tout()
+            return
+        if messagebox.askyesno(
             "Supprimer la contrainte", "Supprimer la contrainte sélectionnée ?", parent=self
         ):
             del self.donnees["contraintes"][index]

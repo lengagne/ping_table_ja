@@ -87,6 +87,11 @@ visualisation ne montre que les contraintes correspondantes. Le bouton
 **Afficher toutes les contraintes du tableau** retire ce filtre. Le chemin
 complet du fichier JSON ouvert est visible en bas de la fenêtre.
 
+Une même contrainte peut cibler plusieurs matchs du même niveau. Une contrainte
+appliquée à un niveau accepte aussi une liste de matchs exclus. Depuis la
+visualisation d'un match, supprimer une contrainte héritée du niveau crée cette
+exception au lieu de supprimer la règle pour tous les autres matchs.
+
 L'éditeur prend en charge les tailles 8, 16, 32, 64, 128, 256 ou une puissance
 de deux supérieure et le classement intégral. Si les barrages 1er-4e ne sont
 pas activés, les 2es et 3es jouent un barrage : le gagnant rejoint un 1er dans

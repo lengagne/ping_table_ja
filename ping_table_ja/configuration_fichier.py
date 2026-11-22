@@ -75,7 +75,21 @@ def _matchs_cibles(cible, matchs):
         return [matchs[numero]]
     if type_cible == "niveau":
         niveau = str(cible.get("niveau", ""))
-        resultat = [match for match in matchs.values() if match.niveau == niveau]
+        exclusions = {int(numero) for numero in cible.get("exclusions_matchs", [])}
+        invalides = [
+            numero for numero in exclusions
+            if numero not in matchs or matchs[numero].niveau != niveau
+        ]
+        if invalides:
+            raise ValueError(
+                "Exclusion(s) invalide(s) pour le niveau {} : {}".format(
+                    niveau, sorted(invalides)
+                )
+            )
+        resultat = [
+            match for match in matchs.values()
+            if match.niveau == niveau and match.numero not in exclusions
+        ]
         if not resultat:
             raise ValueError("Niveau ciblé introuvable : {!r}".format(niveau))
         return resultat
@@ -86,6 +100,11 @@ def _matchs_cibles(cible, matchs):
         manquants = [numero for numero in numeros if numero not in matchs]
         if manquants:
             raise ValueError("Match(s) ciblé(s) introuvable(s) : {}".format(manquants))
+        niveaux = {matchs[numero].niveau for numero in numeros}
+        if len(niveaux) > 1:
+            raise ValueError(
+                "Une contrainte groupée doit cibler des matchs du même niveau"
+            )
         return [matchs[numero] for numero in numeros]
     raise ValueError("Type de cible inconnu : {!r}".format(type_cible))
 
