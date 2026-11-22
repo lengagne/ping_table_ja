@@ -110,8 +110,13 @@ class TestConfigurationFichier(unittest.TestCase):
             classeur = load_workbook(chemin, data_only=False)
             self.assertEqual(
                 classeur.sheetnames,
-                ["Récap", "Tirage choisi", "Tous les tirages"],
+                ["Récap", "Poules", "Tirage choisi", "Tous les tirages"],
             )
+            self.assertEqual(classeur["Poules"]["B3"].value, "Poule 1")
+            self.assertEqual(classeur["Poules"]["C3"].value, "Poule 2")
+            self.assertEqual(classeur["Poules"]["A4"].value, "1ER")
+            self.assertEqual(classeur["Poules"]["B4"].value, "Alice — A")
+            self.assertEqual(classeur["Poules"]["C5"].value, "Benoît — B")
             self.assertEqual(classeur["Tirage choisi"]["B3"].value, 1)
             self.assertEqual(
                 classeur["Tirage choisi"]["C3"].value,

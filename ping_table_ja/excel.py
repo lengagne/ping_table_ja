@@ -173,6 +173,41 @@ def creer_fichier_solution(
     feuille_recap.column_dimensions["A"].width = 30
     feuille_recap.column_dimensions["B"].width = 95
 
+    feuille_poules = classeur.create_sheet("Poules")
+    feuille_poules.sheet_view.showGridLines = False
+    feuille_poules["A1"] = "Joueurs par poule et par rang"
+    feuille_poules["A1"].font = Font(size=15, bold=True, color="1F1F1F")
+    _styliser_entetes(
+        feuille_poules,
+        3,
+        ["Rang"] + ["Poule {}".format(numero_poule) for numero_poule in poules],
+    )
+    joueurs_par_poule_et_rang = {
+        (int(joueur["poule"]), int(joueur["rang_poule"])): joueur
+        for joueur in solutions[0]
+        if joueur is not None
+    }
+    for rang in range(1, nombre_rangs + 1):
+        ligne = rang + 3
+        cellule_rang = feuille_poules.cell(ligne, 1, _libelle_rang(rang))
+        cellule_rang.font = Font(bold=True)
+        cellule_rang.alignment = Alignment(horizontal="center")
+        for index_poule, numero_poule in enumerate(poules, start=2):
+            joueur = joueurs_par_poule_et_rang.get((numero_poule, rang))
+            if joueur is None:
+                valeur = ""
+            else:
+                nom = joueur.get("nom", "")
+                club = joueur.get("club", "")
+                valeur = "{} — {}".format(nom, club) if club else nom
+            feuille_poules.cell(ligne, index_poule, valeur)
+    feuille_poules.column_dimensions["A"].width = 12
+    for colonne in range(2, len(poules) + 2):
+        feuille_poules.column_dimensions[
+            feuille_poules.cell(1, colonne).column_letter
+        ].width = 28
+    feuille_poules.freeze_panes = "B4"
+
     feuille_tirage = classeur.create_sheet("Tirage choisi")
     feuille_tirage.sheet_view.showGridLines = False
     feuille_tirage["A1"] = "Tirage choisi"
