@@ -67,7 +67,10 @@ d'ouvrir un autre JSON, d'enregistrer ou d'enregistrer sous un nouveau nom.
 
 L'onglet **Visualisation** dessine le tableau : places des joueurs de haut en
 bas, matchs répartis par tour et liaisons `V` (vainqueur) ou `P` (perdant).
-Le dessin est défilable et dispose de commandes de zoom.
+Le dessin est défilable et dispose de commandes de zoom. Un panneau latéral
+permet aussi de voir, ajouter, modifier ou supprimer les contraintes. Les
+matchs concernés sont signalés sur le dessin et mis en évidence quand une
+contrainte est sélectionnée.
 
 L'éditeur prend en charge les tailles 8, 16, 32, 64, 128, 256 ou une puissance
 de deux supérieure et le classement intégral. Si les barrages 1er-4e ne sont
