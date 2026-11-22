@@ -28,7 +28,7 @@ if errorlevel 1 goto :failure
 echo.
 echo Installation terminee.
 echo Pour activer l'environnement : .venv\Scripts\activate.bat
-echo Puis lancez : python -m double_ko32 classement.xlsx
+echo Puis lancez l'interface avec lancer_interface.bat
 goto :end
 
 :python_missing

@@ -3,11 +3,15 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "double-ko32"
-version = "1.0.0"
+name = "ping-table-ja"
+version = "1.1.0"
 description = "Générateur de tableau double élimination pour 32 joueurs"
 requires-python = ">=3.9"
 dependencies = ["openpyxl>=3.1,<4"]
 
 [project.scripts]
-double-ko32 = "double_ko32.cli:main"
+ping-table-ja = "ping_table_ja.cli:main"
+ping-table-ja-gui = "ping_table_ja.gui:main"
+
+[tool.setuptools.package-data]
+ping_table_ja = ["configurations/*.json"]

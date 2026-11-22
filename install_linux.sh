@@ -12,6 +12,12 @@ if ! command -v python3 >/dev/null 2>&1; then
     exit 1
 fi
 
+if ! python3 -c "import tkinter" >/dev/null 2>&1; then
+    echo "Erreur : le module graphique Tkinter est manquant."
+    echo "Exemple Ubuntu/Debian : sudo apt install python3-tk"
+    exit 1
+fi
+
 echo "Creation de l'environnement virtuel dans $VENV_DIR..."
 python3 -m venv "$VENV_DIR"
 
@@ -24,4 +30,4 @@ echo "Installation de Double KO 32 et de ses dependances..."
 echo
 echo "Installation terminee."
 echo "Pour activer l'environnement : source \"$VENV_DIR/bin/activate\""
-echo "Puis lancez : python -m double_ko32 classement.xlsx"
+echo "Puis lancez l'interface : ./lancer_interface.sh"
