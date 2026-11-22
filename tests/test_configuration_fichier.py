@@ -102,6 +102,13 @@ class TestConfigurationFichier(unittest.TestCase):
                 ["Récap", "Tirage choisi", "Tous les tirages"],
             )
             self.assertEqual(classeur["Tirage choisi"]["B3"].value, 1)
+            self.assertEqual(
+                classeur["Tirage choisi"]["C3"].value,
+                "sur 2 tirages disponibles",
+            )
+            validation = classeur["Tirage choisi"].data_validations.dataValidation[0]
+            self.assertEqual(validation.formula1, "1")
+            self.assertEqual(validation.formula2, "2")
             self.assertEqual(classeur["Tirage choisi"]["B6"].value, 1)
             self.assertEqual(classeur["Tirage choisi"]["C6"].value, 2)
             self.assertEqual(classeur["Tirage choisi"]["B7"].value, "A")
@@ -116,6 +123,9 @@ class TestConfigurationFichier(unittest.TestCase):
             classeur = load_workbook(chemin, data_only=False)
             self.assertEqual(classeur["Tirage choisi"]["B3"].value, 2)
             classeur.close()
+
+            with self.assertRaisesRegex(ValueError, "compris entre 1 et 2"):
+                mettre_a_jour_tirage_choisi(chemin, 3)
 
 
 if __name__ == "__main__":
