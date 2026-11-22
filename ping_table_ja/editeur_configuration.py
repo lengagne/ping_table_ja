@@ -40,6 +40,34 @@ def formater_reference(reference):
     return "{}:{}".format(type_reference, reference.get(cle, ""))
 
 
+def calculer_profondeurs_matchs(matchs):
+    """Calcule la colonne graphique de chaque match et détecte les cycles."""
+    par_numero = {int(match["numero"]): match for match in matchs}
+    profondeurs = {}
+    en_cours = set()
+
+    def profondeur(numero):
+        if numero in profondeurs:
+            return profondeurs[numero]
+        if numero in en_cours:
+            raise ValueError("Cycle détecté autour du match {}".format(numero))
+        if numero not in par_numero:
+            raise ValueError("Match référencé introuvable : {}".format(numero))
+        en_cours.add(numero)
+        dependances = []
+        for cle in ("participant_1", "participant_2"):
+            reference = par_numero[numero].get(cle, {})
+            if reference.get("type") in ("vainqueur", "perdant"):
+                dependances.append(profondeur(int(reference.get("match", 0))))
+        en_cours.remove(numero)
+        profondeurs[numero] = 1 + max(dependances, default=0)
+        return profondeurs[numero]
+
+    for numero in par_numero:
+        profondeur(numero)
+    return profondeurs
+
+
 def _liste_entiers(texte, obligatoire=False):
     valeurs = [element.strip() for element in str(texte).split(",") if element.strip()]
     if obligatoire and not valeurs:
@@ -244,13 +272,16 @@ class EditeurConfiguration(tk.Toplevel):
         self.onglet_general = ttk.Frame(self.onglets, padding=18)
         self.onglet_matchs = ttk.Frame(self.onglets, padding=12)
         self.onglet_contraintes = ttk.Frame(self.onglets, padding=12)
+        self.onglet_visualisation = ttk.Frame(self.onglets, padding=8)
         self.onglet_json = ttk.Frame(self.onglets, padding=12)
         for cadre, titre in (
             (self.onglet_general, "Général"), (self.onglet_matchs, "Matchs"),
-            (self.onglet_contraintes, "Contraintes"), (self.onglet_json, "Aperçu JSON"),
+            (self.onglet_contraintes, "Contraintes"),
+            (self.onglet_visualisation, "Visualisation"),
+            (self.onglet_json, "Aperçu JSON"),
         ):
             self.onglets.add(cadre, text=titre)
-        self.onglets.bind("<<NotebookTabChanged>>", lambda _e: self._rafraichir_json())
+        self.onglets.bind("<<NotebookTabChanged>>", self._onglet_change)
         self._construire_general()
         self.table_matchs = self._construire_liste(
             self.onglet_matchs,
@@ -266,6 +297,7 @@ class EditeurConfiguration(tk.Toplevel):
             (230, 180, 420),
             self._ajouter_contrainte, self._modifier_contrainte, self._supprimer_contrainte,
         )
+        self._construire_visualisation()
         self.texte_json = tk.Text(self.onglet_json, wrap="none", font=("TkFixedFont", 10))
         self.texte_json.pack(fill="both", expand=True)
         actions = ttk.Frame(self, padding=(12, 0, 12, 12))
@@ -323,6 +355,165 @@ class EditeurConfiguration(tk.Toplevel):
         ttk.Button(boutons, text="Supprimer", command=supprimer).pack(side="left")
         return table
 
+    def _construire_visualisation(self):
+        self.onglet_visualisation.columnconfigure(0, weight=1)
+        self.onglet_visualisation.rowconfigure(1, weight=1)
+        outils = ttk.Frame(self.onglet_visualisation)
+        outils.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 8))
+        ttk.Label(
+            outils,
+            text="Les places sont numérotées de haut en bas. V = vainqueur, P = perdant.",
+        ).pack(side="left")
+        ttk.Button(outils, text="Actualiser", command=self._rafraichir_visualisation).pack(
+            side="right"
+        )
+        ttk.Button(outils, text="Zoom +", command=lambda: self._changer_zoom(0.15)).pack(
+            side="right", padx=5
+        )
+        ttk.Button(outils, text="Zoom −", command=lambda: self._changer_zoom(-0.15)).pack(
+            side="right"
+        )
+        self.zoom_visualisation = 1.0
+        self.canvas_tableau = tk.Canvas(
+            self.onglet_visualisation,
+            background="white",
+            highlightthickness=1,
+            highlightbackground="#b8b8b8",
+        )
+        self.canvas_tableau.grid(row=1, column=0, sticky="nsew")
+        barre_y = ttk.Scrollbar(
+            self.onglet_visualisation, orient="vertical", command=self.canvas_tableau.yview
+        )
+        barre_y.grid(row=1, column=1, sticky="ns")
+        barre_x = ttk.Scrollbar(
+            self.onglet_visualisation, orient="horizontal", command=self.canvas_tableau.xview
+        )
+        barre_x.grid(row=2, column=0, sticky="ew")
+        self.canvas_tableau.configure(
+            xscrollcommand=barre_x.set,
+            yscrollcommand=barre_y.set,
+        )
+
+    def _onglet_change(self, _evenement=None):
+        self._rafraichir_json()
+        if self.onglets.select() == str(self.onglet_visualisation):
+            self._rafraichir_visualisation()
+
+    def _changer_zoom(self, delta):
+        self.zoom_visualisation = min(2.0, max(0.55, self.zoom_visualisation + delta))
+        self._rafraichir_visualisation()
+
+    def _rafraichir_visualisation(self):
+        if not hasattr(self, "canvas_tableau"):
+            return
+        canvas = self.canvas_tableau
+        canvas.delete("all")
+        try:
+            self._synchroniser_general()
+            taille = int(self.donnees.get("taille_tableau", 0))
+            matchs = self.donnees.get("matchs", [])
+            profondeurs = calculer_profondeurs_matchs(matchs)
+            if not matchs:
+                raise ValueError("Ajoutez au moins un match pour afficher le tableau")
+        except Exception as erreur:
+            canvas.create_text(
+                25, 25, anchor="nw", text="Visualisation impossible : {}".format(erreur),
+                fill="#b00020", font=("TkDefaultFont", 11, "bold"),
+            )
+            canvas.configure(scrollregion=(0, 0, 800, 300))
+            return
+
+        z = self.zoom_visualisation
+        marge_x, marge_y = 45 * z, 60 * z
+        pas_joueur = 36 * z
+        largeur_match, hauteur_match = 150 * z, 42 * z
+        pas_colonne, espace_match = 235 * z, 56 * z
+        positions_coordonnees = {
+            numero: (marge_x, marge_y + (numero - 1) * pas_joueur)
+            for numero in range(1, taille + 1)
+        }
+        for numero, (x, y) in positions_coordonnees.items():
+            canvas.create_text(
+                x, y, text=str(numero), anchor="e",
+                font=("TkDefaultFont", max(8, int(10 * z)), "bold"), fill="#333333",
+            )
+            canvas.create_line(x + 8 * z, y, x + 50 * z, y, fill="#8a8a8a")
+
+        par_numero = {int(match["numero"]): match for match in matchs}
+        coordonnees_matchs = {}
+
+        def coordonnee_source(reference):
+            type_reference = reference.get("type")
+            if type_reference == "position":
+                numero = int(reference.get("numero", 0))
+                if numero not in positions_coordonnees:
+                    raise ValueError("Position introuvable : {}".format(numero))
+                x, y = positions_coordonnees[numero]
+                return x + 50 * z, y
+            numero_match = int(reference.get("match", 0))
+            if numero_match not in coordonnees_matchs:
+                raise ValueError("Match précédent non positionné : {}".format(numero_match))
+            x, y = coordonnees_matchs[numero_match]
+            return x + largeur_match, y
+
+        profondeur_max = max(profondeurs.values(), default=1)
+        for profondeur in range(1, profondeur_max + 1):
+            groupe = [
+                match for match in matchs
+                if profondeurs[int(match["numero"])] == profondeur
+            ]
+            souhaits = []
+            for match in groupe:
+                sources = [
+                    coordonnee_source(match.get("participant_1", {})),
+                    coordonnee_source(match.get("participant_2", {})),
+                ]
+                souhaits.append((sum(source[1] for source in sources) / 2, match, sources))
+            souhaits.sort(key=lambda element: element[0])
+            precedent_y = marge_y - espace_match
+            for souhaite_y, match, sources in souhaits:
+                y = max(souhaite_y, precedent_y + espace_match)
+                precedent_y = y
+                x = marge_x + 85 * z + (profondeur - 1) * pas_colonne
+                coordonnees_matchs[int(match["numero"])] = (x, y)
+                for index, (source_x, source_y) in enumerate(sources, start=1):
+                    cible_y = y - hauteur_match * 0.23 if index == 1 else y + hauteur_match * 0.23
+                    milieu_x = (source_x + x) / 2
+                    canvas.create_line(
+                        source_x, source_y, milieu_x, source_y, milieu_x, cible_y, x, cible_y,
+                        fill="#5f6368", width=max(1, int(z)),
+                    )
+                    reference = match.get("participant_{}".format(index), {})
+                    if reference.get("type") in ("vainqueur", "perdant"):
+                        canvas.create_text(
+                            source_x + 7 * z, source_y - 7 * z,
+                            text="V" if reference["type"] == "vainqueur" else "P",
+                            anchor="w", fill="#166534" if reference["type"] == "vainqueur" else "#9a3412",
+                            font=("TkDefaultFont", max(7, int(8 * z)), "bold"),
+                        )
+                couleur = "#dbeafe" if str(match.get("niveau", "")).startswith("1/") or match.get("niveau") == "finale" else "#fef3c7"
+                canvas.create_rectangle(
+                    x, y - hauteur_match / 2, x + largeur_match, y + hauteur_match / 2,
+                    fill=couleur, outline="#3f3f46", width=max(1, int(z)),
+                )
+                canvas.create_text(
+                    x + 8 * z, y - 8 * z, anchor="w",
+                    text="MATCH {}".format(match["numero"]),
+                    font=("TkDefaultFont", max(8, int(10 * z)), "bold"),
+                )
+                canvas.create_text(
+                    x + 8 * z, y + 9 * z, anchor="w",
+                    text=str(match.get("niveau", "")), fill="#52525b",
+                    font=("TkDefaultFont", max(7, int(9 * z))),
+                )
+
+        hauteur = max(
+            marge_y + taille * pas_joueur,
+            max((y for _x, y in coordonnees_matchs.values()), default=0) + 100 * z,
+        )
+        largeur = marge_x + 150 * z + profondeur_max * pas_colonne
+        canvas.configure(scrollregion=(0, 0, largeur, hauteur))
+
     def _charger_variables(self):
         self.nom_var.set(self.donnees.get("nom", ""))
         self.taille_var.set(str(self.donnees.get("taille_tableau", 32)))
@@ -346,6 +537,7 @@ class EditeurConfiguration(tk.Toplevel):
     def _rafraichir_tout(self):
         self._rafraichir_matchs()
         self._rafraichir_contraintes()
+        self._rafraichir_visualisation()
         self._rafraichir_json()
 
     def _rafraichir_matchs(self):

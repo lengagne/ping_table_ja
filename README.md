@@ -54,6 +54,10 @@ généraux, de générer une structure standard, de partir de zéro, puis
 d'ajouter, modifier ou supprimer les matchs et les contraintes. Un dernier
 onglet affiche le JSON produit avant son enregistrement.
 
+L'onglet **Visualisation** dessine le tableau : places des joueurs de haut en
+bas, matchs répartis par tour et liaisons `V` (vainqueur) ou `P` (perdant).
+Le dessin est défilable et dispose de commandes de zoom.
+
 L'éditeur prend en charge les tailles 8, 16, 32, 64, 128, 256 ou une puissance
 de deux supérieure, le classement intégral et la présence de barrages 1er
 contre 4e. Chaque participant d'un match se note sous la forme `position:1`,
