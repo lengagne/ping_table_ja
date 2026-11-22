@@ -102,8 +102,14 @@ class TestConfigurationFichier(unittest.TestCase):
                 ["Récap", "Tirage choisi", "Tous les tirages"],
             )
             self.assertEqual(classeur["Tirage choisi"]["B3"].value, 1)
-            self.assertTrue(classeur["Tirage choisi"]["B7"].value.startswith("=IFERROR(INDEX"))
-            self.assertEqual(classeur["Tous les tirages"].max_row, 5)
+            self.assertEqual(classeur["Tirage choisi"]["B6"].value, 1)
+            self.assertEqual(classeur["Tirage choisi"]["C6"].value, 2)
+            self.assertEqual(classeur["Tirage choisi"]["B7"].value, "A")
+            self.assertTrue(classeur["Tirage choisi"]["B8"].value.startswith("=IFERROR(INDEX"))
+            self.assertEqual(classeur["Tous les tirages"]["A1"].value, "TIRAGE 1")
+            self.assertEqual(classeur["Tous les tirages"]["B4"].value, 1)
+            self.assertEqual(classeur["Tous les tirages"]["C5"].value, 2)
+            self.assertEqual(classeur["Tous les tirages"]["A7"].value, "TIRAGE 2")
             classeur.close()
 
             mettre_a_jour_tirage_choisi(chemin, 2)

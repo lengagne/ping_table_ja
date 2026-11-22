@@ -4,7 +4,6 @@ import re
 from pathlib import Path
 
 from openpyxl import Workbook, load_workbook
-from openpyxl.formatting.rule import FormulaRule
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.worksheet.datavalidation import DataValidation
 
@@ -86,6 +85,28 @@ def _styliser_entetes(feuille, ligne, entetes):
         cellule.alignment = Alignment(horizontal="center", vertical="center")
 
 
+def _nom_colonne_poule(index):
+    """Retourne A, B, ..., Z, AA... pour identifier visuellement une poule."""
+    resultat = ""
+    while index:
+        index, reste = divmod(index - 1, 26)
+        resultat = chr(65 + reste) + resultat
+    return resultat
+
+
+def _libelle_rang(rang):
+    return {1: "1ER", 2: "2EME", 3: "3EME", 4: "4EME"}.get(rang, "{}EME".format(rang))
+
+
+def _positions_par_poule(tirage):
+    """Associe chaque couple (poule, rang) à sa place dans le tirage."""
+    return {
+        (int(joueur["poule"]), int(joueur["rang_poule"])): position
+        for position, joueur in enumerate(tirage, start=1)
+        if joueur is not None and joueur.get("poule") and joueur.get("rang_poule")
+    }
+
+
 def creer_fichier_solution(
     fichier_sortie,
     solution,
@@ -109,7 +130,16 @@ def creer_fichier_solution(
     nombre_positions = len(solutions[0])
     if any(len(tirage) != nombre_positions for tirage in solutions):
         raise ValueError("Tous les tirages doivent avoir le même nombre de positions")
-    if len(solutions) * nombre_positions > 1_048_575:
+    joueurs = [joueur for tirage in solutions for joueur in tirage if joueur is not None]
+    poules = sorted({int(joueur["poule"]) for joueur in joueurs if joueur.get("poule")})
+    nombre_rangs = max(
+        (int(joueur["rang_poule"]) for joueur in joueurs if joueur.get("rang_poule")),
+        default=0,
+    )
+    if not poules or not nombre_rangs:
+        raise ValueError("Les joueurs doivent posséder un numéro de poule et un rang")
+    hauteur_bloc = nombre_rangs + 4
+    if len(solutions) * hauteur_bloc > 1_048_576:
         raise ValueError("Le nombre de tirages dépasse la capacité d'un onglet Excel")
 
     classeur = Workbook()
@@ -169,58 +199,76 @@ def creer_fichier_solution(
     feuille_tirage.add_data_validation(validation)
     validation.add(feuille_tirage["B3"])
 
-    entetes = ["Place (n° de match)", "Nom", "Club", "Poule", "Rang dans la poule"]
-    _styliser_entetes(feuille_tirage, 6, entetes)
-    derniere_ligne_donnees = 1 + len(solutions) * nombre_positions
-    colonnes_sources = ("C", "D", "E", "F")
-    for position in range(1, nombre_positions + 1):
-        ligne = position + 6
-        feuille_tirage.cell(ligne, 1, position)
-        for colonne_destination, colonne_source in enumerate(colonnes_sources, start=2):
-            feuille_tirage.cell(
+    feuille_tirage["A5"] = '="TIRAGE "&$B$3'
+    feuille_tirage["A5"].font = Font(size=14, bold=True)
+    feuille_tirage["A6"] = "POULES"
+    feuille_tirage["A6"].font = Font(bold=True, color="FFFFFF")
+    feuille_tirage["A6"].fill = PatternFill(fill_type="solid", fgColor=COULEUR_ENTETE)
+    for index_poule, numero_poule in enumerate(poules, start=1):
+        colonne = index_poule + 1
+        for ligne, valeur in ((6, numero_poule), (7, _nom_colonne_poule(index_poule))):
+            cellule = feuille_tirage.cell(ligne, colonne, valeur)
+            cellule.font = Font(bold=True, color="FFFFFF")
+            cellule.fill = PatternFill(fill_type="solid", fgColor=COULEUR_ENTETE)
+            cellule.alignment = Alignment(horizontal="center")
+    feuille_tirage["A7"].fill = PatternFill(fill_type="solid", fgColor=COULEUR_ENTETE)
+    derniere_ligne_tous = len(solutions) * hauteur_bloc
+    for rang in range(1, nombre_rangs + 1):
+        ligne = rang + 7
+        cellule_rang = feuille_tirage.cell(ligne, 1, _libelle_rang(rang))
+        cellule_rang.font = Font(bold=True)
+        for index_poule in range(1, len(poules) + 1):
+            cellule = feuille_tirage.cell(
                 ligne,
-                colonne_destination,
-                "=IFERROR(INDEX('Tous les tirages'!${0}$2:${0}${1},(($B$3-1)*{2})+$A{3}),\"\")".format(
-                    colonne_source,
-                    derniere_ligne_donnees,
-                    nombre_positions,
-                    ligne,
+                index_poule + 1,
+                "=IFERROR(INDEX('Tous les tirages'!$B$4:${0}${1},(($B$3-1)*{2})+{3},{4}),\"\")".format(
+                    feuille_tirage.cell(1, len(poules) + 1).column_letter,
+                    derniere_ligne_tous,
+                    hauteur_bloc,
+                    rang,
+                    index_poule,
                 ),
             )
-    for colonne, largeur in zip("ABCDE", (22, 30, 25, 12, 22)):
-        feuille_tirage.column_dimensions[colonne].width = largeur
-    feuille_tirage.freeze_panes = "A7"
-    feuille_tirage.auto_filter.ref = "A6:E{}".format(nombre_positions + 6)
+            cellule.alignment = Alignment(horizontal="center")
+    feuille_tirage.column_dimensions["A"].width = 18
+    for colonne in range(2, len(poules) + 2):
+        feuille_tirage.column_dimensions[feuille_tirage.cell(1, colonne).column_letter].width = 11
+    feuille_tirage.freeze_panes = "B8"
 
     feuille_tous = classeur.create_sheet("Tous les tirages")
     feuille_tous.sheet_view.showGridLines = False
-    _styliser_entetes(
-        feuille_tous,
-        1,
-        ["N° tirage", "Place (n° de match)", "Nom", "Club", "Poule", "Rang dans la poule"],
-    )
-    ligne = 2
+    ligne = 1
     for numero_tirage, tirage in enumerate(solutions, start=1):
-        for position, joueur in enumerate(tirage, start=1):
-            feuille_tous.cell(ligne, 1, numero_tirage)
-            feuille_tous.cell(ligne, 2, position)
-            if joueur is not None:
-                feuille_tous.cell(ligne, 3, joueur.get("nom", ""))
-                feuille_tous.cell(ligne, 4, joueur.get("club", ""))
-                feuille_tous.cell(ligne, 5, joueur.get("poule", ""))
-                feuille_tous.cell(ligne, 6, joueur.get("rang_poule", ""))
-            ligne += 1
-    for colonne, largeur in zip("ABCDEF", (12, 22, 30, 25, 12, 22)):
-        feuille_tous.column_dimensions[colonne].width = largeur
-    feuille_tous.freeze_panes = "A2"
-    feuille_tous.auto_filter.ref = "A1:F{}".format(ligne - 1)
-    feuille_tous.conditional_formatting.add(
-        "A2:F{}".format(ligne - 1),
-        FormulaRule(
-            formula=["$A2='Tirage choisi'!$B$3"],
-            fill=PatternFill(fill_type="solid", fgColor="E2F0D9"),
-        ),
-    )
+        positions = _positions_par_poule(tirage)
+        feuille_tous.cell(ligne, 1, "TIRAGE {}".format(numero_tirage)).font = Font(
+            size=14, bold=True
+        )
+        feuille_tous.cell(ligne + 1, 1, "POULES")
+        feuille_tous.cell(ligne + 2, 1, "")
+        for index_poule, numero_poule in enumerate(poules, start=1):
+            colonne = index_poule + 1
+            feuille_tous.cell(ligne + 1, colonne, numero_poule)
+            feuille_tous.cell(ligne + 2, colonne, _nom_colonne_poule(index_poule))
+        for colonne in range(1, len(poules) + 2):
+            for ligne_entete in (ligne + 1, ligne + 2):
+                cellule = feuille_tous.cell(ligne_entete, colonne)
+                cellule.font = Font(bold=True, color="FFFFFF")
+                cellule.fill = PatternFill(fill_type="solid", fgColor=COULEUR_ENTETE)
+                cellule.alignment = Alignment(horizontal="center")
+        for rang in range(1, nombre_rangs + 1):
+            feuille_tous.cell(ligne + 2 + rang, 1, _libelle_rang(rang)).font = Font(bold=True)
+            for index_poule, numero_poule in enumerate(poules, start=1):
+                cellule = feuille_tous.cell(
+                    ligne + 2 + rang,
+                    index_poule + 1,
+                    positions.get((numero_poule, rang), ""),
+                )
+                cellule.alignment = Alignment(horizontal="center")
+        ligne += hauteur_bloc
+    feuille_tous.column_dimensions["A"].width = 18
+    for colonne in range(2, len(poules) + 2):
+        feuille_tous.column_dimensions[feuille_tous.cell(1, colonne).column_letter].width = 11
+    feuille_tous.freeze_panes = "B4"
 
     try:
         classeur.calculation.fullCalcOnLoad = True
