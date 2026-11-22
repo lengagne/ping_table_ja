@@ -19,6 +19,47 @@ TYPES_CONTRAINTES = (
 )
 
 
+DESCRIPTIONS_CONTRAINTES = {
+    "rangs_position": (
+        "Limite le rang de poule du joueur placé à cette position.",
+        "Exemple : cible position 1, rangs 1,2 — la place 1 recevra un 1er ou un 2e de poule.",
+    ),
+    "poules_differentes": (
+        "Interdit que les deux participants possibles d'un match proviennent de la même poule.",
+        "Aucun rang à saisir. Ciblez un match, plusieurs matchs ou un niveau complet.",
+    ),
+    "clubs_differents": (
+        "Impose des clubs différents entre les deux participants possibles d'un match.",
+        "Aucun rang à saisir. La règle peut viser un match, un ensemble ou un niveau.",
+    ),
+    "rangs_match": (
+        "Impose les deux rangs présents dans un match, sans imposer leur côté.",
+        "Exemple : rangs 1,4 — le match opposera un 1er à un 4e de poule.",
+    ),
+    "rangs_participants": (
+        "Définit séparément les rangs autorisés pour le participant 1 et le participant 2.",
+        "Exemple : participant 1 = 1 ; participant 2 = 2,3 — un 1er jouera un 2e ou un 3e.",
+    ),
+}
+
+
+DESCRIPTIONS_CIBLES = {
+    "position": "La valeur de cible est le numéro de la position, par exemple 12.",
+    "match": "La valeur de cible est le numéro d'un match, par exemple 7.",
+    "matchs": "Saisissez plusieurs numéros de matchs séparés par des virgules : 3,7,12.",
+    "niveau": "Saisissez le nom exact du niveau, par exemple 1/8, 1/4 ou finale.",
+}
+
+
+def aide_contrainte(type_contrainte, type_cible):
+    description, exemple = DESCRIPTIONS_CONTRAINTES.get(
+        type_contrainte,
+        ("Type de contrainte inconnu.", ""),
+    )
+    cible = DESCRIPTIONS_CIBLES.get(type_cible, "Choisissez une cible.")
+    return "{}\n{}\n{}".format(description, cible, exemple).strip()
+
+
 def parser_reference(texte):
     """Convertit ``position:3`` ou ``vainqueur:2`` en référence JSON."""
     morceaux = str(texte).strip().lower().split(":", 1)
@@ -217,30 +258,57 @@ class DialogueContrainte(_DialogueBase):
         ttk.Combobox(
             self.corps, textvariable=self.type_contrainte, values=TYPES_CONTRAINTES,
             state="readonly", width=30,
-        ).grid(row=0, column=1, padx=(12, 0), pady=4)
+        ).grid(row=0, column=1, padx=(12, 0), pady=4, sticky="ew")
         ttk.Label(self.corps, text="Cible").grid(row=1, column=0, sticky="w", pady=4)
         ttk.Combobox(
             self.corps,
             textvariable=self.type_cible,
             values=("position", "match", "matchs", "niveau"),
             state="readonly", width=30,
-        ).grid(row=1, column=1, padx=(12, 0), pady=4)
+        ).grid(row=1, column=1, padx=(12, 0), pady=4, sticky="ew")
         champs = (
             ("Position, match(s) ou niveau", self.valeur_cible),
             ("Rangs du match", self.rangs),
             ("Rangs participant 1", self.rangs_1),
             ("Rangs participant 2", self.rangs_2),
         )
+        self.entrees_parametres = []
         for ligne, (libelle, variable) in enumerate(champs, start=2):
             ttk.Label(self.corps, text=libelle).grid(row=ligne, column=0, sticky="w", pady=4)
-            ttk.Entry(self.corps, textvariable=variable, width=33).grid(
-                row=ligne, column=1, padx=(12, 0), pady=4
+            entree = ttk.Entry(self.corps, textvariable=variable, width=33)
+            entree.grid(
+                row=ligne, column=1, padx=(12, 0), pady=4, sticky="ew"
             )
+            self.entrees_parametres.append((variable, entree))
+        cadre_aide = ttk.LabelFrame(self.corps, text="Comment remplir cette contrainte", padding=10)
+        cadre_aide.grid(row=6, column=0, columnspan=2, sticky="ew", pady=(12, 0))
+        self.aide_var = tk.StringVar()
         ttk.Label(
-            self.corps,
-            text="Les rangs sont séparés par des virgules. Ils ne servent que pour les contraintes de rang.",
-            wraplength=470,
-        ).grid(row=6, column=0, columnspan=2, sticky="w", pady=(8, 0))
+            cadre_aide,
+            textvariable=self.aide_var,
+            wraplength=560,
+            justify="left",
+        ).pack(fill="x")
+        self.corps.columnconfigure(1, weight=1)
+        self.type_contrainte.trace_add("write", lambda *_args: self._mettre_a_jour_aide())
+        self.type_cible.trace_add("write", lambda *_args: self._mettre_a_jour_aide())
+        self._mettre_a_jour_aide()
+
+    def _mettre_a_jour_aide(self):
+        type_contrainte = self.type_contrainte.get()
+        self.aide_var.set(aide_contrainte(type_contrainte, self.type_cible.get()))
+        champs_actifs = {
+            "rangs_position": [self.rangs],
+            "rangs_match": [self.rangs],
+            "rangs_participants": [self.rangs_1, self.rangs_2],
+        }.get(type_contrainte, [])
+        for variable, entree in self.entrees_parametres:
+            if variable is self.valeur_cible:
+                entree.state(["!disabled"])
+            elif any(variable is active for active in champs_actifs):
+                entree.state(["!disabled"])
+            else:
+                entree.state(["disabled"])
 
     def _valider(self):
         try:

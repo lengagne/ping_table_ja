@@ -78,6 +78,10 @@ colonne sélectionne tous ses matchs. Le bouton **Ajouter** reprend cette cible
 automatiquement. Une position accepte notamment une contrainte sur les rangs
 de poule autorisés.
 
+Le formulaire d'ajout et de modification affiche une aide contextuelle : effet
+de la contrainte, format de la cible, exemple de valeurs et champs à remplir.
+Les champs sans rapport avec le type sélectionné sont automatiquement grisés.
+
 L'éditeur prend en charge les tailles 8, 16, 32, 64, 128, 256 ou une puissance
 de deux supérieure et le classement intégral. Si les barrages 1er-4e ne sont
 pas activés, les 2es et 3es jouent un barrage : le gagnant rejoint un 1er dans
