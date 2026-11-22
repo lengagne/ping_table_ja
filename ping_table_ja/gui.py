@@ -10,7 +10,12 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
 from .configuration_fichier import charger_configuration, configuration_par_defaut
-from .excel import creer_fichier_solution, creer_liste_joueurs, lire_classement
+from .excel import (
+    creer_fichier_solution,
+    creer_liste_joueurs,
+    lire_classement,
+    mettre_a_jour_tirage_choisi,
+)
 from .solveur import resoudre, resoudre_plusieurs
 
 
@@ -61,6 +66,7 @@ class Application(ttk.Frame):
         self.solutions_recherche_terminee = False
         self.chemin_excel_solutions = None
         self.configuration_solutions = None
+        self.fichier_resultats_solutions = None
         self.arret_calcul = threading.Event()
         self._construire_interface()
         self._charger_preferences()
@@ -302,6 +308,7 @@ class Application(ttk.Frame):
         self.solutions_recherche_terminee = False
         self.chemin_excel_solutions = None
         self.configuration_solutions = None
+        self.fichier_resultats_solutions = None
         if hasattr(self, "bouton_solution_aleatoire"):
             self.bouton_solution_aleatoire.state(["disabled"])
         if hasattr(self, "tirage"):
@@ -412,6 +419,24 @@ class Application(ttk.Frame):
                         self.parent.after(0, self._calcul_echoue, "Calcul arrêté avant de trouver une solution.")
                         return
                     raise ValueError("Aucune solution ne respecte toutes les contraintes.")
+                sortie = chemin_excel.with_name(chemin_excel.stem + "_solutions.xlsx")
+                mode_recap = (
+                    "Toutes les solutions"
+                    if limite is None
+                    else "Jusqu'à {} solutions".format(limite)
+                )
+                creer_fichier_solution(
+                    sortie,
+                    solutions[0],
+                    solutions=solutions,
+                    recap={
+                        "configuration": str(chemin_configuration),
+                        "excel": str(chemin_excel),
+                        "mode": mode_recap,
+                        "recherche_terminee": recherche_terminee,
+                    },
+                    numero_tirage_choisi=1,
+                )
                 self.parent.after(
                     0,
                     self._toutes_solutions_terminees,
@@ -421,6 +446,7 @@ class Application(ttk.Frame):
                     recherche_terminee,
                     self.arret_calcul.is_set(),
                     limite,
+                    sortie,
                 )
                 return
 
@@ -428,7 +454,16 @@ class Application(ttk.Frame):
             if solution is None:
                 raise ValueError("Aucune solution ne respecte toutes les contraintes.")
             sortie = chemin_excel.with_name(chemin_excel.stem + "_solution.xlsx")
-            creer_fichier_solution(sortie, solution, configuration.onglet_sortie)
+            creer_fichier_solution(
+                sortie,
+                solution,
+                recap={
+                    "configuration": str(chemin_configuration),
+                    "excel": str(chemin_excel),
+                    "mode": "Une seule solution",
+                    "recherche_terminee": True,
+                },
+            )
             self.parent.after(0, self._calcul_termine, sortie, solution)
         except Exception as erreur:
             traceback.print_exc()
@@ -458,11 +493,13 @@ class Application(ttk.Frame):
         recherche_terminee,
         calcul_arrete,
         limite,
+        sortie,
     ):
         self.solutions = solutions
         self.solutions_recherche_terminee = recherche_terminee
         self.chemin_excel_solutions = chemin_excel
         self.configuration_solutions = configuration
+        self.fichier_resultats_solutions = sortie
         self._fin_traitement()
         self.bouton_solution_aleatoire.state(["!disabled"])
         if calcul_arrete:
@@ -489,21 +526,18 @@ class Application(ttk.Frame):
                     len(self.solutions)
                 ),
             )
-        solution = random.choice(self.solutions)
-        chemin_excel = self.chemin_excel_solutions
-        sortie = chemin_excel.with_name(chemin_excel.stem + "_solution_aleatoire.xlsx")
+        numero_tirage = random.randrange(len(self.solutions)) + 1
+        solution = self.solutions[numero_tirage - 1]
+        sortie = self.fichier_resultats_solutions
         try:
-            creer_fichier_solution(
-                sortie,
-                solution,
-                self.configuration_solutions.onglet_sortie,
-            )
+            mettre_a_jour_tirage_choisi(sortie, numero_tirage)
         except Exception as erreur:
             messagebox.showerror("Erreur", str(erreur))
             return
         self.statut_var.set("Solution aléatoire créée : {}".format(sortie))
         self.detail_etat_var.set(
-            "Solution aléatoire choisie parmi {} solution{} trouvée{}. Fichier : {}".format(
+            "Tirage n°{} choisi parmi {} solution{} trouvée{}. Fichier : {}".format(
+                numero_tirage,
                 len(self.solutions),
                 "s" if len(self.solutions) > 1 else "",
                 "s" if len(self.solutions) > 1 else "",
@@ -511,7 +545,13 @@ class Application(ttk.Frame):
             )
         )
         self._afficher_tirage(solution)
-        messagebox.showinfo("Solution aléatoire", "Le fichier a été créé :\n{}".format(sortie))
+        messagebox.showinfo(
+            "Solution aléatoire",
+            "Le tirage n°{} est maintenant sélectionné dans :\n{}".format(
+                numero_tirage,
+                sortie,
+            ),
+        )
 
     def _calcul_termine(self, sortie, solution):
         self._fin_traitement()
