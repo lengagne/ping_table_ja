@@ -62,6 +62,9 @@ généraux, de générer une structure standard, de partir de zéro, puis
 d'ajouter, modifier ou supprimer les matchs et les contraintes. Un dernier
 onglet affiche le JSON produit avant son enregistrement.
 
+Le menu **Fichier** de l'éditeur permet de créer une nouvelle configuration,
+d'ouvrir un autre JSON, d'enregistrer ou d'enregistrer sous un nouveau nom.
+
 L'onglet **Visualisation** dessine le tableau : places des joueurs de haut en
 bas, matchs répartis par tour et liaisons `V` (vainqueur) ou `P` (perdant).
 Le dessin est défilable et dispose de commandes de zoom.

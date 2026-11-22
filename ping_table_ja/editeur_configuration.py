@@ -6,7 +6,7 @@ import sys
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
-from .configuration_fichier import enregistrer_configuration
+from .configuration_fichier import charger_configuration, enregistrer_configuration
 from .generateur_tableau import generer_configuration_standard
 
 
@@ -240,7 +240,6 @@ class DialogueContrainte(_DialogueBase):
 class EditeurConfiguration(tk.Toplevel):
     def __init__(self, parent, chemin=None, apres_enregistrement=None):
         super().__init__(parent)
-        self.title("Éditeur de configuration")
         self.geometry("1050x720")
         self.minsize(820, 580)
         self.chemin = Path(chemin) if chemin else None
@@ -254,6 +253,7 @@ class EditeurConfiguration(tk.Toplevel):
         self._construire()
         self._charger_variables()
         self._rafraichir_tout()
+        self._mettre_a_jour_titre()
 
     def _charger_donnees(self):
         if self.chemin is None:
@@ -266,6 +266,38 @@ class EditeurConfiguration(tk.Toplevel):
         return donnees
 
     def _construire(self):
+        barre_menu = tk.Menu(self)
+        menu_fichier = tk.Menu(barre_menu, tearoff=False)
+        menu_fichier.add_command(
+            label="Nouveau",
+            accelerator="Ctrl+N",
+            command=self._nouveau_fichier,
+        )
+        menu_fichier.add_command(
+            label="Ouvrir…",
+            accelerator="Ctrl+O",
+            command=self._ouvrir_fichier,
+        )
+        menu_fichier.add_separator()
+        menu_fichier.add_command(
+            label="Enregistrer",
+            accelerator="Ctrl+S",
+            command=self._enregistrer,
+        )
+        menu_fichier.add_command(
+            label="Enregistrer sous…",
+            accelerator="Ctrl+Maj+S",
+            command=self._enregistrer_sous,
+        )
+        menu_fichier.add_separator()
+        menu_fichier.add_command(label="Fermer", command=self.destroy)
+        barre_menu.add_cascade(label="Fichier", menu=menu_fichier)
+        self.configure(menu=barre_menu)
+        self.bind("<Control-n>", lambda _e: self._nouveau_fichier())
+        self.bind("<Control-o>", lambda _e: self._ouvrir_fichier())
+        self.bind("<Control-s>", lambda _e: self._enregistrer())
+        self.bind("<Control-Shift-S>", lambda _e: self._enregistrer_sous())
+
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
         self.onglets = ttk.Notebook(self)
@@ -532,6 +564,47 @@ class EditeurConfiguration(tk.Toplevel):
         self.barrages_var.set(bool(self.donnees.get("barrages_1_contre_4", False)))
         self.onglet_excel_var.set(self.donnees.get("onglet_excel", "classement poules"))
 
+    def _mettre_a_jour_titre(self):
+        nom = self.chemin.name if self.chemin else "Nouvelle configuration"
+        self.title("Éditeur de configuration — {}".format(nom))
+
+    def _remplacer_configuration(self, donnees, chemin=None):
+        self.donnees = donnees
+        self.chemin = Path(chemin) if chemin else None
+        self._charger_variables()
+        self._rafraichir_tout()
+        self._mettre_a_jour_titre()
+
+    def _nouveau_fichier(self):
+        if not messagebox.askyesno(
+            "Nouvelle configuration",
+            "Créer une nouvelle configuration ? Les modifications non enregistrées seront perdues.",
+            parent=self,
+        ):
+            return
+        self._remplacer_configuration(generer_configuration_standard(32))
+
+    def _ouvrir_fichier(self):
+        chemin = filedialog.askopenfilename(
+            parent=self,
+            title="Ouvrir une configuration",
+            filetypes=(("Configuration JSON", "*.json"), ("Tous les fichiers", "*.*")),
+        )
+        if not chemin:
+            return
+        try:
+            donnees = json.loads(Path(chemin).read_text(encoding="utf-8"))
+            if donnees.get("version") != 2:
+                raise ValueError(
+                    "Ce fichier utilise l'ancien format v1 et ne peut pas être édité visuellement."
+                )
+            # La validation complète est effectuée sans modifier le fichier.
+            charger_configuration(Path(chemin))
+        except Exception as erreur:
+            messagebox.showerror("Ouverture impossible", str(erreur), parent=self)
+            return
+        self._remplacer_configuration(donnees, chemin)
+
     def _synchroniser_general(self):
         taille = int(self.taille_var.get())
         if taille < 2:
@@ -699,6 +772,7 @@ class EditeurConfiguration(tk.Toplevel):
             messagebox.showerror("Configuration invalide", str(erreur), parent=self)
             return
         self.chemin = chemin
+        self._mettre_a_jour_titre()
         if self.apres_enregistrement:
             self.apres_enregistrement(chemin)
         messagebox.showinfo("Configuration enregistrée", str(chemin), parent=self)
@@ -726,6 +800,11 @@ def main():
         racine.destroy()
 
     editeur.protocol("WM_DELETE_WINDOW", fermer)
+    editeur.bind(
+        "<Destroy>",
+        lambda evenement: racine.destroy() if evenement.widget is editeur else None,
+        add="+",
+    )
     racine.mainloop()
 
 
