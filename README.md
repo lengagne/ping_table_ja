@@ -1,7 +1,6 @@
-# Double KO 32
+# Ping table JA
 
-Génère le placement de 32 joueurs dans un tableau double élimination à partir
-d'un classement de poules stocké dans un fichier Excel.
+Génère le placement de joueurs dans un tableau double élimination à partir d'un classement de poules stocké dans un fichier Excel.
 
 ## Installation automatique
 
