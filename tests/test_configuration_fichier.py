@@ -7,7 +7,7 @@ from openpyxl import load_workbook
 
 from ping_table_ja.configuration_fichier import charger_configuration, configuration_par_defaut
 from ping_table_ja.excel import creer_fichier_solution, mettre_a_jour_tirage_choisi
-from ping_table_ja.gui import construire_matrice_classements
+from ping_table_ja.gui import construire_matrice_classements, construire_matrice_tirage
 from ping_table_ja.solveur import resoudre_plusieurs, resoudre_toutes
 
 
@@ -51,6 +51,17 @@ class TestConfigurationFichier(unittest.TestCase):
             {tuple(joueur["nom"] for joueur in solution) for solution in solutions},
             {("A", "B"), ("B", "A")},
         )
+
+    def test_tirage_presente_par_poule_et_par_rang(self):
+        solution = [
+            {"nom": "A", "poule": 1, "rang_poule": 1},
+            {"nom": "B", "poule": 2, "rang_poule": 2},
+            {"nom": "C", "poule": 2, "rang_poule": 1},
+            {"nom": "D", "poule": 1, "rang_poule": 2},
+        ]
+        poules, lignes = construire_matrice_tirage(solution)
+        self.assertEqual(poules, [1, 2])
+        self.assertEqual(lignes, [["", "A", "B"], ["1ER", 1, 3], ["2EME", 4, 2]])
 
     def test_resolution_limitee_et_progression(self):
         joueurs = [{"nom": "A"}, {"nom": "B"}, {"nom": "C"}]
