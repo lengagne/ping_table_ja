@@ -53,6 +53,10 @@ class Application(ttk.Frame):
         self.config_var = tk.StringVar()
         self.excel_var = tk.StringVar()
         self.statut_var = tk.StringVar(value="Sélectionnez un fichier Excel pour commencer.")
+        self.detail_configuration_var = tk.StringVar(value="—")
+        self.detail_excel_var = tk.StringVar(value="—")
+        self.detail_mode_var = tk.StringVar(value="Aucun calcul lancé")
+        self.detail_etat_var = tk.StringVar(value="En attente")
         self.solutions = []
         self.solutions_recherche_terminee = False
         self.chemin_excel_solutions = None
@@ -67,6 +71,7 @@ class Application(ttk.Frame):
         self.parent.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
         self.rowconfigure(6, weight=1)
+        self.rowconfigure(10, weight=1)
 
         ttk.Label(self, text="Génération du tableau", style="Title.TLabel").grid(
             row=0, column=0, columnspan=2, sticky="w", pady=(0, 20)
@@ -149,6 +154,67 @@ class Application(ttk.Frame):
         )
         self.bouton_arreter.grid(row=0, column=1, sticky="e", padx=(12, 0))
 
+        self.onglets = ttk.Notebook(self)
+        self.onglets.grid(row=10, column=0, columnspan=2, sticky="nsew", pady=(14, 0))
+
+        self.onglet_details = ttk.Frame(self.onglets, padding=16)
+        self.onglet_tirage = ttk.Frame(self.onglets, padding=12)
+        self.onglets.add(self.onglet_details, text="Détails du calcul")
+        self.onglets.add(self.onglet_tirage, text="Tirage")
+        self._construire_onglet_details()
+        self._construire_onglet_tirage()
+
+    def _construire_onglet_details(self):
+        self.onglet_details.columnconfigure(1, weight=1)
+        details = (
+            ("Fichier de configuration", self.detail_configuration_var),
+            ("Fichier Excel", self.detail_excel_var),
+            ("Mode de calcul", self.detail_mode_var),
+            ("Progression / résultat", self.detail_etat_var),
+        )
+        for ligne, (titre, variable) in enumerate(details):
+            ttk.Label(self.onglet_details, text=titre + " :", style="DetailTitle.TLabel").grid(
+                row=ligne, column=0, sticky="nw", padx=(0, 16), pady=5
+            )
+            ttk.Label(
+                self.onglet_details,
+                textvariable=variable,
+                wraplength=780,
+            ).grid(row=ligne, column=1, sticky="w", pady=5)
+
+    def _construire_onglet_tirage(self):
+        self.onglet_tirage.columnconfigure(0, weight=1)
+        self.onglet_tirage.rowconfigure(0, weight=1)
+        colonnes = ("place", "nom", "club", "poule", "rang")
+        self.tirage = ttk.Treeview(
+            self.onglet_tirage,
+            columns=colonnes,
+            show="headings",
+            height=9,
+        )
+        entetes = {
+            "place": "Place (n° de match)",
+            "nom": "Joueur",
+            "club": "Club",
+            "poule": "Poule",
+            "rang": "Rang",
+        }
+        for colonne, entete in entetes.items():
+            self.tirage.heading(colonne, text=entete)
+        self.tirage.column("place", width=135, anchor="center", stretch=False)
+        self.tirage.column("nom", width=250)
+        self.tirage.column("club", width=220)
+        self.tirage.column("poule", width=80, anchor="center", stretch=False)
+        self.tirage.column("rang", width=80, anchor="center", stretch=False)
+        self.tirage.grid(row=0, column=0, sticky="nsew")
+        defilement = ttk.Scrollbar(
+            self.onglet_tirage,
+            orient="vertical",
+            command=self.tirage.yview,
+        )
+        defilement.grid(row=0, column=1, sticky="ns")
+        self.tirage.configure(yscrollcommand=defilement.set)
+
     def _charger_preferences(self):
         configuration = configuration_par_defaut()
         try:
@@ -159,6 +225,7 @@ class Application(ttk.Frame):
         except (OSError, ValueError, TypeError):
             pass
         self.config_var.set(str(configuration))
+        self.detail_configuration_var.set(str(configuration))
 
     def _sauver_preferences(self):
         try:
@@ -180,6 +247,7 @@ class Application(ttk.Frame):
         if chemin:
             self._invalider_solutions()
             self.config_var.set(chemin)
+            self.detail_configuration_var.set(chemin)
             self._sauver_preferences()
             if Path(self.excel_var.get()).is_file():
                 self._charger_apercu(Path(self.excel_var.get()))
@@ -192,6 +260,7 @@ class Application(ttk.Frame):
         if chemin:
             self._invalider_solutions()
             self.excel_var.set(chemin)
+            self.detail_excel_var.set(chemin)
             self._charger_apercu(Path(chemin))
 
     def _charger_apercu(self, chemin_excel):
@@ -235,6 +304,24 @@ class Application(ttk.Frame):
         self.configuration_solutions = None
         if hasattr(self, "bouton_solution_aleatoire"):
             self.bouton_solution_aleatoire.state(["disabled"])
+        if hasattr(self, "tirage"):
+            self._vider_tirage()
+
+    def _vider_tirage(self):
+        for ligne in self.tirage.get_children():
+            self.tirage.delete(ligne)
+
+    def _afficher_tirage(self, solution):
+        self._vider_tirage()
+        for place, joueur in enumerate(solution, start=1):
+            self.tirage.insert("", "end", values=(
+                place,
+                joueur.get("nom", ""),
+                joueur.get("club", ""),
+                joueur.get("poule", ""),
+                joueur.get("rang_poule", ""),
+            ))
+        self.onglets.select(self.onglet_tirage)
 
     def _demarrer_calcul(self, mode):
         configuration = Path(self.config_var.get()).expanduser()
@@ -278,6 +365,16 @@ class Application(ttk.Frame):
             "nombre": "Recherche de {} solutions en cours — 0 trouvée.".format(limite),
         }
         self.statut_var.set(messages[mode])
+        noms_modes = {
+            "une": "Une seule solution",
+            "toutes": "Toutes les solutions",
+            "nombre": "Calcul de {} solutions maximum".format(limite),
+        }
+        self.detail_configuration_var.set(str(configuration))
+        self.detail_excel_var.set(str(excel))
+        self.detail_mode_var.set(noms_modes[mode])
+        self.detail_etat_var.set(messages[mode])
+        self.onglets.select(self.onglet_details)
         threading.Thread(
             target=self._calculer,
             args=(configuration, excel, mode, limite),
@@ -332,7 +429,7 @@ class Application(ttk.Frame):
                 raise ValueError("Aucune solution ne respecte toutes les contraintes.")
             sortie = chemin_excel.with_name(chemin_excel.stem + "_solution.xlsx")
             creer_fichier_solution(sortie, solution, configuration.onglet_sortie)
-            self.parent.after(0, self._calcul_termine, sortie)
+            self.parent.after(0, self._calcul_termine, sortie, solution)
         except Exception as erreur:
             traceback.print_exc()
             self.parent.after(0, self._calcul_echoue, str(erreur))
@@ -345,11 +442,13 @@ class Application(ttk.Frame):
             "s" if nombre > 1 else "",
             "s" if nombre > 1 else "",
         ))
+        self.detail_etat_var.set(self.statut_var.get())
 
     def _arreter_calcul(self):
         self.arret_calcul.set()
         self.bouton_arreter.state(["disabled"])
         self.statut_var.set("Arrêt demandé… conservation des solutions déjà trouvées.")
+        self.detail_etat_var.set(self.statut_var.get())
 
     def _toutes_solutions_terminees(
         self,
@@ -373,6 +472,8 @@ class Application(ttk.Frame):
         else:
             resume = "Calcul terminé : {} solutions calculées.".format(len(solutions))
         self.statut_var.set(resume)
+        self.detail_etat_var.set(resume)
+        self._afficher_tirage(solutions[0])
         messagebox.showinfo(
             "Calcul terminé",
             resume + "\nVous pouvez maintenant en choisir une aléatoirement.",
@@ -401,16 +502,28 @@ class Application(ttk.Frame):
             messagebox.showerror("Erreur", str(erreur))
             return
         self.statut_var.set("Solution aléatoire créée : {}".format(sortie))
+        self.detail_etat_var.set(
+            "Solution aléatoire choisie parmi {} solution{} trouvée{}. Fichier : {}".format(
+                len(self.solutions),
+                "s" if len(self.solutions) > 1 else "",
+                "s" if len(self.solutions) > 1 else "",
+                sortie,
+            )
+        )
+        self._afficher_tirage(solution)
         messagebox.showinfo("Solution aléatoire", "Le fichier a été créé :\n{}".format(sortie))
 
-    def _calcul_termine(self, sortie):
+    def _calcul_termine(self, sortie, solution):
         self._fin_traitement()
         self.statut_var.set("Calcul terminé : {}".format(sortie))
+        self.detail_etat_var.set("Une solution trouvée. Fichier créé : {}".format(sortie))
+        self._afficher_tirage(solution)
         messagebox.showinfo("Calcul terminé", "Le fichier a été créé :\n{}".format(sortie))
 
     def _calcul_echoue(self, message):
         self._fin_traitement()
         self.statut_var.set("Échec du calcul.")
+        self.detail_etat_var.set("Échec : {}".format(message))
         messagebox.showerror("Erreur", message)
 
     def _fin_traitement(self):
@@ -424,11 +537,12 @@ class Application(ttk.Frame):
 def main():
     racine = tk.Tk()
     racine.title("Ping Table JA")
-    racine.geometry("1100x610")
-    racine.minsize(700, 540)
+    racine.geometry("1100x850")
+    racine.minsize(760, 680)
     style = ttk.Style(racine)
     style.configure("Title.TLabel", font=("TkDefaultFont", 18, "bold"))
     style.configure("Accent.TButton", font=("TkDefaultFont", 11, "bold"))
+    style.configure("DetailTitle.TLabel", font=("TkDefaultFont", 10, "bold"))
     Application(racine)
     racine.mainloop()
 
