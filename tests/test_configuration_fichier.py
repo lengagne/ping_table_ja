@@ -5,7 +5,7 @@ from pathlib import Path
 
 from ping_table_ja.configuration_fichier import charger_configuration, configuration_par_defaut
 from ping_table_ja.gui import construire_matrice_classements
-from ping_table_ja.solveur import resoudre_toutes
+from ping_table_ja.solveur import resoudre_plusieurs, resoudre_toutes
 
 
 class TestConfigurationFichier(unittest.TestCase):
@@ -48,6 +48,31 @@ class TestConfigurationFichier(unittest.TestCase):
             {tuple(joueur["nom"] for joueur in solution) for solution in solutions},
             {("A", "B"), ("B", "A")},
         )
+
+    def test_resolution_limitee_et_progression(self):
+        joueurs = [{"nom": "A"}, {"nom": "B"}, {"nom": "C"}]
+        progression = []
+        solutions, recherche_terminee = resoudre_plusieurs(
+            joueurs,
+            [],
+            nombre_positions=3,
+            limite=2,
+            notifier=progression.append,
+        )
+        self.assertEqual(len(solutions), 2)
+        self.assertEqual(progression, [1, 2])
+        self.assertFalse(recherche_terminee)
+
+    def test_resolution_interruptible(self):
+        joueurs = [{"nom": "A"}, {"nom": "B"}]
+        solutions, recherche_terminee = resoudre_plusieurs(
+            joueurs,
+            [],
+            nombre_positions=2,
+            arreter=lambda: True,
+        )
+        self.assertEqual(solutions, [])
+        self.assertFalse(recherche_terminee)
 
 
 if __name__ == "__main__":
