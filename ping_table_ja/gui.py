@@ -1,6 +1,7 @@
 """Interface graphique de lancement du calcul."""
 
 import json
+import random
 import threading
 import traceback
 from pathlib import Path
@@ -9,7 +10,7 @@ from tkinter import filedialog, messagebox, ttk
 
 from .configuration_fichier import charger_configuration, configuration_par_defaut
 from .excel import creer_fichier_solution, creer_liste_joueurs, lire_classement
-from .solveur import resoudre
+from .solveur import resoudre, resoudre_toutes
 
 
 PREFERENCES = Path.home() / ".ping_table_ja" / "preferences.json"
@@ -51,6 +52,9 @@ class Application(ttk.Frame):
         self.config_var = tk.StringVar()
         self.excel_var = tk.StringVar()
         self.statut_var = tk.StringVar(value="Sélectionnez un fichier Excel pour commencer.")
+        self.solutions = []
+        self.chemin_excel_solutions = None
+        self.configuration_solutions = None
         self._construire_interface()
         self._charger_preferences()
 
@@ -97,8 +101,31 @@ class Application(ttk.Frame):
             xscrollcommand=defilement_horizontal.set,
         )
 
-        self.bouton_calcul = ttk.Button(self, text="Calculer", style="Accent.TButton", command=self._demarrer_calcul)
-        self.bouton_calcul.grid(row=7, column=0, columnspan=2, sticky="ew", ipady=7)
+        cadre_actions = ttk.Frame(self)
+        cadre_actions.grid(row=7, column=0, columnspan=2, sticky="ew")
+        for colonne in range(3):
+            cadre_actions.columnconfigure(colonne, weight=1)
+
+        self.bouton_une_solution = ttk.Button(
+            cadre_actions,
+            text="Calculer une solution",
+            style="Accent.TButton",
+            command=lambda: self._demarrer_calcul(toutes=False),
+        )
+        self.bouton_une_solution.grid(row=0, column=0, sticky="ew", padx=(0, 6), ipady=7)
+        self.bouton_toutes_solutions = ttk.Button(
+            cadre_actions,
+            text="Calculer toutes les solutions",
+            command=lambda: self._demarrer_calcul(toutes=True),
+        )
+        self.bouton_toutes_solutions.grid(row=0, column=1, sticky="ew", padx=6, ipady=7)
+        self.bouton_solution_aleatoire = ttk.Button(
+            cadre_actions,
+            text="Choisir une solution aléatoire",
+            command=self._choisir_solution_aleatoire,
+            state="disabled",
+        )
+        self.bouton_solution_aleatoire.grid(row=0, column=2, sticky="ew", padx=(6, 0), ipady=7)
         self.progression = ttk.Progressbar(self, mode="indeterminate")
         self.progression.grid(row=8, column=0, columnspan=2, sticky="ew", pady=(14, 8))
         ttk.Label(self, textvariable=self.statut_var, wraplength=580).grid(row=9, column=0, columnspan=2, sticky="w")
@@ -132,6 +159,7 @@ class Application(ttk.Frame):
             filetypes=(("Configuration JSON", "*.json"), ("Tous les fichiers", "*.*")),
         )
         if chemin:
+            self._invalider_solutions()
             self.config_var.set(chemin)
             self._sauver_preferences()
             if Path(self.excel_var.get()).is_file():
@@ -143,6 +171,7 @@ class Application(ttk.Frame):
             filetypes=(("Classeur Excel", "*.xlsx"), ("Tous les fichiers", "*.*")),
         )
         if chemin:
+            self._invalider_solutions()
             self.excel_var.set(chemin)
             self._charger_apercu(Path(chemin))
 
@@ -180,7 +209,14 @@ class Application(ttk.Frame):
             self.statut_var.set("Impossible de charger l'aperçu.")
             messagebox.showerror("Erreur de lecture", str(erreur))
 
-    def _demarrer_calcul(self):
+    def _invalider_solutions(self):
+        self.solutions = []
+        self.chemin_excel_solutions = None
+        self.configuration_solutions = None
+        if hasattr(self, "bouton_solution_aleatoire"):
+            self.bouton_solution_aleatoire.state(["disabled"])
+
+    def _demarrer_calcul(self, toutes=False):
         configuration = Path(self.config_var.get()).expanduser()
         excel = Path(self.excel_var.get()).expanduser()
         if not configuration.is_file():
@@ -190,13 +226,27 @@ class Application(ttk.Frame):
             messagebox.showerror("Fichier Excel manquant", "Sélectionnez un fichier Excel .xlsx valide.")
             return
 
-        self._sauver_preferences()
-        self.bouton_calcul.state(["disabled"])
-        self.progression.start(12)
-        self.statut_var.set("Calcul en cours…")
-        threading.Thread(target=self._calculer, args=(configuration, excel), daemon=True).start()
+        if toutes and not messagebox.askyesno(
+            "Calcul exhaustif",
+            "Le calcul de toutes les solutions peut être long et utiliser beaucoup de mémoire. Continuer ?",
+        ):
+            return
 
-    def _calculer(self, chemin_configuration, chemin_excel):
+        self._sauver_preferences()
+        self._invalider_solutions()
+        self.bouton_une_solution.state(["disabled"])
+        self.bouton_toutes_solutions.state(["disabled"])
+        self.progression.start(12)
+        self.statut_var.set(
+            "Calcul de toutes les solutions en cours…" if toutes else "Calcul d'une solution en cours…"
+        )
+        threading.Thread(
+            target=self._calculer,
+            args=(configuration, excel, toutes),
+            daemon=True,
+        ).start()
+
+    def _calculer(self, chemin_configuration, chemin_excel, toutes):
         try:
             configuration = charger_configuration(chemin_configuration)
             classements = lire_classement(chemin_excel, configuration.onglet_excel)
@@ -205,6 +255,23 @@ class Application(ttk.Frame):
                 raise ValueError(
                     "{} joueurs trouvés ; {} sont attendus.".format(len(joueurs), configuration.nombre_positions)
                 )
+            if toutes:
+                solutions = resoudre_toutes(
+                    joueurs,
+                    configuration.contraintes,
+                    configuration.nombre_positions,
+                )
+                if not solutions:
+                    raise ValueError("Aucune solution ne respecte toutes les contraintes.")
+                self.parent.after(
+                    0,
+                    self._toutes_solutions_terminees,
+                    solutions,
+                    chemin_excel,
+                    configuration,
+                )
+                return
+
             solution = resoudre(joueurs, configuration.contraintes, configuration.nombre_positions)
             if solution is None:
                 raise ValueError("Aucune solution ne respecte toutes les contraintes.")
@@ -214,6 +281,38 @@ class Application(ttk.Frame):
         except Exception as erreur:
             traceback.print_exc()
             self.parent.after(0, self._calcul_echoue, str(erreur))
+
+    def _toutes_solutions_terminees(self, solutions, chemin_excel, configuration):
+        self.solutions = solutions
+        self.chemin_excel_solutions = chemin_excel
+        self.configuration_solutions = configuration
+        self._fin_traitement()
+        self.bouton_solution_aleatoire.state(["!disabled"])
+        self.statut_var.set("{} solutions calculées.".format(len(solutions)))
+        messagebox.showinfo(
+            "Calcul terminé",
+            "{} solutions ont été calculées.\nVous pouvez maintenant en choisir une aléatoirement.".format(
+                len(solutions)
+            ),
+        )
+
+    def _choisir_solution_aleatoire(self):
+        if not self.solutions:
+            return
+        solution = random.choice(self.solutions)
+        chemin_excel = self.chemin_excel_solutions
+        sortie = chemin_excel.with_name(chemin_excel.stem + "_solution_aleatoire.xlsx")
+        try:
+            creer_fichier_solution(
+                sortie,
+                solution,
+                self.configuration_solutions.onglet_sortie,
+            )
+        except Exception as erreur:
+            messagebox.showerror("Erreur", str(erreur))
+            return
+        self.statut_var.set("Solution aléatoire créée : {}".format(sortie))
+        messagebox.showinfo("Solution aléatoire", "Le fichier a été créé :\n{}".format(sortie))
 
     def _calcul_termine(self, sortie):
         self._fin_traitement()
@@ -227,7 +326,8 @@ class Application(ttk.Frame):
 
     def _fin_traitement(self):
         self.progression.stop()
-        self.bouton_calcul.state(["!disabled"])
+        self.bouton_une_solution.state(["!disabled"])
+        self.bouton_toutes_solutions.state(["!disabled"])
 
 
 def main():
