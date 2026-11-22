@@ -1,3 +1,5 @@
 *.pyc
 */*.pyc
 */*/*.pyc
+.venv
+ping_table_ja.egg-info/
