@@ -183,6 +183,12 @@ def creer_fichier_solution(
     feuille_tirage["B3"].fill = PatternFill(fill_type="solid", fgColor=COULEUR_SELECTION)
     feuille_tirage["B3"].font = Font(bold=True)
     feuille_tirage["B3"].alignment = Alignment(horizontal="center")
+    feuille_tirage["C3"] = "sur {} tirage{} disponible{}".format(
+        len(solutions),
+        "s" if len(solutions) > 1 else "",
+        "s" if len(solutions) > 1 else "",
+    )
+    feuille_tirage["C3"].font = Font(italic=True, color="666666")
     validation = DataValidation(
         type="whole",
         operator="between",
@@ -190,7 +196,9 @@ def creer_fichier_solution(
         formula2=str(len(solutions)),
         allow_blank=False,
     )
-    validation.error = "Choisissez un numéro entre 1 et {}.".format(len(solutions))
+    validation.error = (
+        "Le numéro du tirage doit être un nombre entier compris entre 1 et {}."
+    ).format(len(solutions))
     validation.errorTitle = "Numéro de tirage invalide"
     validation.prompt = "Saisissez le numéro du tirage à afficher."
     validation.promptTitle = "Choisir un tirage"
@@ -231,8 +239,16 @@ def creer_fichier_solution(
             )
             cellule.alignment = Alignment(horizontal="center")
     feuille_tirage.column_dimensions["A"].width = 18
+    feuille_tirage.column_dimensions["C"].width = max(
+        feuille_tirage.column_dimensions["C"].width or 0,
+        24,
+    )
     for colonne in range(2, len(poules) + 2):
-        feuille_tirage.column_dimensions[feuille_tirage.cell(1, colonne).column_letter].width = 11
+        lettre_colonne = feuille_tirage.cell(1, colonne).column_letter
+        feuille_tirage.column_dimensions[lettre_colonne].width = max(
+            feuille_tirage.column_dimensions[lettre_colonne].width or 0,
+            11,
+        )
     feuille_tirage.freeze_panes = "B8"
 
     feuille_tous = classeur.create_sheet("Tous les tirages")
@@ -289,7 +305,14 @@ def mettre_a_jour_tirage_choisi(fichier_excel, numero_tirage):
         if "Tirage choisi" not in classeur.sheetnames:
             raise ValueError("L'onglet 'Tirage choisi' est introuvable")
         feuille = classeur["Tirage choisi"]
-        feuille["B3"] = int(numero_tirage)
+        numero_tirage = int(numero_tirage)
+        validation = next(iter(feuille.data_validations.dataValidation), None)
+        nombre_tirages = int(validation.formula2) if validation is not None else 0
+        if not 1 <= numero_tirage <= nombre_tirages:
+            raise ValueError(
+                "Le numéro du tirage doit être compris entre 1 et {}.".format(nombre_tirages)
+            )
+        feuille["B3"] = numero_tirage
         try:
             classeur.calculation.fullCalcOnLoad = True
             classeur.calculation.forceFullCalc = True
