@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "double-ko32"
+version = "1.0.0"
+description = "Générateur de tableau double élimination pour 32 joueurs"
+requires-python = ">=3.9"
+dependencies = ["openpyxl>=3.1,<4"]
+
+[project.scripts]
+double-ko32 = "double_ko32.cli:main"
