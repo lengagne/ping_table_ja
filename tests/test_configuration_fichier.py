@@ -11,6 +11,7 @@ from ping_table_ja.configuration_fichier import (
     enregistrer_configuration,
 )
 from ping_table_ja.excel import creer_fichier_solution, mettre_a_jour_tirage_choisi
+from ping_table_ja.editeur_configuration import formater_reference, parser_reference
 from ping_table_ja.generateur_tableau import generer_configuration_standard, niveaux_principaux
 from ping_table_ja.gui import construire_matrice_classements, construire_matrice_tirage
 from ping_table_ja.solveur import resoudre_plusieurs, resoudre_toutes
@@ -47,6 +48,16 @@ class TestConfigurationFichier(unittest.TestCase):
             [match["participant_2"]["numero"] for match in premiers_matchs],
             [2, 4, 6, 8],
         )
+
+    def test_references_de_match_de_l_editeur(self):
+        self.assertEqual(parser_reference("position:12"), {"type": "position", "numero": 12})
+        self.assertEqual(parser_reference("vainqueur:7"), {"type": "vainqueur", "match": 7})
+        self.assertEqual(
+            formater_reference({"type": "perdant", "match": 9}),
+            "perdant:9",
+        )
+        with self.assertRaisesRegex(ValueError, "Référence attendue"):
+            parser_reference("joueur 3")
 
     def test_generation_tableau_standard_sans_classement(self):
         donnees = generer_configuration_standard(16, classement_integral=False)

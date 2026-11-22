@@ -9,11 +9,8 @@ from pathlib import Path
 import tkinter as tk
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
-from .configuration_fichier import (
-    charger_configuration,
-    configuration_par_defaut,
-    enregistrer_configuration,
-)
+from .configuration_fichier import charger_configuration, configuration_par_defaut
+from .editeur_configuration import ouvrir_editeur
 from .excel import (
     creer_fichier_solution,
     creer_liste_joueurs,
@@ -21,7 +18,6 @@ from .excel import (
     mettre_a_jour_tirage_choisi,
 )
 from .solveur import resoudre, resoudre_plusieurs
-from .generateur_tableau import generer_configuration_standard
 
 
 PREFERENCES = Path.home() / ".ping_table_ja" / "preferences.json"
@@ -135,7 +131,12 @@ class Application(ttk.Frame):
             cadre_configuration,
             text="Créer…",
             command=self._creer_configuration,
-        ).grid(row=0, column=1, padx=(5, 0))
+        ).grid(row=0, column=1, padx=5)
+        ttk.Button(
+            cadre_configuration,
+            text="Éditer…",
+            command=self._editer_configuration,
+        ).grid(row=0, column=2, padx=(5, 0))
 
         ttk.Label(self, text="Fichier Excel des classements").grid(row=3, column=0, sticky="w")
         ttk.Entry(self, textvariable=self.excel_var).grid(row=4, column=0, sticky="ew", padx=(0, 8), pady=(4, 20))
@@ -311,58 +312,31 @@ class Application(ttk.Frame):
                 self._charger_apercu(Path(self.excel_var.get()))
 
     def _creer_configuration(self):
-        taille = simpledialog.askinteger(
-            "Nouveau tableau",
-            "Nombre de joueurs du tableau (8, 16, 32, 64, 128, 256…) :",
-            initialvalue=32,
-            minvalue=2,
-            parent=self.parent,
+        ouvrir_editeur(
+            self.parent,
+            apres_enregistrement=self._configuration_enregistree,
         )
-        if taille is None:
-            return
-        if taille < 8 or taille & (taille - 1):
+
+    def _editer_configuration(self):
+        chemin = Path(self.config_var.get()).expanduser()
+        if not chemin.is_file():
             messagebox.showerror(
-                "Taille invalide",
-                "Un tableau standard doit contenir 8 joueurs ou plus et être une puissance de deux.",
+                "Configuration manquante",
+                "Sélectionnez d'abord un fichier de configuration valide.",
             )
             return
-        classement_integral = messagebox.askyesno(
-            "Classement intégral",
-            "Faut-il générer les matchs permettant de classer toutes les places ?\n\n"
-            "Répondez Non pour ne conserver que le chemin vers la finale.",
-            parent=self.parent,
+        ouvrir_editeur(
+            self.parent,
+            chemin=chemin,
+            apres_enregistrement=self._configuration_enregistree,
         )
-        barrages = messagebox.askyesno(
-            "Barrages 1er contre 4e",
-            "Ce format prévoit-il des barrages opposant un 1er à un 4e de poule ?",
-            parent=self.parent,
-        )
-        chemin = filedialog.asksaveasfilename(
-            title="Enregistrer la nouvelle configuration",
-            defaultextension=".json",
-            filetypes=(("Configuration JSON", "*.json"),),
-            initialfile="tableau_{}.json".format(taille),
-        )
-        if not chemin:
-            return
-        try:
-            donnees = generer_configuration_standard(
-                taille,
-                classement_integral=classement_integral,
-                barrages_1_contre_4=barrages,
-            )
-            enregistrer_configuration(chemin, donnees)
-        except Exception as erreur:
-            messagebox.showerror("Création impossible", str(erreur))
-            return
+
+    def _configuration_enregistree(self, chemin):
+        chemin = str(chemin)
         self._invalider_solutions()
         self.config_var.set(chemin)
         self.detail_configuration_var.set(chemin)
         self._sauver_preferences()
-        messagebox.showinfo(
-            "Configuration créée",
-            "La configuration a été créée et sélectionnée :\n{}".format(chemin),
-        )
         if Path(self.excel_var.get()).is_file():
             self._charger_apercu(Path(self.excel_var.get()))
 
