@@ -12,6 +12,7 @@ dependencies = ["openpyxl>=3.1,<4"]
 [project.scripts]
 ping-table-ja = "ping_table_ja.cli:main"
 ping-table-ja-gui = "ping_table_ja.gui:main"
+ping-table-ja-config = "ping_table_ja.editeur_configuration:main"
 
 [tool.setuptools.package-data]
 ping_table_ja = ["configurations/*.json"]

@@ -2,6 +2,7 @@
 
 import json
 from pathlib import Path
+import sys
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
@@ -699,3 +700,24 @@ def ouvrir_editeur(parent, chemin=None, apres_enregistrement=None):
     except Exception as erreur:
         messagebox.showerror("Ouverture impossible", str(erreur), parent=parent)
         return None
+
+
+def main():
+    """Lance directement l'éditeur, indépendamment de l'écran de calcul."""
+    racine = tk.Tk()
+    racine.withdraw()
+    chemin = Path(sys.argv[1]).expanduser() if len(sys.argv) > 1 else None
+    editeur = ouvrir_editeur(racine, chemin=chemin)
+    if editeur is None:
+        racine.destroy()
+        return
+
+    def fermer():
+        racine.destroy()
+
+    editeur.protocol("WM_DELETE_WINDOW", fermer)
+    racine.mainloop()
+
+
+if __name__ == "__main__":
+    main()

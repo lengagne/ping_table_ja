@@ -41,6 +41,14 @@ Après l'installation, lancez :
 
 Sous Windows, double-cliquez sur `lancer_interface.bat`.
 
+Pour ouvrir directement l'éditeur de configuration sans l'écran de calcul :
+
+```bash
+./configurer_tableau.sh
+```
+
+Sous Windows, double-cliquez sur `configurer_tableau.bat`.
+
 L'interface :
 
 1. affiche au démarrage le dernier fichier de configuration utilisé ;
