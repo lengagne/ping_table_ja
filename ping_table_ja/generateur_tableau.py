@@ -46,6 +46,54 @@ def positions_poules_tableau(taille_tableau):
     return poules
 
 
+def renumeroter_matchs_par_niveau(matchs, contraintes):
+    """Renumérote les matchs colonne par colonne et actualise les références."""
+    par_numero = {int(match["numero"]): match for match in matchs}
+    profondeurs = {}
+
+    def profondeur(numero):
+        if numero in profondeurs:
+            return profondeurs[numero]
+        dependances = []
+        for cle in ("participant_1", "participant_2"):
+            reference = par_numero[numero].get(cle, {})
+            if reference.get("type") in ("vainqueur", "perdant"):
+                dependances.append(profondeur(int(reference["match"])))
+        profondeurs[numero] = 1 + max(dependances, default=0)
+        return profondeurs[numero]
+
+    ordre_initial = {
+        int(match["numero"]): index for index, match in enumerate(matchs)
+    }
+    for numero in par_numero:
+        profondeur(numero)
+    ordre = sorted(par_numero, key=lambda n: (profondeurs[n], ordre_initial[n]))
+    correspondance = {ancien: nouveau for nouveau, ancien in enumerate(ordre, 1)}
+
+    for ancien, match in par_numero.items():
+        match["numero"] = correspondance[ancien]
+        for cle in ("participant_1", "participant_2"):
+            reference = match.get(cle, {})
+            if reference.get("type") in ("vainqueur", "perdant"):
+                reference["match"] = correspondance[int(reference["match"])]
+    matchs.sort(key=lambda match: int(match["numero"]))
+
+    for contrainte in contraintes:
+        cible = contrainte.get("cible", {})
+        if cible.get("type") == "match":
+            cible["numero"] = correspondance[int(cible["numero"])]
+        elif cible.get("type") == "matchs":
+            cible["numeros"] = sorted(
+                correspondance[int(numero)] for numero in cible.get("numeros", [])
+            )
+        if cible.get("exclusions_matchs"):
+            cible["exclusions_matchs"] = sorted(
+                correspondance[int(numero)]
+                for numero in cible["exclusions_matchs"]
+            )
+    return correspondance
+
+
 def generer_configuration_standard(
     taille_tableau,
     classement_integral=True,
@@ -211,6 +259,7 @@ def generer_configuration_standard(
             taille_sous_tableau + 1,
             bool(classement_integral),
         )
+    renumeroter_matchs_par_niveau(matchs, contraintes)
     return {
         "version": 2,
         "nom": nom or "Tableau standard {} joueurs".format(taille_tableau),

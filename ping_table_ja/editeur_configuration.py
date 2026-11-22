@@ -53,6 +53,14 @@ DESCRIPTIONS_CIBLES = {
     ),
 }
 
+LIBELLES_CIBLES = {
+    "position": "Position",
+    "match": "Un seul match",
+    "matchs": "Plusieurs matchs",
+    "niveau": "Niveau complet",
+}
+TYPES_CIBLES_PAR_LIBELLE = {libelle: cle for cle, libelle in LIBELLES_CIBLES.items()}
+
 
 def aide_contrainte(type_contrainte, type_cible):
     description, exemple = DESCRIPTIONS_CONTRAINTES.get(
@@ -270,6 +278,12 @@ class DialogueMatch(_DialogueBase):
 class DialogueContrainte(_DialogueBase):
     def __init__(self, parent, contrainte=None, cible_initiale=None):
         super().__init__(parent, "Contrainte")
+        self.geometry("760x540")
+        self.minsize(620, 430)
+        self.resizable(True, True)
+        self.rowconfigure(0, weight=1)
+        self.columnconfigure(0, weight=1)
+        self.corps.rowconfigure(7, weight=1)
         contrainte = contrainte or {}
         cible = contrainte.get("cible", cible_initiale or {})
         type_par_defaut = (
@@ -279,6 +293,9 @@ class DialogueContrainte(_DialogueBase):
             value=contrainte.get("type", type_par_defaut)
         )
         self.type_cible = tk.StringVar(value=cible.get("type", "match"))
+        self.type_cible_affiche = tk.StringVar(
+            value=LIBELLES_CIBLES[self.type_cible.get()]
+        )
         self.exclusions_matchs = list(cible.get("exclusions_matchs", []))
         self.exclusions_var = tk.StringVar(
             value=",".join(str(numero) for numero in self.exclusions_matchs)
@@ -304,25 +321,31 @@ class DialogueContrainte(_DialogueBase):
         ttk.Label(self.corps, text="Cible").grid(row=1, column=0, sticky="w", pady=4)
         ttk.Combobox(
             self.corps,
-            textvariable=self.type_cible,
-            values=("position", "match", "matchs", "niveau"),
+            textvariable=self.type_cible_affiche,
+            values=tuple(LIBELLES_CIBLES.values()),
             state="readonly", width=30,
         ).grid(row=1, column=1, padx=(12, 0), pady=4, sticky="ew")
+        self.libelle_cible = ttk.Label(self.corps, text="Cible")
+        self.libelle_cible.grid(row=2, column=0, sticky="w", pady=4)
+        self.entree_cible = ttk.Combobox(
+            self.corps, textvariable=self.valeur_cible, width=33
+        )
+        self.entree_cible.grid(row=2, column=1, padx=(12, 0), pady=4, sticky="ew")
         champs = (
-            ("Position, match(s) ou niveau", self.valeur_cible),
             ("Rangs du match", self.rangs),
             ("Rangs participant 1", self.rangs_1),
             ("Rangs participant 2", self.rangs_2),
             ("Matchs exclus du niveau", self.exclusions_var),
         )
         self.entrees_parametres = []
-        for ligne, (libelle, variable) in enumerate(champs, start=2):
-            ttk.Label(self.corps, text=libelle).grid(row=ligne, column=0, sticky="w", pady=4)
+        for ligne, (libelle, variable) in enumerate(champs, start=3):
+            etiquette = ttk.Label(self.corps, text=libelle)
+            etiquette.grid(row=ligne, column=0, sticky="w", pady=4)
             entree = ttk.Entry(self.corps, textvariable=variable, width=33)
             entree.grid(
                 row=ligne, column=1, padx=(12, 0), pady=4, sticky="ew"
             )
-            self.entrees_parametres.append((variable, entree))
+            self.entrees_parametres.append((variable, etiquette, entree))
         cadre_aide = ttk.LabelFrame(self.corps, text="Comment remplir cette contrainte", padding=10)
         cadre_aide.grid(row=7, column=0, columnspan=2, sticky="ew", pady=(12, 0))
         self.aide_var = tk.StringVar()
@@ -334,29 +357,63 @@ class DialogueContrainte(_DialogueBase):
         ).pack(fill="x")
         self.corps.columnconfigure(1, weight=1)
         self.type_contrainte.trace_add("write", lambda *_args: self._mettre_a_jour_aide())
-        self.type_cible.trace_add("write", lambda *_args: self._mettre_a_jour_aide())
+        self.type_cible_affiche.trace_add(
+            "write", lambda *_args: self._changer_type_cible()
+        )
+        self._mettre_a_jour_aide()
+
+    def _changer_type_cible(self):
+        nouveau_type = TYPES_CIBLES_PAR_LIBELLE.get(
+            self.type_cible_affiche.get(), "match"
+        )
+        if nouveau_type != self.type_cible.get():
+            self.type_cible.set(nouveau_type)
+            self.valeur_cible.set("")
+            self.exclusions_var.set("")
         self._mettre_a_jour_aide()
 
     def _mettre_a_jour_aide(self):
         type_contrainte = self.type_contrainte.get()
-        self.aide_var.set(aide_contrainte(type_contrainte, self.type_cible.get()))
+        type_cible = self.type_cible.get()
+        self.aide_var.set(aide_contrainte(type_contrainte, type_cible))
+        matchs = getattr(self.parent_dialogue, "donnees", {}).get("matchs", [])
+        libelles = {
+            "position": "Numéro de position",
+            "match": "Numéro du match",
+            "matchs": "Numéros des matchs",
+            "niveau": "Niveau du tableau",
+        }
+        self.libelle_cible.configure(text=libelles[type_cible])
+        if type_cible == "niveau":
+            valeurs = list(dict.fromkeys(str(match.get("niveau", "")) for match in matchs))
+            etat = "readonly"
+        elif type_cible == "match":
+            valeurs = [str(match["numero"]) for match in matchs]
+            etat = "readonly"
+        elif type_cible == "position":
+            taille = int(getattr(self.parent_dialogue, "donnees", {}).get("taille_tableau", 0))
+            valeurs = [str(numero) for numero in range(1, taille + 1)]
+            etat = "readonly"
+        else:
+            valeurs = []
+            etat = "normal"
+        self.entree_cible.configure(values=valeurs, state=etat)
         champs_actifs = {
             "rangs_position": [self.rangs],
             "rangs_match": [self.rangs],
             "rangs_participants": [self.rangs_1, self.rangs_2],
         }.get(type_contrainte, [])
-        for variable, entree in self.entrees_parametres:
-            if variable is self.valeur_cible:
-                entree.state(["!disabled"])
-            elif variable is self.exclusions_var:
-                if self.type_cible.get() == "niveau":
-                    entree.state(["!disabled"])
-                else:
-                    entree.state(["disabled"])
-            elif any(variable is active for active in champs_actifs):
-                entree.state(["!disabled"])
+        for variable, etiquette, entree in self.entrees_parametres:
+            visible = (
+                (variable is self.exclusions_var and type_cible == "niveau")
+                or any(variable is active for active in champs_actifs)
+            )
+            if visible:
+                etiquette.grid()
+                entree.grid()
             else:
-                entree.state(["disabled"])
+                etiquette.grid_remove()
+                entree.grid_remove()
 
     def _valider(self):
         try:
@@ -933,7 +990,7 @@ class EditeurConfiguration(tk.Toplevel):
             canvas.create_text(
                 x_colonne + largeur_match / 2,
                 25 * z,
-                text="COLONNE {}\n{} match(s)".format(profondeur, len(groupe)),
+                text="NIVEAU {}\n{} match(s)".format(profondeur, len(groupe)),
                 justify="center",
                 font=("TkDefaultFont", max(7, int(8 * z)), "bold"),
                 tags=tags_colonne,
