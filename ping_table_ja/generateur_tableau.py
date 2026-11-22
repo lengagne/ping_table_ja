@@ -168,6 +168,7 @@ def generer_configuration_standard(
         "taille_tableau": taille_tableau,
         "classement_integral": bool(classement_integral),
         "barrages_1_contre_4": bool(barrages_1_contre_4),
+        "aucune_contrainte": False,
         "onglet_excel": "classement poules",
         "matchs": matchs,
         "contraintes": contraintes,

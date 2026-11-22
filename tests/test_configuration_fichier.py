@@ -67,6 +67,21 @@ class TestConfigurationFichier(unittest.TestCase):
         self.assertEqual(donnees["contraintes"][0]["rangs"], [1, 4])
         self.assertEqual(donnees["contraintes"][1]["rangs"], [2, 3])
 
+    def test_option_aucune_contrainte_ignore_les_regles_sans_les_effacer(self):
+        donnees = generer_configuration_standard(
+            8, classement_integral=False, barrages_1_contre_4=True
+        )
+        self.assertTrue(donnees["contraintes"])
+        donnees["aucune_contrainte"] = True
+        with tempfile.TemporaryDirectory() as dossier:
+            chemin = Path(dossier) / "sans_contrainte.json"
+            enregistrer_configuration(chemin, donnees)
+            configuration = charger_configuration(chemin)
+            contenu = json.loads(chemin.read_text(encoding="utf-8"))
+        self.assertTrue(configuration.aucune_contrainte)
+        self.assertEqual(configuration.contraintes, [])
+        self.assertTrue(contenu["contraintes"])
+
     def test_references_de_match_de_l_editeur(self):
         self.assertEqual(parser_reference("position:12"), {"type": "position", "numero": 12})
         self.assertEqual(parser_reference("vainqueur:7"), {"type": "vainqueur", "match": 7})

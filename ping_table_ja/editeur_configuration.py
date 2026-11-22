@@ -394,6 +394,7 @@ class EditeurConfiguration(tk.Toplevel):
         self.taille_var = tk.StringVar()
         self.integral_var = tk.BooleanVar()
         self.barrages_var = tk.BooleanVar()
+        self.aucune_contrainte_var = tk.BooleanVar()
         self.onglet_excel_var = tk.StringVar()
         self.chemin_var = tk.StringVar()
         self._construire()
@@ -518,16 +519,35 @@ class EditeurConfiguration(tk.Toplevel):
             ),
             wraplength=650,
         ).grid(row=5, column=1, sticky="w", pady=(0, 8))
-        ttk.Separator(self.onglet_general).grid(row=6, column=0, columnspan=2, sticky="ew", pady=16)
+        ttk.Checkbutton(
+            self.onglet_general,
+            text="Aucune contrainte (désactiver toutes les contraintes)",
+            variable=self.aucune_contrainte_var,
+            command=self._mettre_a_jour_etat_contraintes,
+        ).grid(row=6, column=1, sticky="w", pady=(10, 2))
+        ttk.Label(
+            self.onglet_general,
+            text=(
+                "Les contraintes restent enregistrées dans le JSON, mais elles sont ignorées "
+                "pendant le calcul et peuvent être réactivées plus tard."
+            ),
+            wraplength=650,
+        ).grid(row=7, column=1, sticky="w", pady=(0, 8))
+        ttk.Separator(self.onglet_general).grid(row=8, column=0, columnspan=2, sticky="ew", pady=16)
         ttk.Button(
             self.onglet_general, text="Régénérer la structure standard",
             command=self._regenerer_standard,
-        ).grid(row=7, column=0, columnspan=2, sticky="ew", pady=5)
+        ).grid(row=9, column=0, columnspan=2, sticky="ew", pady=5)
         ttk.Button(
             self.onglet_general, text="Partir de zéro (supprimer matchs et contraintes)",
             command=self._partir_de_zero,
-        ).grid(row=8, column=0, columnspan=2, sticky="ew", pady=5)
+        ).grid(row=10, column=0, columnspan=2, sticky="ew", pady=5)
         self.onglet_general.columnconfigure(1, weight=1)
+
+    def _mettre_a_jour_etat_contraintes(self):
+        self._synchroniser_general()
+        self._rafraichir_visualisation()
+        self._rafraichir_json()
 
     def _construire_liste(self, parent, colonnes, titres, largeurs, ajouter, modifier, supprimer):
         parent.columnconfigure(0, weight=1)
@@ -659,14 +679,19 @@ class EditeurConfiguration(tk.Toplevel):
         ).grid(row=3, column=0, columnspan=2, sticky="ew", pady=(8, 0))
 
     def _texte_cible_visualisation(self, cible):
+        suffixe = (
+            " — contraintes désactivées"
+            if self.aucune_contrainte_var.get()
+            else ""
+        )
         if not cible:
-            return "Cible : aucune sélection"
+            return "Cible : aucune sélection{}".format(suffixe)
         if cible.get("type") == "position":
-            return "Cible : position {}".format(cible["numero"])
+            return "Cible : position {}{}".format(cible["numero"], suffixe)
         if cible.get("type") == "match":
-            return "Cible : match {}".format(cible["numero"])
-        return "Cible : matchs {}".format(
-            ", ".join(str(numero) for numero in cible.get("numeros", []))
+            return "Cible : match {}{}".format(cible["numero"], suffixe)
+        return "Cible : matchs {}{}".format(
+            ", ".join(str(numero) for numero in cible.get("numeros", [])), suffixe
         )
 
     def _selectionner_cible_visualisation(self, cible):
@@ -996,6 +1021,9 @@ class EditeurConfiguration(tk.Toplevel):
         self.taille_var.set(str(self.donnees.get("taille_tableau", 32)))
         self.integral_var.set(bool(self.donnees.get("classement_integral", False)))
         self.barrages_var.set(bool(self.donnees.get("barrages_1_contre_4", False)))
+        self.aucune_contrainte_var.set(
+            bool(self.donnees.get("aucune_contrainte", False))
+        )
         self.onglet_excel_var.set(self.donnees.get("onglet_excel", "classement poules"))
 
     def _mettre_a_jour_titre(self):
@@ -1056,6 +1084,7 @@ class EditeurConfiguration(tk.Toplevel):
             "taille_tableau": taille,
             "classement_integral": bool(self.integral_var.get()),
             "barrages_1_contre_4": bool(self.barrages_var.get()),
+            "aucune_contrainte": bool(self.aucune_contrainte_var.get()),
             "onglet_excel": self.onglet_excel_var.get().strip() or "classement poules",
         })
 
@@ -1086,12 +1115,29 @@ class EditeurConfiguration(tk.Toplevel):
             )
         return ""
 
-    def _texte_cible_contrainte(self, contrainte):
+    def _texte_cible_contrainte(self, contrainte, contexte_visualisation=False):
         cible = contrainte.get("cible", {})
-        valeur = cible.get("numero", cible.get("niveau", ""))
-        if cible.get("type") == "matchs":
-            valeur = ", ".join(str(n) for n in cible.get("numeros", []))
-        texte = "{} : {}".format(cible.get("type", ""), valeur)
+        type_cible = cible.get("type")
+        if type_cible == "position":
+            texte = "Position {}".format(cible.get("numero", ""))
+        elif type_cible == "match":
+            texte = "Directe : match {}".format(cible.get("numero", ""))
+        elif type_cible == "matchs":
+            numeros = [int(n) for n in cible.get("numeros", [])]
+            matchs = {
+                int(match["numero"]): match for match in self.donnees.get("matchs", [])
+            }
+            niveaux = sorted({
+                str(matchs[numero].get("niveau", ""))
+                for numero in numeros if numero in matchs
+            })
+            niveau = niveaux[0] if len(niveaux) == 1 else "niveau mixte"
+            texte = "Groupe : {} matchs ({})".format(len(numeros), niveau)
+        elif type_cible == "niveau":
+            prefixe = "Héritée du niveau" if contexte_visualisation else "Niveau entier"
+            texte = "{} {}".format(prefixe, cible.get("niveau", ""))
+        else:
+            texte = "Cible inconnue"
         exclusions = cible.get("exclusions_matchs", [])
         if exclusions:
             texte += " (sauf {})".format(
@@ -1124,7 +1170,10 @@ class EditeurConfiguration(tk.Toplevel):
         )
         for index in indices:
             contrainte = contraintes[index]
-            texte_cible = self._texte_cible_contrainte(contrainte)
+            texte_cible = self._texte_cible_contrainte(
+                contrainte,
+                contexte_visualisation=self.filtrer_contraintes_visualisation,
+            )
             self.table_contraintes_visu.insert(
                 "",
                 "end",
@@ -1281,6 +1330,7 @@ class EditeurConfiguration(tk.Toplevel):
                 nom=self.nom_var.get().strip() or None,
             )
             nouvelles["onglet_excel"] = self.onglet_excel_var.get().strip() or "classement poules"
+            nouvelles["aucune_contrainte"] = bool(self.aucune_contrainte_var.get())
         except ValueError as erreur:
             messagebox.showerror("Génération impossible", str(erreur), parent=self)
             return
