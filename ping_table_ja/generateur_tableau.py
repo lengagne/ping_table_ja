@@ -36,6 +36,7 @@ def generer_configuration_standard(
         raise ValueError("La taille d'un tableau standard doit être une puissance de deux")
 
     matchs = []
+    contraintes = []
     prochain_numero = [1]
 
     def ajouter_match(participant_1, participant_2, niveau, places):
@@ -74,11 +75,92 @@ def generer_configuration_standard(
             perdants = [{"type": "perdant", "match": numero} for numero in numeros]
             classer(perdants, premiere_place + nombre // 2, True)
 
-    positions = [
-        {"type": "position", "numero": position}
-        for position in range(1, taille_tableau + 1)
-    ]
-    classer(positions, 1, bool(classement_integral))
+    def continuer_apres_premier_tour(numeros, premiere_place, integral):
+        """Poursuit un tableau dont le premier tour est déjà créé."""
+        vainqueurs = [{"type": "vainqueur", "match": numero} for numero in numeros]
+        classer(vainqueurs, premiere_place, integral)
+        if integral:
+            perdants = [{"type": "perdant", "match": numero} for numero in numeros]
+            classer(perdants, premiere_place + len(numeros), True)
+
+    def imposer_rangs_match(numero_match, rang_1, rang_2):
+        contraintes.append({
+            "type": "rangs_match",
+            "cible": {"type": "match", "numero": numero_match},
+            "rangs": [rang_1, rang_2],
+        })
+
+    def imposer_rangs_participants(numero_match, rangs_1, rangs_2):
+        contraintes.append({
+            "type": "rangs_participants",
+            "cible": {"type": "match", "numero": numero_match},
+            "participant_1": list(rangs_1),
+            "participant_2": list(rangs_2),
+        })
+
+    def position(numero):
+        return {"type": "position", "numero": numero}
+
+    if barrages_1_contre_4:
+        # Chaque bloc de quatre positions reçoit un barrage 1-4 et un barrage 2-3.
+        premiers_matchs = []
+        niveau = nom_niveau(taille_tableau)
+        for debut in range(1, taille_tableau + 1, 4):
+            match_1_4 = ajouter_match(
+                position(debut), position(debut + 1), niveau, (1, taille_tableau)
+            )
+            match_2_3 = ajouter_match(
+                position(debut + 2), position(debut + 3), niveau, (1, taille_tableau)
+            )
+            imposer_rangs_match(match_1_4, 1, 4)
+            imposer_rangs_match(match_2_3, 2, 3)
+            premiers_matchs.extend((match_1_4, match_2_3))
+        continuer_apres_premier_tour(
+            premiers_matchs, 1, bool(classement_integral)
+        )
+    else:
+        # Les 2es et 3es jouent un barrage. Le gagnant rejoint un 1er dans
+        # le tableau supérieur et le perdant rejoint un 4e dans le tableau inférieur.
+        nombre_poules = taille_tableau // 4
+        taille_sous_tableau = taille_tableau // 2
+        matchs_superieurs = []
+        matchs_inferieurs = []
+        for index_poule in range(nombre_poules):
+            debut = index_poule * 4 + 1
+            barrage = ajouter_match(
+                position(debut + 1),
+                position(debut + 2),
+                "barrage_2_3",
+                (1, taille_tableau),
+            )
+            imposer_rangs_match(barrage, 2, 3)
+
+            match_superieur = ajouter_match(
+                position(debut),
+                {"type": "vainqueur", "match": barrage},
+                nom_niveau(taille_sous_tableau),
+                (1, taille_sous_tableau),
+            )
+            imposer_rangs_participants(match_superieur, [1], [2, 3])
+            matchs_superieurs.append(match_superieur)
+
+            match_inferieur = ajouter_match(
+                {"type": "perdant", "match": barrage},
+                position(debut + 3),
+                "places_{}_{}".format(taille_sous_tableau + 1, taille_tableau),
+                (taille_sous_tableau + 1, taille_tableau),
+            )
+            imposer_rangs_participants(match_inferieur, [2, 3], [4])
+            matchs_inferieurs.append(match_inferieur)
+
+        continuer_apres_premier_tour(
+            matchs_superieurs, 1, bool(classement_integral)
+        )
+        continuer_apres_premier_tour(
+            matchs_inferieurs,
+            taille_sous_tableau + 1,
+            bool(classement_integral),
+        )
     return {
         "version": 2,
         "nom": nom or "Tableau standard {} joueurs".format(taille_tableau),
@@ -88,7 +170,7 @@ def generer_configuration_standard(
         "barrages_1_contre_4": bool(barrages_1_contre_4),
         "onglet_excel": "classement poules",
         "matchs": matchs,
-        "contraintes": [],
+        "contraintes": contraintes,
     }
 
 

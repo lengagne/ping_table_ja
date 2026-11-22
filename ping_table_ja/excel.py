@@ -62,15 +62,41 @@ def lire_classement(fichier_excel, nom_onglet="classement poules"):
         classeur.close()
 
 
-def creer_liste_joueurs(classements):
-    return [
-        {
-            "nom": joueur["nom"], "club": joueur["club"],
-            "poule": int(numero_poule), "rang_poule": int(joueur["rang"]),
-        }
-        for numero_poule, classement in classements.items()
-        for joueur in classement
-    ]
+def creer_liste_joueurs(classements, nombre_positions=None):
+    """Crée les joueurs et complète les poules de trois par un 4e vide.
+
+    Quand ``nombre_positions`` est fourni, chaque poule doit représenter quatre
+    places de tableau. Une poule de trois reçoit donc un joueur absent de rang 4.
+    """
+    joueurs = []
+    for numero_poule, classement in classements.items():
+        if nombre_positions is not None and len(classement) not in (3, 4):
+            raise ValueError(
+                "La poule {} contient {} joueur(s) ; 3 ou 4 sont attendus.".format(
+                    numero_poule, len(classement)
+                )
+            )
+        joueurs.extend({
+            "nom": joueur["nom"],
+            "club": joueur["club"],
+            "poule": int(numero_poule),
+            "rang_poule": int(joueur["rang"]),
+        } for joueur in classement)
+        if nombre_positions is not None and len(classement) == 3:
+            joueurs.append({
+                "nom": "",
+                "club": "",
+                "poule": int(numero_poule),
+                "rang_poule": 4,
+                "absent": True,
+            })
+    if nombre_positions is not None and len(joueurs) != int(nombre_positions):
+        raise ValueError(
+            "Les {} poules représentent {} places ; la configuration en attend {}.".format(
+                len(classements), len(joueurs), nombre_positions
+            )
+        )
+    return joueurs
 
 
 COULEUR_ENTETE = "4472C4"

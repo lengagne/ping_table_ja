@@ -324,17 +324,27 @@ class EditeurConfiguration(tk.Toplevel):
             self.onglet_general, text="Classement intégral", variable=self.integral_var
         ).grid(row=3, column=1, sticky="w", pady=6)
         ttk.Checkbutton(
-            self.onglet_general, text="Barrages 1er contre 4e", variable=self.barrages_var
+            self.onglet_general,
+            text="Jouer aussi les barrages 1er contre 4e",
+            variable=self.barrages_var,
         ).grid(row=4, column=1, sticky="w", pady=6)
-        ttk.Separator(self.onglet_general).grid(row=5, column=0, columnspan=2, sticky="ew", pady=16)
+        ttk.Label(
+            self.onglet_general,
+            text=(
+                "Non coché : barrage 2e–3e, puis le gagnant rejoint un 1er dans le tableau "
+                "supérieur et le perdant un 4e dans le tableau inférieur."
+            ),
+            wraplength=650,
+        ).grid(row=5, column=1, sticky="w", pady=(0, 8))
+        ttk.Separator(self.onglet_general).grid(row=6, column=0, columnspan=2, sticky="ew", pady=16)
         ttk.Button(
             self.onglet_general, text="Régénérer la structure standard",
             command=self._regenerer_standard,
-        ).grid(row=6, column=0, columnspan=2, sticky="ew", pady=5)
+        ).grid(row=7, column=0, columnspan=2, sticky="ew", pady=5)
         ttk.Button(
             self.onglet_general, text="Partir de zéro (supprimer matchs et contraintes)",
             command=self._partir_de_zero,
-        ).grid(row=7, column=0, columnspan=2, sticky="ew", pady=5)
+        ).grid(row=8, column=0, columnspan=2, sticky="ew", pady=5)
         self.onglet_general.columnconfigure(1, weight=1)
 
     def _construire_liste(self, parent, colonnes, titres, largeurs, ajouter, modifier, supprimer):
