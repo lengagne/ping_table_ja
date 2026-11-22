@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 
 from ping_table_ja.configuration_fichier import charger_configuration, configuration_par_defaut
+from ping_table_ja.gui import construire_matrice_classements
 
 
 class TestConfigurationFichier(unittest.TestCase):
@@ -22,6 +23,21 @@ class TestConfigurationFichier(unittest.TestCase):
             )
             with self.assertRaisesRegex(ValueError, "Générateur inconnu"):
                 charger_configuration(chemin)
+
+    def test_classements_presentes_par_poule_et_par_rang(self):
+        classements = {
+            2: [{"rang": 1, "nom": "Béatrice", "club": "Club B"}],
+            1: [
+                {"rang": 1, "nom": "Alice", "club": "Club A"},
+                {"rang": 2, "nom": "Arthur", "club": "Club C"},
+            ],
+        }
+        poules, lignes = construire_matrice_classements(classements)
+        self.assertEqual(poules, [1, 2])
+        self.assertEqual(lignes, [
+            [1, "Alice — Club A", "Béatrice — Club B"],
+            [2, "Arthur — Club C", ""],
+        ])
 
 
 if __name__ == "__main__":
