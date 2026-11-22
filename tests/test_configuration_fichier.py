@@ -5,8 +5,13 @@ from pathlib import Path
 
 from openpyxl import load_workbook
 
-from ping_table_ja.configuration_fichier import charger_configuration, configuration_par_defaut
+from ping_table_ja.configuration_fichier import (
+    charger_configuration,
+    configuration_par_defaut,
+    enregistrer_configuration,
+)
 from ping_table_ja.excel import creer_fichier_solution, mettre_a_jour_tirage_choisi
+from ping_table_ja.generateur_tableau import generer_configuration_standard, niveaux_principaux
 from ping_table_ja.gui import construire_matrice_classements, construire_matrice_tirage
 from ping_table_ja.solveur import resoudre_plusieurs, resoudre_toutes
 
@@ -27,6 +32,48 @@ class TestConfigurationFichier(unittest.TestCase):
             )
             with self.assertRaisesRegex(ValueError, "Générateur inconnu"):
                 charger_configuration(chemin)
+
+    def test_generation_tableau_standard_integral(self):
+        donnees = generer_configuration_standard(8, classement_integral=True)
+        self.assertEqual(len(donnees["matchs"]), 12)
+        self.assertEqual([match["numero"] for match in donnees["matchs"]], list(range(1, 13)))
+        self.assertEqual(niveaux_principaux(8), ["1/4", "1/2", "finale"])
+        premiers_matchs = donnees["matchs"][:4]
+        self.assertEqual(
+            [match["participant_1"]["numero"] for match in premiers_matchs],
+            [1, 3, 5, 7],
+        )
+        self.assertEqual(
+            [match["participant_2"]["numero"] for match in premiers_matchs],
+            [2, 4, 6, 8],
+        )
+
+    def test_generation_tableau_standard_sans_classement(self):
+        donnees = generer_configuration_standard(16, classement_integral=False)
+        self.assertEqual(len(donnees["matchs"]), 15)
+
+    def test_configuration_v2_charge_matchs_et_contraintes(self):
+        donnees = generer_configuration_standard(8, classement_integral=False)
+        donnees["contraintes"] = [
+            {
+                "type": "poules_differentes",
+                "cible": {"type": "niveau", "niveau": "1/4"},
+            },
+            {
+                "type": "rangs_participants",
+                "cible": {"type": "match", "numero": 1},
+                "participant_1": [1],
+                "participant_2": [4],
+            },
+        ]
+        with tempfile.TemporaryDirectory() as dossier:
+            chemin = Path(dossier) / "tableau.json"
+            enregistrer_configuration(chemin, donnees)
+            configuration = charger_configuration(chemin)
+        self.assertEqual(configuration.nombre_positions, 8)
+        self.assertEqual(len(configuration.matchs), 7)
+        self.assertEqual(len(configuration.contraintes), 5)
+        self.assertEqual(configuration.matchs[1].niveau, "1/4")
 
     def test_classements_presentes_par_poule_et_par_rang(self):
         classements = {

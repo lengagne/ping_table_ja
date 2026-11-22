@@ -48,6 +48,12 @@ L'interface :
 3. permet de choisir le fichier Excel des classements ;
 4. lance la résolution avec le bouton **Calculer**.
 
+Le bouton **Créer…** génère également une configuration JSON v2 standard.
+Il permet de choisir la taille du tableau (8, 16, 32, 64, 128, 256 ou une
+puissance de deux supérieure), le classement intégral et la présence de
+barrages 1er contre 4e. Le JSON contient le graphe explicite des matchs et
+peut donc servir de base à un format personnalisé.
+
 Le résultat est créé à côté du fichier Excel avec le suffixe
 `_solution.xlsx`.
 

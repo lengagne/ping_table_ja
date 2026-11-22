@@ -45,10 +45,12 @@ class ResultatMatch:
 class Match:
     """Match entre deux positions ou résultats de matchs précédents."""
 
-    def __init__(self, numero, participant_1, participant_2):
+    def __init__(self, numero, participant_1, participant_2, niveau=None, places=None):
         self.numero = numero
         self.participant_1 = participant_1
         self.participant_2 = participant_2
+        self.niveau = niveau
+        self.places = tuple(places or ())
         self._vainqueur_reel = None
         self._perdant_reel = None
         self.vainqueur = ResultatMatch(self, "vainqueur")

@@ -6,6 +6,7 @@ from .matchs import (
     ClubsDifferentsParticipants,
     MemePouleInterdite,
     RangsMatchImposes,
+    RangsParticipantsImposes,
     RangsMemePouleInterdits,
 )
 
@@ -13,5 +14,5 @@ __all__ = [
     "Contrainte", "verifier_contraintes", "ClubsDifferents",
     "JoueursDansPositions", "PositionImposee",
     "ClubsDifferentsParticipants", "MemePouleInterdite",
-    "RangsMatchImposes", "RangsMemePouleInterdits",
+    "RangsMatchImposes", "RangsParticipantsImposes", "RangsMemePouleInterdits",
 ]
