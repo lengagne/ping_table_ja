@@ -72,6 +72,12 @@ permet aussi de voir, ajouter, modifier ou supprimer les contraintes. Les
 matchs concernés sont signalés sur le dessin et mis en évidence quand une
 contrainte est sélectionnée.
 
+Une position ou un match peut être sélectionné directement sur le dessin.
+`Ctrl+clic` compose un ensemble de matchs et un clic sur l'en-tête d'une
+colonne sélectionne tous ses matchs. Le bouton **Ajouter** reprend cette cible
+automatiquement. Une position accepte notamment une contrainte sur les rangs
+de poule autorisés.
+
 L'éditeur prend en charge les tailles 8, 16, 32, 64, 128, 256 ou une puissance
 de deux supérieure et le classement intégral. Si les barrages 1er-4e ne sont
 pas activés, les 2es et 3es jouent un barrage : le gagnant rejoint un 1er dans

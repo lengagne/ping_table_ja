@@ -11,6 +11,7 @@ from .generateur_tableau import generer_configuration_standard
 
 
 TYPES_CONTRAINTES = (
+    "rangs_position",
     "poules_differentes",
     "clubs_differents",
     "rangs_match",
@@ -78,12 +79,24 @@ def indices_contraintes_du_match(match, contraintes):
             cible.get("type") == "match"
             and int(cible.get("numero", 0)) == int(match["numero"])
         ) or (
+            cible.get("type") == "matchs"
+            and int(match["numero"]) in [int(n) for n in cible.get("numeros", [])]
+        ) or (
             cible.get("type") == "niveau"
             and str(cible.get("niveau", "")) == str(match.get("niveau", ""))
         )
         if correspond:
             resultat.append(index)
     return resultat
+
+
+def indices_contraintes_de_position(numero_position, contraintes):
+    return [
+        index
+        for index, contrainte in enumerate(contraintes)
+        if contrainte.get("cible", {}).get("type") == "position"
+        and int(contrainte.get("cible", {}).get("numero", 0)) == int(numero_position)
+    ]
 
 
 def _liste_entiers(texte, obligatoire=False):
@@ -176,17 +189,21 @@ class DialogueMatch(_DialogueBase):
 
 
 class DialogueContrainte(_DialogueBase):
-    def __init__(self, parent, contrainte=None):
+    def __init__(self, parent, contrainte=None, cible_initiale=None):
         super().__init__(parent, "Contrainte")
         contrainte = contrainte or {}
-        cible = contrainte.get("cible", {})
+        cible = contrainte.get("cible", cible_initiale or {})
+        type_par_defaut = (
+            "rangs_position" if cible.get("type") == "position" else "poules_differentes"
+        )
         self.type_contrainte = tk.StringVar(
-            value=contrainte.get("type", TYPES_CONTRAINTES[0])
+            value=contrainte.get("type", type_par_defaut)
         )
         self.type_cible = tk.StringVar(value=cible.get("type", "match"))
-        self.valeur_cible = tk.StringVar(
-            value=str(cible.get("numero", cible.get("niveau", "")))
-        )
+        valeur_cible = cible.get("numero", cible.get("niveau", ""))
+        if cible.get("type") == "matchs":
+            valeur_cible = ",".join(str(n) for n in cible.get("numeros", []))
+        self.valeur_cible = tk.StringVar(value=str(valeur_cible))
         self.rangs = tk.StringVar(
             value=",".join(str(v) for v in contrainte.get("rangs", []))
         )
@@ -203,11 +220,13 @@ class DialogueContrainte(_DialogueBase):
         ).grid(row=0, column=1, padx=(12, 0), pady=4)
         ttk.Label(self.corps, text="Cible").grid(row=1, column=0, sticky="w", pady=4)
         ttk.Combobox(
-            self.corps, textvariable=self.type_cible, values=("match", "niveau"),
+            self.corps,
+            textvariable=self.type_cible,
+            values=("position", "match", "matchs", "niveau"),
             state="readonly", width=30,
         ).grid(row=1, column=1, padx=(12, 0), pady=4)
         champs = (
-            ("N° match ou niveau", self.valeur_cible),
+            ("Position, match(s) ou niveau", self.valeur_cible),
             ("Rangs du match", self.rangs),
             ("Rangs participant 1", self.rangs_1),
             ("Rangs participant 2", self.rangs_2),
@@ -232,12 +251,20 @@ class DialogueContrainte(_DialogueBase):
             cible = {"type": type_cible}
             if type_cible == "match":
                 cible["numero"] = int(valeur)
+            elif type_cible == "position":
+                cible["numero"] = int(valeur)
+            elif type_cible == "matchs":
+                cible["numeros"] = _liste_entiers(valeur, obligatoire=True)
             else:
                 cible["niveau"] = valeur
             resultat = {"type": self.type_contrainte.get(), "cible": cible}
-            if resultat["type"] == "rangs_match":
+            if resultat["type"] == "rangs_position" and type_cible != "position":
+                raise ValueError("La contrainte rangs_position doit cibler une position")
+            if type_cible == "position" and resultat["type"] != "rangs_position":
+                raise ValueError("Une position accepte actuellement une contrainte de rang")
+            if resultat["type"] in ("rangs_match", "rangs_position"):
                 rangs = _liste_entiers(self.rangs.get(), obligatoire=True)
-                if len(rangs) != 2:
+                if resultat["type"] == "rangs_match" and len(rangs) != 2:
                     raise ValueError("Indiquez exactement deux rangs")
                 resultat["rangs"] = rangs
             elif resultat["type"] == "rangs_participants":
@@ -416,6 +443,8 @@ class EditeurConfiguration(tk.Toplevel):
         return table
 
     def _construire_visualisation(self):
+        self.cible_visualisation = None
+        self.cible_visualisation_var = tk.StringVar(value="Cible : aucune sélection")
         self.onglet_visualisation.columnconfigure(0, weight=1)
         self.onglet_visualisation.columnconfigure(2, weight=0)
         self.onglet_visualisation.rowconfigure(1, weight=1)
@@ -423,7 +452,10 @@ class EditeurConfiguration(tk.Toplevel):
         outils.grid(row=0, column=0, columnspan=3, sticky="ew", pady=(0, 8))
         ttk.Label(
             outils,
-            text="Les places sont numérotées de haut en bas. V = vainqueur, P = perdant.",
+            text=(
+                "Cliquez une position, un match ou une colonne. "
+                "Ctrl+clic sélectionne plusieurs matchs. V = vainqueur, P = perdant."
+            ),
         ).pack(side="left")
         ttk.Button(outils, text="Actualiser", command=self._rafraichir_visualisation).pack(
             side="right"
@@ -461,8 +493,13 @@ class EditeurConfiguration(tk.Toplevel):
             padding=8,
         )
         panneau.grid(row=1, column=2, rowspan=2, sticky="nsew", padx=(10, 0))
-        panneau.rowconfigure(0, weight=1)
+        panneau.rowconfigure(1, weight=1)
         panneau.columnconfigure(0, weight=1)
+        ttk.Label(
+            panneau,
+            textvariable=self.cible_visualisation_var,
+            wraplength=320,
+        ).grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 8))
         self.table_contraintes_visu = ttk.Treeview(
             panneau,
             columns=("type", "cible"),
@@ -473,13 +510,13 @@ class EditeurConfiguration(tk.Toplevel):
         self.table_contraintes_visu.heading("cible", text="Cible")
         self.table_contraintes_visu.column("type", width=185, minwidth=130)
         self.table_contraintes_visu.column("cible", width=130, minwidth=90)
-        self.table_contraintes_visu.grid(row=0, column=0, sticky="nsew")
+        self.table_contraintes_visu.grid(row=1, column=0, sticky="nsew")
         barre_contraintes = ttk.Scrollbar(
             panneau,
             orient="vertical",
             command=self.table_contraintes_visu.yview,
         )
-        barre_contraintes.grid(row=0, column=1, sticky="ns")
+        barre_contraintes.grid(row=1, column=1, sticky="ns")
         self.table_contraintes_visu.configure(yscrollcommand=barre_contraintes.set)
         self.table_contraintes_visu.bind(
             "<<TreeviewSelect>>",
@@ -490,8 +527,12 @@ class EditeurConfiguration(tk.Toplevel):
             lambda _e: self._modifier_contrainte(self.table_contraintes_visu),
         )
         boutons = ttk.Frame(panneau)
-        boutons.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(8, 0))
-        ttk.Button(boutons, text="Ajouter", command=self._ajouter_contrainte).pack(
+        boutons.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(8, 0))
+        ttk.Button(
+            boutons,
+            text="Ajouter",
+            command=self._ajouter_contrainte_visualisation,
+        ).pack(
             side="left"
         )
         ttk.Button(
@@ -504,6 +545,79 @@ class EditeurConfiguration(tk.Toplevel):
             text="Supprimer",
             command=lambda: self._supprimer_contrainte(self.table_contraintes_visu),
         ).pack(side="left")
+
+    def _texte_cible_visualisation(self, cible):
+        if not cible:
+            return "Cible : aucune sélection"
+        if cible.get("type") == "position":
+            return "Cible : position {}".format(cible["numero"])
+        if cible.get("type") == "match":
+            return "Cible : match {}".format(cible["numero"])
+        return "Cible : matchs {}".format(
+            ", ".join(str(numero) for numero in cible.get("numeros", []))
+        )
+
+    def _selectionner_cible_visualisation(self, cible):
+        self.cible_visualisation = cible
+        self.cible_visualisation_var.set(self._texte_cible_visualisation(cible))
+        indices = []
+        contraintes = self.donnees.get("contraintes", [])
+        if cible and cible.get("type") == "position":
+            indices = indices_contraintes_de_position(cible["numero"], contraintes)
+        elif cible:
+            numeros = (
+                [cible["numero"]]
+                if cible.get("type") == "match"
+                else cible.get("numeros", [])
+            )
+            matchs = {int(match["numero"]): match for match in self.donnees.get("matchs", [])}
+            indices = sorted({
+                index
+                for numero in numeros
+                if int(numero) in matchs
+                for index in indices_contraintes_du_match(matchs[int(numero)], contraintes)
+            })
+        if indices and hasattr(self, "table_contraintes_visu"):
+            self.table_contraintes_visu.selection_set(str(indices[0]))
+            self.table_contraintes_visu.see(str(indices[0]))
+        elif hasattr(self, "table_contraintes_visu"):
+            self.table_contraintes_visu.selection_remove(
+                *self.table_contraintes_visu.selection()
+            )
+        self._rafraichir_visualisation()
+
+    def _clic_cible_visualisation(self, evenement):
+        tags = self.canvas_tableau.gettags("current")
+        tag_cible = next((tag for tag in tags if tag.startswith("cible:")), None)
+        if not tag_cible:
+            return
+        _prefixe, type_cible, valeur = tag_cible.split(":", 2)
+        if type_cible == "position":
+            cible = {"type": "position", "numero": int(valeur)}
+        else:
+            numeros = [int(numero) for numero in valeur.split(",") if numero]
+            if type_cible == "match" and evenement.state & 0x0004:
+                existants = []
+                if self.cible_visualisation:
+                    if self.cible_visualisation.get("type") == "match":
+                        existants = [self.cible_visualisation["numero"]]
+                    elif self.cible_visualisation.get("type") == "matchs":
+                        existants = list(self.cible_visualisation.get("numeros", []))
+                numero = numeros[0]
+                if numero in existants:
+                    existants = [n for n in existants if n != numero]
+                else:
+                    existants.append(numero)
+                numeros = sorted(set(existants))
+                if not numeros:
+                    self._selectionner_cible_visualisation(None)
+                    return
+            cible = (
+                {"type": "match", "numero": numeros[0]}
+                if len(numeros) == 1
+                else {"type": "matchs", "numeros": numeros}
+            )
+        self._selectionner_cible_visualisation(cible)
 
     def _onglet_change(self, _evenement=None):
         self._rafraichir_json()
@@ -548,12 +662,60 @@ class EditeurConfiguration(tk.Toplevel):
             numero: (marge_x, marge_y + (numero - 1) * pas_joueur)
             for numero in range(1, taille + 1)
         }
+        contraintes = self.donnees.get("contraintes", [])
+        position_selectionnee = (
+            int(self.cible_visualisation["numero"])
+            if self.cible_visualisation
+            and self.cible_visualisation.get("type") == "position"
+            else None
+        )
+        matchs_selectionnes = set()
+        if self.cible_visualisation:
+            if self.cible_visualisation.get("type") == "match":
+                matchs_selectionnes.add(int(self.cible_visualisation["numero"]))
+            elif self.cible_visualisation.get("type") == "matchs":
+                matchs_selectionnes.update(
+                    int(numero) for numero in self.cible_visualisation.get("numeros", [])
+                )
         for numero, (x, y) in positions_coordonnees.items():
+            tags = ("cible_cliquable", "cible:position:{}".format(numero))
+            contraintes_position = indices_contraintes_de_position(numero, contraintes)
+            contrainte_position_selectionnee = (
+                index_contrainte_selectionnee in contraintes_position
+            )
+            canvas.create_rectangle(
+                x - 30 * z,
+                y - 13 * z,
+                x + 53 * z,
+                y + 13 * z,
+                fill="#e0f2fe" if numero == position_selectionnee else "",
+                outline=(
+                    "#0284c7" if numero == position_selectionnee
+                    else "#ea580c" if contrainte_position_selectionnee
+                    else ""
+                ),
+                width=max(1, int((3 if contrainte_position_selectionnee else 2) * z)),
+                tags=tags,
+            )
             canvas.create_text(
                 x, y, text=str(numero), anchor="e",
                 font=("TkDefaultFont", max(8, int(10 * z)), "bold"), fill="#333333",
+                tags=tags,
             )
-            canvas.create_line(x + 8 * z, y, x + 50 * z, y, fill="#8a8a8a")
+            canvas.create_line(
+                x + 8 * z, y, x + 50 * z, y, fill="#8a8a8a", tags=tags
+            )
+            if contraintes_position:
+                canvas.create_oval(
+                    x + 33 * z, y - 11 * z, x + 49 * z, y + 5 * z,
+                    fill="#ea580c" if contrainte_position_selectionnee else "#dc2626",
+                    outline="", tags=tags,
+                )
+                canvas.create_text(
+                    x + 41 * z, y - 3 * z, text=str(len(contraintes_position)),
+                    fill="white", font=("TkDefaultFont", max(7, int(8 * z)), "bold"),
+                    tags=tags,
+                )
 
         par_numero = {int(match["numero"]): match for match in matchs}
         coordonnees_matchs = {}
@@ -578,6 +740,29 @@ class EditeurConfiguration(tk.Toplevel):
                 match for match in matchs
                 if profondeurs[int(match["numero"])] == profondeur
             ]
+            numeros_colonne = sorted(int(match["numero"]) for match in groupe)
+            x_colonne = marge_x + 85 * z + (profondeur - 1) * pas_colonne
+            tags_colonne = (
+                "cible_cliquable",
+                "cible:colonne:{}".format(",".join(map(str, numeros_colonne))),
+            )
+            canvas.create_rectangle(
+                x_colonne,
+                8 * z,
+                x_colonne + largeur_match,
+                42 * z,
+                fill="#e0f2fe" if set(numeros_colonne) == matchs_selectionnes else "#f4f4f5",
+                outline="#0284c7" if set(numeros_colonne) == matchs_selectionnes else "#a1a1aa",
+                tags=tags_colonne,
+            )
+            canvas.create_text(
+                x_colonne + largeur_match / 2,
+                25 * z,
+                text="COLONNE {}\n{} match(s)".format(profondeur, len(groupe)),
+                justify="center",
+                font=("TkDefaultFont", max(7, int(8 * z)), "bold"),
+                tags=tags_colonne,
+            )
             souhaits = []
             for match in groupe:
                 sources = [
@@ -615,21 +800,31 @@ class EditeurConfiguration(tk.Toplevel):
                 contour = "#dc2626" if contraintes_match else "#3f3f46"
                 if selectionne:
                     contour = "#ea580c"
+                numero_match = int(match["numero"])
+                if numero_match in matchs_selectionnes:
+                    contour = "#0284c7"
+                tags_match = (
+                    "cible_cliquable",
+                    "cible:match:{}".format(numero_match),
+                )
                 canvas.create_rectangle(
                     x, y - hauteur_match / 2, x + largeur_match, y + hauteur_match / 2,
                     fill=couleur,
                     outline=contour,
-                    width=max(1, int((3 if selectionne else 2 if contraintes_match else 1) * z)),
+                    width=max(1, int((3 if selectionne or numero_match in matchs_selectionnes else 2 if contraintes_match else 1) * z)),
+                    tags=tags_match,
                 )
                 canvas.create_text(
                     x + 8 * z, y - 8 * z, anchor="w",
                     text="MATCH {}".format(match["numero"]),
                     font=("TkDefaultFont", max(8, int(10 * z)), "bold"),
+                    tags=tags_match,
                 )
                 canvas.create_text(
                     x + 8 * z, y + 9 * z, anchor="w",
                     text=str(match.get("niveau", "")), fill="#52525b",
                     font=("TkDefaultFont", max(7, int(9 * z))),
+                    tags=tags_match,
                 )
                 if contraintes_match:
                     canvas.create_oval(
@@ -639,6 +834,7 @@ class EditeurConfiguration(tk.Toplevel):
                         y + 1 * z,
                         fill="#dc2626" if not selectionne else "#ea580c",
                         outline="",
+                        tags=tags_match,
                     )
                     canvas.create_text(
                         x + largeur_match - 16 * z,
@@ -646,6 +842,7 @@ class EditeurConfiguration(tk.Toplevel):
                         text=str(len(contraintes_match)),
                         fill="white",
                         font=("TkDefaultFont", max(7, int(8 * z)), "bold"),
+                        tags=tags_match,
                     )
 
         hauteur = max(
@@ -654,6 +851,11 @@ class EditeurConfiguration(tk.Toplevel):
         )
         largeur = marge_x + 150 * z + profondeur_max * pas_colonne
         canvas.configure(scrollregion=(0, 0, largeur, hauteur))
+        canvas.tag_bind(
+            "cible_cliquable",
+            "<Button-1>",
+            self._clic_cible_visualisation,
+        )
 
     def _charger_variables(self):
         self.nom_var.set(self.donnees.get("nom", ""))
@@ -669,6 +871,9 @@ class EditeurConfiguration(tk.Toplevel):
     def _remplacer_configuration(self, donnees, chemin=None):
         self.donnees = donnees
         self.chemin = Path(chemin) if chemin else None
+        if hasattr(self, "cible_visualisation_var"):
+            self.cible_visualisation = None
+            self.cible_visualisation_var.set("Cible : aucune sélection")
         self._charger_variables()
         self._rafraichir_tout()
         self._mettre_a_jour_titre()
@@ -752,6 +957,8 @@ class EditeurConfiguration(tk.Toplevel):
         for index, contrainte in enumerate(self.donnees.get("contraintes", [])):
             cible = contrainte.get("cible", {})
             valeur = cible.get("numero", cible.get("niveau", ""))
+            if cible.get("type") == "matchs":
+                valeur = ", ".join(str(n) for n in cible.get("numeros", []))
             texte_cible = "{} : {}".format(cible.get("type", ""), valeur)
             self.table_contraintes.insert("", "end", iid=str(index), values=(
                 contrainte.get("type", ""),
@@ -812,6 +1019,22 @@ class EditeurConfiguration(tk.Toplevel):
             self.donnees.setdefault("contraintes", []).append(contrainte)
             self._rafraichir_tout()
 
+    def _ajouter_contrainte_visualisation(self):
+        if not self.cible_visualisation:
+            messagebox.showinfo(
+                "Choisir une cible",
+                "Cliquez d'abord sur une position, un match ou une colonne du tableau.",
+                parent=self,
+            )
+            return
+        contrainte = DialogueContrainte(
+            self,
+            cible_initiale=dict(self.cible_visualisation),
+        ).afficher()
+        if contrainte:
+            self.donnees.setdefault("contraintes", []).append(contrainte)
+            self._rafraichir_tout()
+
     def _modifier_contrainte(self, table=None):
         table = table or self.table_contraintes
         index = self._index_selectionne(table)
@@ -849,6 +1072,8 @@ class EditeurConfiguration(tk.Toplevel):
             messagebox.showerror("Génération impossible", str(erreur), parent=self)
             return
         self.donnees = nouvelles
+        self.cible_visualisation = None
+        self.cible_visualisation_var.set("Cible : aucune sélection")
         self._charger_variables()
         self._rafraichir_tout()
 
@@ -859,6 +1084,8 @@ class EditeurConfiguration(tk.Toplevel):
             self.donnees["format"] = "personnalise"
             self.donnees["matchs"] = []
             self.donnees["contraintes"] = []
+            self.cible_visualisation = None
+            self.cible_visualisation_var.set("Cible : aucune sélection")
             self._rafraichir_tout()
 
     def _enregistrer_sous(self):
