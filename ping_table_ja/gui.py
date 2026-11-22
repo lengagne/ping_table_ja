@@ -51,6 +51,40 @@ def construire_matrice_classements(classements):
     return numeros_poules, lignes
 
 
+def _nom_colonne_poule(index):
+    resultat = ""
+    while index:
+        index, reste = divmod(index - 1, 26)
+        resultat = chr(65 + reste) + resultat
+    return resultat
+
+
+def _libelle_rang(rang):
+    return {1: "1ER", 2: "2EME", 3: "3EME", 4: "4EME"}.get(rang, "{}EME".format(rang))
+
+
+def construire_matrice_tirage(solution):
+    """Présente les places d'un tirage par poule et par rang, comme dans Excel."""
+    joueurs = [joueur for joueur in solution if joueur is not None]
+    numeros_poules = sorted({int(joueur["poule"]) for joueur in joueurs})
+    rang_maximum = max((int(joueur["rang_poule"]) for joueur in joueurs), default=0)
+    places = {
+        (int(joueur["poule"]), int(joueur["rang_poule"])): place
+        for place, joueur in enumerate(solution, start=1)
+        if joueur is not None
+    }
+    lettres = [""] + [
+        _nom_colonne_poule(index) for index in range(1, len(numeros_poules) + 1)
+    ]
+    lignes = [lettres]
+    for rang in range(1, rang_maximum + 1):
+        lignes.append(
+            [_libelle_rang(rang)]
+            + [places.get((numero_poule, rang), "") for numero_poule in numeros_poules]
+        )
+    return numeros_poules, lignes
+
+
 class Application(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent, padding=24)
@@ -62,6 +96,7 @@ class Application(ttk.Frame):
         self.detail_excel_var = tk.StringVar(value="—")
         self.detail_mode_var = tk.StringVar(value="Aucun calcul lancé")
         self.detail_etat_var = tk.StringVar(value="En attente")
+        self.titre_tirage_var = tk.StringVar(value="Aucun tirage affiché")
         self.solutions = []
         self.solutions_recherche_terminee = False
         self.chemin_excel_solutions = None
@@ -190,36 +225,37 @@ class Application(ttk.Frame):
 
     def _construire_onglet_tirage(self):
         self.onglet_tirage.columnconfigure(0, weight=1)
-        self.onglet_tirage.rowconfigure(0, weight=1)
-        colonnes = ("place", "nom", "club", "poule", "rang")
+        self.onglet_tirage.rowconfigure(1, weight=1)
+        ttk.Label(
+            self.onglet_tirage,
+            textvariable=self.titre_tirage_var,
+            style="DetailTitle.TLabel",
+        ).grid(row=0, column=0, sticky="w", pady=(0, 8))
         self.tirage = ttk.Treeview(
             self.onglet_tirage,
-            columns=colonnes,
+            columns=("rang",),
             show="headings",
             height=9,
         )
-        entetes = {
-            "place": "Place (n° de match)",
-            "nom": "Joueur",
-            "club": "Club",
-            "poule": "Poule",
-            "rang": "Rang",
-        }
-        for colonne, entete in entetes.items():
-            self.tirage.heading(colonne, text=entete)
-        self.tirage.column("place", width=135, anchor="center", stretch=False)
-        self.tirage.column("nom", width=250)
-        self.tirage.column("club", width=220)
-        self.tirage.column("poule", width=80, anchor="center", stretch=False)
-        self.tirage.column("rang", width=80, anchor="center", stretch=False)
-        self.tirage.grid(row=0, column=0, sticky="nsew")
-        defilement = ttk.Scrollbar(
+        self.tirage.heading("rang", text="POULES")
+        self.tirage.column("rang", width=90, anchor="center", stretch=False)
+        self.tirage.grid(row=1, column=0, sticky="nsew")
+        defilement_vertical = ttk.Scrollbar(
             self.onglet_tirage,
             orient="vertical",
             command=self.tirage.yview,
         )
-        defilement.grid(row=0, column=1, sticky="ns")
-        self.tirage.configure(yscrollcommand=defilement.set)
+        defilement_vertical.grid(row=1, column=1, sticky="ns")
+        defilement_horizontal = ttk.Scrollbar(
+            self.onglet_tirage,
+            orient="horizontal",
+            command=self.tirage.xview,
+        )
+        defilement_horizontal.grid(row=2, column=0, sticky="ew")
+        self.tirage.configure(
+            yscrollcommand=defilement_vertical.set,
+            xscrollcommand=defilement_horizontal.set,
+        )
 
     def _charger_preferences(self):
         configuration = configuration_par_defaut()
@@ -317,17 +353,24 @@ class Application(ttk.Frame):
     def _vider_tirage(self):
         for ligne in self.tirage.get_children():
             self.tirage.delete(ligne)
+        self.titre_tirage_var.set("Aucun tirage affiché")
 
-    def _afficher_tirage(self, solution):
+    def _afficher_tirage(self, solution, numero_tirage=1):
         self._vider_tirage()
-        for place, joueur in enumerate(solution, start=1):
-            self.tirage.insert("", "end", values=(
-                place,
-                joueur.get("nom", ""),
-                joueur.get("club", ""),
-                joueur.get("poule", ""),
-                joueur.get("rang_poule", ""),
-            ))
+        numeros_poules, lignes = construire_matrice_tirage(solution)
+        colonnes = ("rang",) + tuple(
+            "poule_{}".format(numero) for numero in numeros_poules
+        )
+        self.tirage.configure(columns=colonnes)
+        self.tirage.heading("rang", text="POULES")
+        self.tirage.column("rang", width=90, anchor="center", stretch=False)
+        for numero_poule in numeros_poules:
+            colonne = "poule_{}".format(numero_poule)
+            self.tirage.heading(colonne, text=str(numero_poule))
+            self.tirage.column(colonne, width=80, minwidth=65, anchor="center")
+        for valeurs in lignes:
+            self.tirage.insert("", "end", values=valeurs)
+        self.titre_tirage_var.set("TIRAGE {}".format(numero_tirage))
         self.onglets.select(self.onglet_tirage)
 
     def _demarrer_calcul(self, mode):
@@ -544,7 +587,7 @@ class Application(ttk.Frame):
                 sortie,
             )
         )
-        self._afficher_tirage(solution)
+        self._afficher_tirage(solution, numero_tirage)
         messagebox.showinfo(
             "Solution aléatoire",
             "Le tirage n°{} est maintenant sélectionné dans :\n{}".format(
