@@ -25,6 +25,7 @@ class ConfigurationTournoi:
     nom: str = ""
     classement_integral: bool = False
     barrages_1_contre_4: bool = False
+    aucune_contrainte: bool = False
 
 
 def _participant_depuis_json(donnees, matchs, taille_tableau):
@@ -156,17 +157,20 @@ def _charger_configuration_v2(donnees):
     matchs = _matchs_depuis_json(donnees.get("matchs", []), taille_tableau)
     if not matchs:
         raise ValueError("La configuration doit contenir au moins un match")
+    aucune_contrainte = bool(donnees.get("aucune_contrainte", False))
+    contraintes_definies = _contraintes_depuis_json(
+        donnees.get("contraintes", []), matchs, taille_tableau
+    )
     return ConfigurationTournoi(
         matchs=matchs,
-        contraintes=_contraintes_depuis_json(
-            donnees.get("contraintes", []), matchs, taille_tableau
-        ),
+        contraintes=[] if aucune_contrainte else contraintes_definies,
         nombre_positions=taille_tableau,
         onglet_excel=str(donnees.get("onglet_excel", "classement poules")),
         onglet_sortie=str(donnees.get("onglet_sortie", "TropFortSeb")),
         nom=str(donnees.get("nom", "")),
         classement_integral=bool(donnees.get("classement_integral", False)),
         barrages_1_contre_4=bool(donnees.get("barrages_1_contre_4", False)),
+        aucune_contrainte=aucune_contrainte,
     )
 
 
