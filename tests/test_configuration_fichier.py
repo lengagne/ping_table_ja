@@ -11,7 +11,11 @@ from ping_table_ja.configuration_fichier import (
     enregistrer_configuration,
 )
 from ping_table_ja.excel import creer_fichier_solution, mettre_a_jour_tirage_choisi
-from ping_table_ja.editeur_configuration import formater_reference, parser_reference
+from ping_table_ja.editeur_configuration import (
+    calculer_profondeurs_matchs,
+    formater_reference,
+    parser_reference,
+)
 from ping_table_ja.generateur_tableau import generer_configuration_standard, niveaux_principaux
 from ping_table_ja.gui import construire_matrice_classements, construire_matrice_tirage
 from ping_table_ja.solveur import resoudre_plusieurs, resoudre_toutes
@@ -58,6 +62,16 @@ class TestConfigurationFichier(unittest.TestCase):
         )
         with self.assertRaisesRegex(ValueError, "Référence attendue"):
             parser_reference("joueur 3")
+
+    def test_profondeurs_pour_visualiser_le_tableau(self):
+        donnees = generer_configuration_standard(8, classement_integral=False)
+        profondeurs = calculer_profondeurs_matchs(donnees["matchs"])
+        self.assertEqual([profondeurs[n] for n in range(1, 5)], [1, 1, 1, 1])
+        self.assertEqual(max(profondeurs.values()), 3)
+
+        donnees["matchs"][0]["participant_1"] = {"type": "vainqueur", "match": 1}
+        with self.assertRaisesRegex(ValueError, "Cycle détecté"):
+            calculer_profondeurs_matchs(donnees["matchs"])
 
     def test_generation_tableau_standard_sans_classement(self):
         donnees = generer_configuration_standard(16, classement_integral=False)
