@@ -3,7 +3,10 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from openpyxl import load_workbook
+
 from ping_table_ja.configuration_fichier import charger_configuration, configuration_par_defaut
+from ping_table_ja.excel import creer_fichier_solution, mettre_a_jour_tirage_choisi
 from ping_table_ja.gui import construire_matrice_classements
 from ping_table_ja.solveur import resoudre_plusieurs, resoudre_toutes
 
@@ -73,6 +76,40 @@ class TestConfigurationFichier(unittest.TestCase):
         )
         self.assertEqual(solutions, [])
         self.assertFalse(recherche_terminee)
+
+    def test_classeur_resultats_contient_recap_et_tirages_dynamiques(self):
+        solution_1 = [
+            {"nom": "Alice", "club": "A", "poule": 1, "rang_poule": 1},
+            {"nom": "Benoît", "club": "B", "poule": 2, "rang_poule": 2},
+        ]
+        solution_2 = list(reversed(solution_1))
+        with tempfile.TemporaryDirectory() as dossier:
+            chemin = Path(dossier) / "resultats.xlsx"
+            creer_fichier_solution(
+                chemin,
+                solution_1,
+                solutions=[solution_1, solution_2],
+                recap={
+                    "configuration": "configuration.json",
+                    "excel": "poules.xlsx",
+                    "mode": "Deux solutions",
+                    "recherche_terminee": False,
+                },
+            )
+            classeur = load_workbook(chemin, data_only=False)
+            self.assertEqual(
+                classeur.sheetnames,
+                ["Récap", "Tirage choisi", "Tous les tirages"],
+            )
+            self.assertEqual(classeur["Tirage choisi"]["B3"].value, 1)
+            self.assertTrue(classeur["Tirage choisi"]["B7"].value.startswith("=IFERROR(INDEX"))
+            self.assertEqual(classeur["Tous les tirages"].max_row, 5)
+            classeur.close()
+
+            mettre_a_jour_tirage_choisi(chemin, 2)
+            classeur = load_workbook(chemin, data_only=False)
+            self.assertEqual(classeur["Tirage choisi"]["B3"].value, 2)
+            classeur.close()
 
 
 if __name__ == "__main__":
