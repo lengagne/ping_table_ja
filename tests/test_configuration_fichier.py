@@ -5,6 +5,7 @@ from pathlib import Path
 
 from ping_table_ja.configuration_fichier import charger_configuration, configuration_par_defaut
 from ping_table_ja.gui import construire_matrice_classements
+from ping_table_ja.solveur import resoudre_toutes
 
 
 class TestConfigurationFichier(unittest.TestCase):
@@ -38,6 +39,15 @@ class TestConfigurationFichier(unittest.TestCase):
             [1, "Alice — Club A", "Béatrice — Club B"],
             [2, "Arthur — Club C", ""],
         ])
+
+    def test_resolution_exhaustive(self):
+        joueurs = [{"nom": "A"}, {"nom": "B"}]
+        solutions = resoudre_toutes(joueurs, [], nombre_positions=2)
+        self.assertEqual(len(solutions), 2)
+        self.assertEqual(
+            {tuple(joueur["nom"] for joueur in solution) for solution in solutions},
+            {("A", "B"), ("B", "A")},
+        )
 
 
 if __name__ == "__main__":

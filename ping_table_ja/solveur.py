@@ -41,3 +41,47 @@ def resoudre(joueurs, contraintes, nombre_positions=32):
         return None
 
     return rechercher(list(joueurs))
+
+
+def resoudre_toutes(joueurs, contraintes, nombre_positions=32):
+    """Retourne toutes les solutions qui respectent les contraintes."""
+    placement = [None] * nombre_positions
+    solutions = []
+
+    def compatibles():
+        return all(c.est_compatible(placement) for c in contraintes)
+
+    def candidats(position, disponibles):
+        resultat = []
+        for joueur in disponibles:
+            placement[position] = joueur
+            if compatibles():
+                resultat.append(joueur)
+            placement[position] = None
+        return resultat
+
+    def rechercher(disponibles):
+        if not disponibles:
+            if all(c.est_respectee(placement) for c in contraintes):
+                solutions.append(list(placement))
+            return
+
+        meilleure_position, meilleurs = None, None
+        for position in range(nombre_positions):
+            if placement[position] is not None:
+                continue
+            possibles = candidats(position, disponibles)
+            if not possibles:
+                return
+            if meilleurs is None or len(possibles) < len(meilleurs):
+                meilleure_position, meilleurs = position, possibles
+            if len(meilleurs) == 1:
+                break
+
+        for joueur in meilleurs:
+            placement[meilleure_position] = joueur
+            rechercher([autre for autre in disponibles if autre is not joueur])
+            placement[meilleure_position] = None
+
+    rechercher(list(joueurs))
+    return solutions
