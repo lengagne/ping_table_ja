@@ -40,7 +40,7 @@ Après installation, la commande `double-ko32` peut également être utilisée.
 ## Organisation
 
 ```text
-double_ko32/
+ping_table_ja/
 ├── configuration.py     # Graphe des matchs et liste des contraintes
 ├── modele.py             # Match, ResultatMatch, PositionTableau
 ├── solveur.py            # Algorithme de placement
