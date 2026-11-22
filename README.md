@@ -48,11 +48,16 @@ L'interface :
 3. permet de choisir le fichier Excel des classements ;
 4. lance la résolution avec le bouton **Calculer**.
 
-Le bouton **Créer…** génère également une configuration JSON v2 standard.
-Il permet de choisir la taille du tableau (8, 16, 32, 64, 128, 256 ou une
-puissance de deux supérieure), le classement intégral et la présence de
-barrages 1er contre 4e. Le JSON contient le graphe explicite des matchs et
-peut donc servir de base à un format personnalisé.
+Les boutons **Créer…** et **Éditer…** ouvrent l'éditeur graphique des
+configurations JSON v2. Ses onglets permettent de régler les paramètres
+généraux, de générer une structure standard, de partir de zéro, puis
+d'ajouter, modifier ou supprimer les matchs et les contraintes. Un dernier
+onglet affiche le JSON produit avant son enregistrement.
+
+L'éditeur prend en charge les tailles 8, 16, 32, 64, 128, 256 ou une puissance
+de deux supérieure, le classement intégral et la présence de barrages 1er
+contre 4e. Chaque participant d'un match se note sous la forme `position:1`,
+`vainqueur:2` ou `perdant:2`.
 
 Le résultat est créé à côté du fichier Excel avec le suffixe
 `_solution.xlsx`.
