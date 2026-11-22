@@ -118,17 +118,44 @@ class TestConfigurationFichier(unittest.TestCase):
                 "type": "poules_differentes",
                 "cible": {"type": "matchs", "numeros": [1, 2]},
             },
+            {
+                "type": "clubs_differents",
+                "cible": {
+                    "type": "niveau",
+                    "niveau": "1/4",
+                    "exclusions_matchs": [1],
+                },
+            },
         ])
         self.assertEqual(
             indices_contraintes_de_position(1, donnees["contraintes"]),
             [4],
         )
         self.assertIn(5, indices_contraintes_du_match(donnees["matchs"][0], donnees["contraintes"]))
+        self.assertNotIn(6, indices_contraintes_du_match(
+            donnees["matchs"][0], donnees["contraintes"]
+        ))
+        self.assertIn(6, indices_contraintes_du_match(
+            donnees["matchs"][1], donnees["contraintes"]
+        ))
         with tempfile.TemporaryDirectory() as dossier:
             chemin = Path(dossier) / "cibles.json"
             enregistrer_configuration(chemin, donnees)
             configuration = charger_configuration(chemin)
-        self.assertEqual(len(configuration.contraintes), 7)
+        self.assertEqual(len(configuration.contraintes), 10)
+
+    def test_contrainte_groupee_refuse_des_niveaux_differents(self):
+        donnees = generer_configuration_standard(
+            8, classement_integral=False, barrages_1_contre_4=True
+        )
+        donnees["contraintes"].append({
+            "type": "poules_differentes",
+            "cible": {"type": "matchs", "numeros": [1, 5]},
+        })
+        with tempfile.TemporaryDirectory() as dossier:
+            chemin = Path(dossier) / "niveaux_differents.json"
+            with self.assertRaisesRegex(ValueError, "même niveau"):
+                enregistrer_configuration(chemin, donnees)
 
     def test_generation_tableau_standard_sans_classement(self):
         donnees = generer_configuration_standard(16, classement_integral=False)
