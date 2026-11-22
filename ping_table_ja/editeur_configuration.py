@@ -63,6 +63,15 @@ def aide_contrainte(type_contrainte, type_cible):
     return "{}\n{}\n{}".format(description, cible, exemple).strip()
 
 
+def preparer_donnees_enregistrement(donnees, aucune_contrainte=False):
+    """Prépare le JSON final sans enregistrer d'option transitoire."""
+    resultat = json.loads(json.dumps(donnees, ensure_ascii=False))
+    resultat.pop("aucune_contrainte", None)
+    if aucune_contrainte:
+        resultat["contraintes"] = []
+    return resultat
+
+
 def parser_reference(texte):
     """Convertit ``position:3`` ou ``vainqueur:2`` en référence JSON."""
     morceaux = str(texte).strip().lower().split(":", 1)
@@ -521,15 +530,15 @@ class EditeurConfiguration(tk.Toplevel):
         ).grid(row=5, column=1, sticky="w", pady=(0, 8))
         ttk.Checkbutton(
             self.onglet_general,
-            text="Aucune contrainte (désactiver toutes les contraintes)",
+            text="Aucune contrainte (enregistrer une configuration sans règle)",
             variable=self.aucune_contrainte_var,
             command=self._mettre_a_jour_etat_contraintes,
         ).grid(row=6, column=1, sticky="w", pady=(10, 2))
         ttk.Label(
             self.onglet_general,
             text=(
-                "Les contraintes restent enregistrées dans le JSON, mais elles sont ignorées "
-                "pendant le calcul et peuvent être réactivées plus tard."
+                "Lors de l'enregistrement, la liste des contraintes sera vide et aucune option "
+                "« aucune_contrainte » ne sera ajoutée au JSON."
             ),
             wraplength=650,
         ).grid(row=7, column=1, sticky="w", pady=(0, 8))
@@ -1023,6 +1032,7 @@ class EditeurConfiguration(tk.Toplevel):
         self.barrages_var.set(bool(self.donnees.get("barrages_1_contre_4", False)))
         self.aucune_contrainte_var.set(
             bool(self.donnees.get("aucune_contrainte", False))
+            or not self.donnees.get("contraintes", [])
         )
         self.onglet_excel_var.set(self.donnees.get("onglet_excel", "classement poules"))
 
@@ -1084,9 +1094,9 @@ class EditeurConfiguration(tk.Toplevel):
             "taille_tableau": taille,
             "classement_integral": bool(self.integral_var.get()),
             "barrages_1_contre_4": bool(self.barrages_var.get()),
-            "aucune_contrainte": bool(self.aucune_contrainte_var.get()),
             "onglet_excel": self.onglet_excel_var.get().strip() or "classement poules",
         })
+        self.donnees.pop("aucune_contrainte", None)
 
     def _rafraichir_tout(self):
         self._rafraichir_matchs()
@@ -1330,7 +1340,8 @@ class EditeurConfiguration(tk.Toplevel):
                 nom=self.nom_var.get().strip() or None,
             )
             nouvelles["onglet_excel"] = self.onglet_excel_var.get().strip() or "classement poules"
-            nouvelles["aucune_contrainte"] = bool(self.aucune_contrainte_var.get())
+            if self.aucune_contrainte_var.get():
+                nouvelles["contraintes"] = []
         except ValueError as erreur:
             messagebox.showerror("Génération impossible", str(erreur), parent=self)
             return
@@ -1371,12 +1382,19 @@ class EditeurConfiguration(tk.Toplevel):
             return
         try:
             self._synchroniser_general()
-            enregistrer_configuration(chemin, self.donnees)
+            donnees_enregistrees = preparer_donnees_enregistrement(
+                self.donnees,
+                aucune_contrainte=self.aucune_contrainte_var.get(),
+            )
+            enregistrer_configuration(chemin, donnees_enregistrees)
         except Exception as erreur:
             messagebox.showerror("Configuration invalide", str(erreur), parent=self)
             return
         self.chemin = chemin
+        self.donnees = donnees_enregistrees
+        self.aucune_contrainte_var.set(not bool(self.donnees.get("contraintes")))
         self._mettre_a_jour_titre()
+        self._rafraichir_tout()
         if self.apres_enregistrement:
             self.apres_enregistrement(chemin)
         messagebox.showinfo("Configuration enregistrée", str(chemin), parent=self)

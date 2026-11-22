@@ -93,9 +93,11 @@ visualisation d'un match, supprimer une contrainte héritée du niveau crée cet
 exception au lieu de supprimer la règle pour tous les autres matchs.
 
 La portée est affichée avec des libellés explicites : contrainte directe,
-groupe de matchs, niveau entier ou contrainte héritée d'un niveau. L'option
-générale **Aucune contrainte** désactive toutes les règles pendant le calcul
-sans effacer leur définition du JSON.
+groupe de matchs, niveau entier ou contrainte héritée d'un niveau. Le JSON ne
+contient qu'une définition pour une contrainte de niveau ; le chargeur la
+développe en règles par match uniquement en mémoire pendant le calcul.
+L'option générale **Aucune contrainte** enregistre simplement une liste
+`contraintes` vide, sans ajouter de drapeau particulier au JSON.
 
 L'éditeur prend en charge les tailles 8, 16, 32, 64, 128, 256 ou une puissance
 de deux supérieure et le classement intégral. Si les barrages 1er-4e ne sont
