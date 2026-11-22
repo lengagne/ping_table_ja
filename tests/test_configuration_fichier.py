@@ -22,6 +22,7 @@ from ping_table_ja.editeur_configuration import (
     indices_contraintes_du_match,
     indices_contraintes_de_position,
     parser_reference,
+    preparer_donnees_enregistrement,
 )
 from ping_table_ja.generateur_tableau import generer_configuration_standard, niveaux_principaux
 from ping_table_ja.gui import construire_matrice_classements, construire_matrice_tirage
@@ -57,22 +58,31 @@ class TestConfigurationFichier(unittest.TestCase):
         self.assertEqual(donnees["matchs"][1]["participant_2"], {"type": "vainqueur", "match": 1})
         self.assertEqual(donnees["matchs"][2]["participant_1"], {"type": "perdant", "match": 1})
         self.assertEqual(donnees["matchs"][2]["participant_2"]["numero"], 4)
-        self.assertEqual(len(donnees["contraintes"]), 6)
+        self.assertEqual(len(donnees["contraintes"]), 3)
+        self.assertTrue(all(
+            contrainte["cible"]["type"] == "niveau"
+            for contrainte in donnees["contraintes"]
+        ))
 
     def test_generation_avec_barrages_1_4_et_2_3(self):
         donnees = generer_configuration_standard(
             8, classement_integral=True, barrages_1_contre_4=True
         )
         self.assertEqual(len(donnees["matchs"]), 12)
+        self.assertEqual(len(donnees["contraintes"]), 2)
+        self.assertTrue(all(
+            contrainte["cible"]["type"] == "matchs"
+            for contrainte in donnees["contraintes"]
+        ))
         self.assertEqual(donnees["contraintes"][0]["rangs"], [1, 4])
         self.assertEqual(donnees["contraintes"][1]["rangs"], [2, 3])
 
-    def test_option_aucune_contrainte_ignore_les_regles_sans_les_effacer(self):
+    def test_option_aucune_contrainte_enregistre_une_liste_vide(self):
         donnees = generer_configuration_standard(
             8, classement_integral=False, barrages_1_contre_4=True
         )
         self.assertTrue(donnees["contraintes"])
-        donnees["aucune_contrainte"] = True
+        donnees = preparer_donnees_enregistrement(donnees, aucune_contrainte=True)
         with tempfile.TemporaryDirectory() as dossier:
             chemin = Path(dossier) / "sans_contrainte.json"
             enregistrer_configuration(chemin, donnees)
@@ -80,7 +90,8 @@ class TestConfigurationFichier(unittest.TestCase):
             contenu = json.loads(chemin.read_text(encoding="utf-8"))
         self.assertTrue(configuration.aucune_contrainte)
         self.assertEqual(configuration.contraintes, [])
-        self.assertTrue(contenu["contraintes"])
+        self.assertEqual(contenu["contraintes"], [])
+        self.assertNotIn("aucune_contrainte", contenu)
 
     def test_references_de_match_de_l_editeur(self):
         self.assertEqual(parser_reference("position:12"), {"type": "position", "numero": 12})
@@ -144,13 +155,13 @@ class TestConfigurationFichier(unittest.TestCase):
         ])
         self.assertEqual(
             indices_contraintes_de_position(1, donnees["contraintes"]),
-            [4],
+            [2],
         )
-        self.assertIn(5, indices_contraintes_du_match(donnees["matchs"][0], donnees["contraintes"]))
-        self.assertNotIn(6, indices_contraintes_du_match(
+        self.assertIn(3, indices_contraintes_du_match(donnees["matchs"][0], donnees["contraintes"]))
+        self.assertNotIn(4, indices_contraintes_du_match(
             donnees["matchs"][0], donnees["contraintes"]
         ))
-        self.assertIn(6, indices_contraintes_du_match(
+        self.assertIn(4, indices_contraintes_du_match(
             donnees["matchs"][1], donnees["contraintes"]
         ))
         with tempfile.TemporaryDirectory() as dossier:

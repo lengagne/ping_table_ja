@@ -157,7 +157,9 @@ def _charger_configuration_v2(donnees):
     matchs = _matchs_depuis_json(donnees.get("matchs", []), taille_tableau)
     if not matchs:
         raise ValueError("La configuration doit contenir au moins un match")
-    aucune_contrainte = bool(donnees.get("aucune_contrainte", False))
+    aucune_contrainte = bool(donnees.get("aucune_contrainte", False)) or not bool(
+        donnees.get("contraintes", [])
+    )
     contraintes_definies = _contraintes_depuis_json(
         donnees.get("contraintes", []), matchs, taille_tableau
     )
