@@ -18,6 +18,7 @@ from ping_table_ja.excel import (
 from ping_table_ja.editeur_configuration import (
     calculer_profondeurs_matchs,
     formater_reference,
+    indices_contraintes_du_match,
     parser_reference,
 )
 from ping_table_ja.generateur_tableau import generer_configuration_standard, niveaux_principaux
@@ -85,6 +86,15 @@ class TestConfigurationFichier(unittest.TestCase):
         donnees["matchs"][0]["participant_1"] = {"type": "vainqueur", "match": 1}
         with self.assertRaisesRegex(ValueError, "Cycle détecté"):
             calculer_profondeurs_matchs(donnees["matchs"])
+
+    def test_contraintes_affichees_sur_un_match(self):
+        match = {"numero": 7, "niveau": "1/8"}
+        contraintes = [
+            {"type": "poules_differentes", "cible": {"type": "match", "numero": 7}},
+            {"type": "clubs_differents", "cible": {"type": "niveau", "niveau": "1/8"}},
+            {"type": "rangs_match", "cible": {"type": "match", "numero": 8}},
+        ]
+        self.assertEqual(indices_contraintes_du_match(match, contraintes), [0, 1])
 
     def test_generation_tableau_standard_sans_classement(self):
         donnees = generer_configuration_standard(16, classement_integral=False)

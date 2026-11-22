@@ -69,6 +69,23 @@ def calculer_profondeurs_matchs(matchs):
     return profondeurs
 
 
+def indices_contraintes_du_match(match, contraintes):
+    """Retourne les contraintes visant directement le match ou son niveau."""
+    resultat = []
+    for index, contrainte in enumerate(contraintes):
+        cible = contrainte.get("cible", {})
+        correspond = (
+            cible.get("type") == "match"
+            and int(cible.get("numero", 0)) == int(match["numero"])
+        ) or (
+            cible.get("type") == "niveau"
+            and str(cible.get("niveau", "")) == str(match.get("niveau", ""))
+        )
+        if correspond:
+            resultat.append(index)
+    return resultat
+
+
 def _liste_entiers(texte, obligatoire=False):
     valeurs = [element.strip() for element in str(texte).split(",") if element.strip()]
     if obligatoire and not valeurs:
@@ -400,9 +417,10 @@ class EditeurConfiguration(tk.Toplevel):
 
     def _construire_visualisation(self):
         self.onglet_visualisation.columnconfigure(0, weight=1)
+        self.onglet_visualisation.columnconfigure(2, weight=0)
         self.onglet_visualisation.rowconfigure(1, weight=1)
         outils = ttk.Frame(self.onglet_visualisation)
-        outils.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 8))
+        outils.grid(row=0, column=0, columnspan=3, sticky="ew", pady=(0, 8))
         ttk.Label(
             outils,
             text="Les places sont numérotées de haut en bas. V = vainqueur, P = perdant.",
@@ -437,6 +455,56 @@ class EditeurConfiguration(tk.Toplevel):
             yscrollcommand=barre_y.set,
         )
 
+        panneau = ttk.LabelFrame(
+            self.onglet_visualisation,
+            text="Contraintes du tableau",
+            padding=8,
+        )
+        panneau.grid(row=1, column=2, rowspan=2, sticky="nsew", padx=(10, 0))
+        panneau.rowconfigure(0, weight=1)
+        panneau.columnconfigure(0, weight=1)
+        self.table_contraintes_visu = ttk.Treeview(
+            panneau,
+            columns=("type", "cible"),
+            show="headings",
+            selectmode="browse",
+        )
+        self.table_contraintes_visu.heading("type", text="Type")
+        self.table_contraintes_visu.heading("cible", text="Cible")
+        self.table_contraintes_visu.column("type", width=185, minwidth=130)
+        self.table_contraintes_visu.column("cible", width=130, minwidth=90)
+        self.table_contraintes_visu.grid(row=0, column=0, sticky="nsew")
+        barre_contraintes = ttk.Scrollbar(
+            panneau,
+            orient="vertical",
+            command=self.table_contraintes_visu.yview,
+        )
+        barre_contraintes.grid(row=0, column=1, sticky="ns")
+        self.table_contraintes_visu.configure(yscrollcommand=barre_contraintes.set)
+        self.table_contraintes_visu.bind(
+            "<<TreeviewSelect>>",
+            lambda _e: self._rafraichir_visualisation(),
+        )
+        self.table_contraintes_visu.bind(
+            "<Double-1>",
+            lambda _e: self._modifier_contrainte(self.table_contraintes_visu),
+        )
+        boutons = ttk.Frame(panneau)
+        boutons.grid(row=1, column=0, columnspan=2, sticky="ew", pady=(8, 0))
+        ttk.Button(boutons, text="Ajouter", command=self._ajouter_contrainte).pack(
+            side="left"
+        )
+        ttk.Button(
+            boutons,
+            text="Modifier",
+            command=lambda: self._modifier_contrainte(self.table_contraintes_visu),
+        ).pack(side="left", padx=5)
+        ttk.Button(
+            boutons,
+            text="Supprimer",
+            command=lambda: self._supprimer_contrainte(self.table_contraintes_visu),
+        ).pack(side="left")
+
     def _onglet_change(self, _evenement=None):
         self._rafraichir_json()
         if self.onglets.select() == str(self.onglet_visualisation):
@@ -451,6 +519,11 @@ class EditeurConfiguration(tk.Toplevel):
             return
         canvas = self.canvas_tableau
         canvas.delete("all")
+        index_contrainte_selectionnee = None
+        if hasattr(self, "table_contraintes_visu"):
+            selection = self.table_contraintes_visu.selection()
+            if selection:
+                index_contrainte_selectionnee = int(selection[0])
         try:
             self._synchroniser_general()
             taille = int(self.donnees.get("taille_tableau", 0))
@@ -535,9 +608,18 @@ class EditeurConfiguration(tk.Toplevel):
                             font=("TkDefaultFont", max(7, int(8 * z)), "bold"),
                         )
                 couleur = "#dbeafe" if str(match.get("niveau", "")).startswith("1/") or match.get("niveau") == "finale" else "#fef3c7"
+                contraintes_match = indices_contraintes_du_match(
+                    match, self.donnees.get("contraintes", [])
+                )
+                selectionne = index_contrainte_selectionnee in contraintes_match
+                contour = "#dc2626" if contraintes_match else "#3f3f46"
+                if selectionne:
+                    contour = "#ea580c"
                 canvas.create_rectangle(
                     x, y - hauteur_match / 2, x + largeur_match, y + hauteur_match / 2,
-                    fill=couleur, outline="#3f3f46", width=max(1, int(z)),
+                    fill=couleur,
+                    outline=contour,
+                    width=max(1, int((3 if selectionne else 2 if contraintes_match else 1) * z)),
                 )
                 canvas.create_text(
                     x + 8 * z, y - 8 * z, anchor="w",
@@ -549,6 +631,22 @@ class EditeurConfiguration(tk.Toplevel):
                     text=str(match.get("niveau", "")), fill="#52525b",
                     font=("TkDefaultFont", max(7, int(9 * z))),
                 )
+                if contraintes_match:
+                    canvas.create_oval(
+                        x + largeur_match - 25 * z,
+                        y - 17 * z,
+                        x + largeur_match - 7 * z,
+                        y + 1 * z,
+                        fill="#dc2626" if not selectionne else "#ea580c",
+                        outline="",
+                    )
+                    canvas.create_text(
+                        x + largeur_match - 16 * z,
+                        y - 8 * z,
+                        text=str(len(contraintes_match)),
+                        fill="white",
+                        font=("TkDefaultFont", max(7, int(8 * z)), "bold"),
+                    )
 
         hauteur = max(
             marge_y + taille * pas_joueur,
@@ -647,14 +745,26 @@ class EditeurConfiguration(tk.Toplevel):
 
     def _rafraichir_contraintes(self):
         self.table_contraintes.delete(*self.table_contraintes.get_children())
+        if hasattr(self, "table_contraintes_visu"):
+            self.table_contraintes_visu.delete(
+                *self.table_contraintes_visu.get_children()
+            )
         for index, contrainte in enumerate(self.donnees.get("contraintes", [])):
             cible = contrainte.get("cible", {})
             valeur = cible.get("numero", cible.get("niveau", ""))
+            texte_cible = "{} : {}".format(cible.get("type", ""), valeur)
             self.table_contraintes.insert("", "end", iid=str(index), values=(
                 contrainte.get("type", ""),
-                "{} : {}".format(cible.get("type", ""), valeur),
+                texte_cible,
                 self._description_contrainte(contrainte),
             ))
+            if hasattr(self, "table_contraintes_visu"):
+                self.table_contraintes_visu.insert(
+                    "",
+                    "end",
+                    iid=str(index),
+                    values=(contrainte.get("type", ""), texte_cible),
+                )
 
     def _rafraichir_json(self):
         try:
@@ -702,8 +812,9 @@ class EditeurConfiguration(tk.Toplevel):
             self.donnees.setdefault("contraintes", []).append(contrainte)
             self._rafraichir_tout()
 
-    def _modifier_contrainte(self):
-        index = self._index_selectionne(self.table_contraintes)
+    def _modifier_contrainte(self, table=None):
+        table = table or self.table_contraintes
+        index = self._index_selectionne(table)
         if index is None:
             return
         contrainte = DialogueContrainte(self, self.donnees["contraintes"][index]).afficher()
@@ -711,8 +822,9 @@ class EditeurConfiguration(tk.Toplevel):
             self.donnees["contraintes"][index] = contrainte
             self._rafraichir_tout()
 
-    def _supprimer_contrainte(self):
-        index = self._index_selectionne(self.table_contraintes)
+    def _supprimer_contrainte(self, table=None):
+        table = table or self.table_contraintes
+        index = self._index_selectionne(table)
         if index is not None and messagebox.askyesno(
             "Supprimer la contrainte", "Supprimer la contrainte sélectionnée ?", parent=self
         ):
