@@ -16,6 +16,7 @@ from ping_table_ja.excel import (
     mettre_a_jour_tirage_choisi,
 )
 from ping_table_ja.editeur_configuration import (
+    aide_contrainte,
     calculer_profondeurs_matchs,
     formater_reference,
     indices_contraintes_du_match,
@@ -75,6 +76,12 @@ class TestConfigurationFichier(unittest.TestCase):
         )
         with self.assertRaisesRegex(ValueError, "Référence attendue"):
             parser_reference("joueur 3")
+
+    def test_aide_contextuelle_des_contraintes(self):
+        aide = aide_contrainte("rangs_match", "matchs")
+        self.assertIn("Impose les deux rangs", aide)
+        self.assertIn("3,7,12", aide)
+        self.assertIn("1,4", aide)
 
     def test_profondeurs_pour_visualiser_le_tableau(self):
         donnees = generer_configuration_standard(
