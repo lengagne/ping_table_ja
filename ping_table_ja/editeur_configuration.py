@@ -155,6 +155,28 @@ def indices_contraintes_de_position(numero_position, contraintes):
     ]
 
 
+def indices_contraintes_pour_cible(cible, contraintes, matchs):
+    """Retourne une seule fois chaque contrainte liée à la cible cliquée."""
+    if not cible:
+        return list(range(len(contraintes)))
+    if cible.get("type") == "position":
+        return indices_contraintes_de_position(cible["numero"], contraintes)
+    numeros = (
+        [cible["numero"]]
+        if cible.get("type") == "match"
+        else cible.get("numeros", [])
+    )
+    par_numero = {int(match["numero"]): match for match in matchs}
+    return sorted({
+        index
+        for numero in numeros
+        if int(numero) in par_numero
+        for index in indices_contraintes_du_match(
+            par_numero[int(numero)], contraintes
+        )
+    })
+
+
 def _liste_entiers(texte, obligatoire=False):
     valeurs = [element.strip() for element in str(texte).split(",") if element.strip()]
     if obligatoire and not valeurs:
@@ -720,24 +742,9 @@ class EditeurConfiguration(tk.Toplevel):
 
     def _indices_contraintes_cible(self, cible):
         contraintes = self.donnees.get("contraintes", [])
-        if not cible:
-            return list(range(len(contraintes)))
-        if cible.get("type") == "position":
-            return indices_contraintes_de_position(cible["numero"], contraintes)
-        numeros = (
-            [cible["numero"]]
-            if cible.get("type") == "match"
-            else cible.get("numeros", [])
+        return indices_contraintes_pour_cible(
+            cible, contraintes, self.donnees.get("matchs", [])
         )
-        matchs = {
-            int(match["numero"]): match for match in self.donnees.get("matchs", [])
-        }
-        return sorted({
-            index
-            for numero in numeros
-            if int(numero) in matchs
-            for index in indices_contraintes_du_match(matchs[int(numero)], contraintes)
-        })
 
     def _numeros_matchs_cible_visualisation(self):
         cible = self.cible_visualisation or {}

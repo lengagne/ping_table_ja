@@ -21,6 +21,7 @@ from ping_table_ja.editeur_configuration import (
     formater_reference,
     indices_contraintes_du_match,
     indices_contraintes_de_position,
+    indices_contraintes_pour_cible,
     parser_reference,
     preparer_donnees_enregistrement,
 )
@@ -52,12 +53,12 @@ class TestConfigurationFichier(unittest.TestCase):
         self.assertEqual([match["numero"] for match in donnees["matchs"]], list(range(1, 11)))
         self.assertEqual(niveaux_principaux(8), ["1/4", "1/2", "finale"])
         self.assertEqual(donnees["matchs"][0]["niveau"], "barrage_2_3")
-        self.assertEqual(donnees["matchs"][0]["participant_1"]["numero"], 2)
-        self.assertEqual(donnees["matchs"][0]["participant_2"]["numero"], 3)
+        self.assertEqual(donnees["matchs"][0]["participant_1"]["numero"], 3)
+        self.assertEqual(donnees["matchs"][0]["participant_2"]["numero"], 4)
         self.assertEqual(donnees["matchs"][1]["participant_1"]["numero"], 1)
         self.assertEqual(donnees["matchs"][1]["participant_2"], {"type": "vainqueur", "match": 1})
         self.assertEqual(donnees["matchs"][2]["participant_1"], {"type": "perdant", "match": 1})
-        self.assertEqual(donnees["matchs"][2]["participant_2"]["numero"], 4)
+        self.assertEqual(donnees["matchs"][2]["participant_2"]["numero"], 2)
         self.assertEqual(len(donnees["contraintes"]), 3)
         self.assertTrue(all(
             contrainte["cible"]["type"] == "niveau"
@@ -76,6 +77,56 @@ class TestConfigurationFichier(unittest.TestCase):
         ))
         self.assertEqual(donnees["contraintes"][0]["rangs"], [1, 4])
         self.assertEqual(donnees["contraintes"][1]["rangs"], [2, 3])
+
+    def test_numerotation_pdf_identique_avec_ou_sans_barrage_1_4(self):
+        sans = generer_configuration_standard(32, barrages_1_contre_4=False)
+        avec = generer_configuration_standard(32, barrages_1_contre_4=True)
+
+        barrages_sans = [
+            (match["participant_1"]["numero"], match["participant_2"]["numero"])
+            for match in sans["matchs"]
+            if match["niveau"] == "barrage_2_3"
+        ]
+        self.assertEqual(barrages_sans, [
+            (3, 4), (5, 6), (11, 12), (13, 14),
+            (19, 20), (21, 22), (27, 28), (29, 30),
+        ])
+        self.assertEqual(
+            [sans["matchs"][index]["participant_1"]["numero"] for index in range(1, 24, 3)],
+            [1, 8, 9, 16, 17, 24, 25, 32],
+        )
+        self.assertEqual(
+            [sans["matchs"][index]["participant_2"]["numero"] for index in range(2, 24, 3)],
+            [2, 7, 10, 15, 18, 23, 26, 31],
+        )
+        premiers_matchs_avec = [
+            (match["participant_1"]["numero"], match["participant_2"]["numero"])
+            for match in avec["matchs"][:16]
+        ]
+        self.assertEqual(premiers_matchs_avec[:8], [
+            (1, 2), (3, 4), (5, 6), (8, 7),
+            (9, 10), (11, 12), (13, 14), (16, 15),
+        ])
+
+    def test_contrainte_de_colonne_est_retrouvee_une_seule_fois(self):
+        donnees = generer_configuration_standard(32, barrages_1_contre_4=False)
+        profondeurs = calculer_profondeurs_matchs(donnees["matchs"])
+        premiere_colonne = sorted(
+            numero for numero, profondeur in profondeurs.items() if profondeur == 1
+        )
+        donnees["contraintes"].append({
+            "type": "poules_differentes",
+            "cible": {"type": "matchs", "numeros": premiere_colonne},
+        })
+        index_ajoute = len(donnees["contraintes"]) - 1
+        self.assertEqual(
+            indices_contraintes_pour_cible(
+                {"type": "matchs", "numeros": premiere_colonne},
+                donnees["contraintes"],
+                donnees["matchs"],
+            ).count(index_ajoute),
+            1,
+        )
 
     def test_option_aucune_contrainte_enregistre_une_liste_vide(self):
         donnees = generer_configuration_standard(
