@@ -64,6 +64,38 @@ class RangsMatchImposes(Contrainte):
         )
 
 
+class RangsParticipantsImposes(Contrainte):
+    """Impose séparément les rangs possibles de chaque participant d'un match."""
+
+    def __init__(self, match, rangs_participant_1, rangs_participant_2):
+        self.match = match
+        self.rangs = (
+            {int(rang) for rang in rangs_participant_1},
+            {int(rang) for rang in rangs_participant_2},
+        )
+
+    def _candidats_valides(self, participant, rangs, placement):
+        candidats = participant.joueurs_possibles(placement)
+        return not candidats or all(int(joueur["rang_poule"]) in rangs for joueur in candidats)
+
+    def est_compatible(self, placement):
+        return self._candidats_valides(self.match.participant_1, self.rangs[0], placement) and (
+            self._candidats_valides(self.match.participant_2, self.rangs[1], placement)
+        )
+
+    def est_respectee(self, placement):
+        candidats = (
+            self.match.participant_1.joueurs_possibles(placement),
+            self.match.participant_2.joueurs_possibles(placement),
+        )
+        return all(candidats) and self.est_compatible(placement)
+
+    def description(self):
+        return "Le match {} impose les rangs {} puis {}".format(
+            self.match.numero, sorted(self.rangs[0]), sorted(self.rangs[1])
+        )
+
+
 class MemePouleInterdite(Contrainte):
     def __init__(self, match):
         self.match = match
