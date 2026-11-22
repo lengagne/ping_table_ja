@@ -19,6 +19,33 @@ def nom_niveau(nombre_participants):
     return "1/{}".format(nombre_participants // 2)
 
 
+def positions_poules_tableau(taille_tableau):
+    """Retourne les positions de poule selon la numérotation du tableau PDF.
+
+    Par bloc de deux poules, les positions sont disposées de haut en bas ainsi :
+    1er A, 4e A, 2e/3e A, 2e/3e B, 4e B, 1er B. Cette disposition
+    reste identique, que les barrages 1-4 soient joués ou non.
+    """
+    taille_tableau = int(taille_tableau)
+    if taille_tableau < 8 or taille_tableau % 8:
+        raise ValueError("La numérotation standard nécessite un multiple de 8")
+    poules = []
+    for debut in range(1, taille_tableau + 1, 8):
+        poules.extend([
+            {
+                "rang_1": debut,
+                "rang_4": debut + 1,
+                "rangs_2_3": (debut + 2, debut + 3),
+            },
+            {
+                "rang_1": debut + 7,
+                "rang_4": debut + 6,
+                "rangs_2_3": (debut + 4, debut + 5),
+            },
+        ])
+    return poules
+
+
 def generer_configuration_standard(
     taille_tableau,
     classement_integral=True,
@@ -101,22 +128,31 @@ def generer_configuration_standard(
     def position(numero):
         return {"type": "position", "numero": numero}
 
+    positions_poules = positions_poules_tableau(taille_tableau)
+
     if barrages_1_contre_4:
-        # Chaque bloc de quatre positions reçoit un barrage 1-4 et un barrage 2-3.
+        # Les positions conservent la disposition du PDF. Dans une paire de
+        # poules, la seconde est donc dessinée en miroir.
         premiers_matchs = []
         matchs_1_4 = []
         matchs_2_3 = []
         niveau = nom_niveau(taille_tableau)
-        for debut in range(1, taille_tableau + 1, 4):
-            match_1_4 = ajouter_match(
-                position(debut), position(debut + 1), niveau, (1, taille_tableau)
-            )
-            match_2_3 = ajouter_match(
-                position(debut + 2), position(debut + 3), niveau, (1, taille_tableau)
-            )
-            matchs_1_4.append(match_1_4)
-            matchs_2_3.append(match_2_3)
-            premiers_matchs.extend((match_1_4, match_2_3))
+        for index in range(0, len(positions_poules), 2):
+            paire = positions_poules[index:index + 2]
+            definitions = [
+                ("1_4", paire[0]["rang_1"], paire[0]["rang_4"]),
+                ("2_3", *paire[0]["rangs_2_3"]),
+                ("2_3", *paire[1]["rangs_2_3"]),
+                ("1_4", paire[1]["rang_1"], paire[1]["rang_4"]),
+            ]
+            for type_barrage, numero_1, numero_2 in definitions:
+                numero_match = ajouter_match(
+                    position(numero_1), position(numero_2), niveau, (1, taille_tableau)
+                )
+                premiers_matchs.append(numero_match)
+                (matchs_1_4 if type_barrage == "1_4" else matchs_2_3).append(
+                    numero_match
+                )
         imposer_rangs_matchs(matchs_1_4, 1, 4)
         imposer_rangs_matchs(matchs_2_3, 2, 3)
         continuer_apres_premier_tour(
@@ -125,7 +161,6 @@ def generer_configuration_standard(
     else:
         # Les 2es et 3es jouent un barrage. Le gagnant rejoint un 1er dans
         # le tableau supérieur et le perdant rejoint un 4e dans le tableau inférieur.
-        nombre_poules = taille_tableau // 4
         taille_sous_tableau = taille_tableau // 2
         matchs_superieurs = []
         matchs_inferieurs = []
@@ -133,17 +168,17 @@ def generer_configuration_standard(
         niveau_inferieur = "places_{}_{}".format(
             taille_sous_tableau + 1, taille_tableau
         )
-        for index_poule in range(nombre_poules):
-            debut = index_poule * 4 + 1
+        for positions_poule in positions_poules:
+            numero_2, numero_3 = positions_poule["rangs_2_3"]
             barrage = ajouter_match(
-                position(debut + 1),
-                position(debut + 2),
+                position(numero_2),
+                position(numero_3),
                 "barrage_2_3",
                 (1, taille_tableau),
             )
 
             match_superieur = ajouter_match(
-                position(debut),
+                position(positions_poule["rang_1"]),
                 {"type": "vainqueur", "match": barrage},
                 niveau_superieur,
                 (1, taille_sous_tableau),
@@ -152,7 +187,7 @@ def generer_configuration_standard(
 
             match_inferieur = ajouter_match(
                 {"type": "perdant", "match": barrage},
-                position(debut + 3),
+                position(positions_poule["rang_4"]),
                 niveau_inferieur,
                 (taille_sous_tableau + 1, taille_tableau),
             )
