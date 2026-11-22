@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "nom": "Double KO - 32 joueurs",
+  "generateur": "double_ko32",
+  "nombre_positions": 32,
+  "onglet_excel": "classement poules",
+  "onglet_sortie": "TropFortSeb"
+}
