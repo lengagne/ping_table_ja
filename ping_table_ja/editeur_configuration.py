@@ -1146,8 +1146,22 @@ class EditeurConfiguration(tk.Toplevel):
                 souhaits.append((sum(source[1] for source in sources) / 2, match, sources))
             souhaits.sort(key=lambda element: element[0])
             precedent_y = marge_y - espace_match
+            index_classement = 0
+            debut_classements = marge_y + taille * pas_joueur + 120 * z
             for souhaite_y, match, sources in souhaits:
-                y = max(souhaite_y, precedent_y + espace_match)
+                est_classement = (
+                    not vue_compacte
+                    and min(match.get("places", [1])) > 1
+                )
+                if est_classement:
+                    y = max(
+                        souhaite_y,
+                        debut_classements + index_classement * espace_match,
+                        precedent_y + espace_match,
+                    )
+                    index_classement += 1
+                else:
+                    y = max(souhaite_y, precedent_y + espace_match)
                 precedent_y = y
                 x = abscisse_match_visualisation(
                     profondeur,
@@ -1159,13 +1173,32 @@ class EditeurConfiguration(tk.Toplevel):
                 )
                 coordonnees_matchs[int(match["numero"])] = (x, y)
                 for index, (source_x, source_y) in enumerate(sources, start=1):
+                    reference = match.get("participant_{}".format(index), {})
+                    numero_source = int(reference.get("match", 0))
+                    source_est_barrage = (
+                        numero_source in par_numero
+                        and par_numero[numero_source].get("niveau") == "barrage_2_3"
+                    )
+                    if (
+                        not vue_compacte
+                        and reference.get("type") == "perdant"
+                        and not source_est_barrage
+                    ):
+                        canvas.create_text(
+                            x - 8 * z,
+                            y - hauteur_match * 0.23 if index == 1 else y + hauteur_match * 0.23,
+                            text="Perdant match {}".format(numero_source),
+                            anchor="e",
+                            fill="#9a3412",
+                            font=("TkDefaultFont", max(7, int(8 * z)), "italic"),
+                        )
+                        continue
                     cible_y = y - hauteur_match * 0.23 if index == 1 else y + hauteur_match * 0.23
                     milieu_x = (source_x + x) / 2
                     canvas.create_line(
                         source_x, source_y, milieu_x, source_y, milieu_x, cible_y, x, cible_y,
                         fill="#5f6368", width=max(1, int(z)),
                     )
-                    reference = match.get("participant_{}".format(index), {})
                     if reference.get("type") in ("vainqueur", "perdant"):
                         canvas.create_text(
                             source_x + 7 * z, source_y - 7 * z,

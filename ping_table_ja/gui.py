@@ -103,6 +103,8 @@ class Application(ttk.Frame):
         self.chemin_excel_solutions = None
         self.configuration_solutions = None
         self.fichier_resultats_solutions = None
+        self.solution_affichee = None
+        self.numero_tirage_affiche = 1
         self.arret_calcul = threading.Event()
         self._construire_interface()
         self._charger_preferences()
@@ -169,7 +171,7 @@ class Application(ttk.Frame):
 
         cadre_actions = ttk.Frame(self)
         cadre_actions.grid(row=7, column=0, columnspan=2, sticky="ew")
-        for colonne in range(4):
+        for colonne in range(5):
             cadre_actions.columnconfigure(colonne, weight=1)
 
         self.bouton_une_solution = ttk.Button(
@@ -198,6 +200,15 @@ class Application(ttk.Frame):
             state="disabled",
         )
         self.bouton_solution_aleatoire.grid(row=0, column=3, sticky="ew", padx=(6, 0), ipady=7)
+        self.bouton_creer_excel = ttk.Button(
+            cadre_actions,
+            text="Créer le fichier Excel de solution",
+            command=self._creer_excel_solution,
+            state="disabled",
+        )
+        self.bouton_creer_excel.grid(
+            row=0, column=4, sticky="ew", padx=(6, 0), ipady=7
+        )
         self.progression = ttk.Progressbar(self, mode="indeterminate")
         self.progression.grid(row=8, column=0, columnspan=2, sticky="ew", pady=(14, 8))
         cadre_statut = ttk.Frame(self)
@@ -217,10 +228,13 @@ class Application(ttk.Frame):
 
         self.onglet_details = ttk.Frame(self.onglets, padding=16)
         self.onglet_tirage = ttk.Frame(self.onglets, padding=12)
+        self.onglet_tableau = ttk.Frame(self.onglets, padding=12)
         self.onglets.add(self.onglet_details, text="Détails du calcul")
         self.onglets.add(self.onglet_tirage, text="Tirage")
+        self.onglets.add(self.onglet_tableau, text="Tableau")
         self._construire_onglet_details()
         self._construire_onglet_tirage()
+        self._construire_onglet_tableau()
 
     def _construire_onglet_details(self):
         self.onglet_details.columnconfigure(1, weight=1)
@@ -272,6 +286,31 @@ class Application(ttk.Frame):
         self.tirage.configure(
             yscrollcommand=defilement_vertical.set,
             xscrollcommand=defilement_horizontal.set,
+        )
+
+    def _construire_onglet_tableau(self):
+        self.onglet_tableau.columnconfigure(0, weight=1)
+        self.onglet_tableau.rowconfigure(0, weight=1)
+        self.canvas_tableau = tk.Canvas(
+            self.onglet_tableau,
+            background="white",
+            highlightthickness=1,
+            highlightbackground="#b8b8b8",
+        )
+        self.canvas_tableau.grid(row=0, column=0, sticky="nsew")
+        barre_y = ttk.Scrollbar(
+            self.onglet_tableau, orient="vertical", command=self.canvas_tableau.yview
+        )
+        barre_y.grid(row=0, column=1, sticky="ns")
+        barre_x = ttk.Scrollbar(
+            self.onglet_tableau, orient="horizontal", command=self.canvas_tableau.xview
+        )
+        barre_x.grid(row=1, column=0, sticky="ew")
+        self.canvas_tableau.configure(
+            xscrollcommand=barre_x.set, yscrollcommand=barre_y.set
+        )
+        self.canvas_tableau.create_text(
+            24, 24, anchor="nw", text="Le tableau apparaîtra après le calcul."
         )
 
     def _charger_preferences(self):
@@ -391,10 +430,18 @@ class Application(ttk.Frame):
         self.chemin_excel_solutions = None
         self.configuration_solutions = None
         self.fichier_resultats_solutions = None
+        self.solution_affichee = None
         if hasattr(self, "bouton_solution_aleatoire"):
             self.bouton_solution_aleatoire.state(["disabled"])
+        if hasattr(self, "bouton_creer_excel"):
+            self.bouton_creer_excel.state(["disabled"])
         if hasattr(self, "tirage"):
             self._vider_tirage()
+        if hasattr(self, "canvas_tableau"):
+            self.canvas_tableau.delete("all")
+            self.canvas_tableau.create_text(
+                24, 24, anchor="nw", text="Le tableau apparaîtra après le calcul."
+            )
 
     def _vider_tirage(self):
         for ligne in self.tirage.get_children():
@@ -417,7 +464,132 @@ class Application(ttk.Frame):
         for valeurs in lignes:
             self.tirage.insert("", "end", values=valeurs)
         self.titre_tirage_var.set("TIRAGE {}".format(numero_tirage))
+        self.solution_affichee = solution
+        self.numero_tirage_affiche = numero_tirage
         self.onglets.select(self.onglet_tirage)
+
+    def _afficher_tableau(self, configuration, solution):
+        canvas = self.canvas_tableau
+        canvas.delete("all")
+        matchs = configuration.matchs
+        profondeurs = {}
+
+        def profondeur(match):
+            if match.numero in profondeurs:
+                return profondeurs[match.numero]
+            precedents = []
+            for participant in (match.participant_1, match.participant_2):
+                precedent = getattr(participant, "match", None)
+                if precedent is not None:
+                    precedents.append(profondeur(precedent))
+            profondeurs[match.numero] = 1 + max(precedents, default=0)
+            return profondeurs[match.numero]
+
+        for match in matchs.values():
+            profondeur(match)
+        principal = [
+            match for match in matchs.values()
+            if min(match.places or (1,)) == 1
+        ]
+        classements = [match for match in matchs.values() if match not in principal]
+        maximum_principal = max(
+            (sum(1 for match in principal if profondeurs[match.numero] == niveau)
+             for niveau in set(profondeurs.values())),
+            default=1,
+        )
+        debut_classements = 90 + maximum_principal * 82 + 90
+        canvas.create_text(
+            24, 18, anchor="nw", text="TABLEAU PRINCIPAL",
+            font=("TkDefaultFont", 12, "bold"), fill="#1f4e78",
+        )
+        canvas.create_text(
+            24, debut_classements - 42, anchor="nw", text="TABLEAUX DE CLASSEMENT",
+            font=("TkDefaultFont", 12, "bold"), fill="#9a3412",
+        )
+
+        def texte_participant(participant):
+            if hasattr(participant, "position"):
+                position = int(participant.position)
+                joueur = solution[position - 1]
+                if joueur is None or joueur.get("absent"):
+                    return "Position {} - absent".format(position)
+                return "{} (position {})".format(joueur.get("nom", ""), position)
+            precedent = participant.match.numero
+            return "{} match {}".format(
+                "Perdant" if participant.resultat == "perdant" else "Vainqueur",
+                precedent,
+            )
+
+        for groupe, debut_y in ((principal, 60), (classements, debut_classements)):
+            par_niveau = {}
+            for match in groupe:
+                par_niveau.setdefault(profondeurs[match.numero], []).append(match)
+            for niveau, liste in sorted(par_niveau.items()):
+                x = 40 + (niveau - 1) * 245
+                canvas.create_text(
+                    x, debut_y - 18, anchor="nw", text="Niveau {}".format(niveau),
+                    font=("TkDefaultFont", 9, "bold"),
+                )
+                for index, match in enumerate(sorted(liste, key=lambda m: m.numero)):
+                    y = debut_y + index * 82
+                    canvas.create_rectangle(
+                        x, y, x + 205, y + 62, fill="#f8fafc", outline="#64748b"
+                    )
+                    canvas.create_text(
+                        x + 8, y + 8, anchor="nw",
+                        text="MATCH {} - {}".format(match.numero, match.niveau or ""),
+                        font=("TkDefaultFont", 9, "bold"),
+                    )
+                    canvas.create_text(
+                        x + 8, y + 29, anchor="nw",
+                        text=texte_participant(match.participant_1),
+                    )
+                    canvas.create_text(
+                        x + 8, y + 46, anchor="nw",
+                        text=texte_participant(match.participant_2),
+                    )
+        largeur = 280 + max(profondeurs.values(), default=1) * 245
+        hauteur = debut_classements + max(len(classements), 1) * 82 + 100
+        canvas.configure(scrollregion=(0, 0, largeur, hauteur))
+
+    def _creer_excel_solution(self):
+        if self.solution_affichee is None or self.configuration_solutions is None:
+            messagebox.showinfo(
+                "Aucune solution", "Calculez d'abord une solution."
+            )
+            return
+        initial = (
+            Path(self.fichier_resultats_solutions).name
+            if self.fichier_resultats_solutions
+            else "solution.xlsx"
+        )
+        chemin = filedialog.asksaveasfilename(
+            title="Créer le fichier Excel de solution",
+            defaultextension=".xlsx",
+            filetypes=(("Classeur Excel", "*.xlsx"),),
+            initialfile=initial,
+        )
+        if not chemin:
+            return
+        try:
+            creer_fichier_solution(
+                chemin,
+                self.solution_affichee,
+                solutions=self.solutions or [self.solution_affichee],
+                recap={
+                    "configuration": self.config_var.get(),
+                    "excel": self.excel_var.get(),
+                    "mode": self.detail_mode_var.get(),
+                    "recherche_terminee": self.solutions_recherche_terminee,
+                },
+                numero_tirage_choisi=self.numero_tirage_affiche,
+                matchs=self.configuration_solutions.matchs,
+            )
+        except Exception as erreur:
+            messagebox.showerror("Création impossible", str(erreur))
+            return
+        self.fichier_resultats_solutions = Path(chemin)
+        messagebox.showinfo("Fichier créé", str(chemin))
 
     def _demarrer_calcul(self, mode):
         configuration = Path(self.config_var.get()).expanduser()
@@ -555,7 +727,7 @@ class Application(ttk.Frame):
                 },
                 matchs=configuration.matchs,
             )
-            self.parent.after(0, self._calcul_termine, sortie, solution)
+            self.parent.after(0, self._calcul_termine, sortie, solution, configuration)
         except Exception as erreur:
             traceback.print_exc()
             self.parent.after(0, self._calcul_echoue, str(erreur))
@@ -593,6 +765,7 @@ class Application(ttk.Frame):
         self.fichier_resultats_solutions = sortie
         self._fin_traitement()
         self.bouton_solution_aleatoire.state(["!disabled"])
+        self.bouton_creer_excel.state(["!disabled"])
         if calcul_arrete:
             resume = "Calcul arrêté : {} solutions conservées.".format(len(solutions))
         elif limite is not None and not recherche_terminee:
@@ -602,6 +775,7 @@ class Application(ttk.Frame):
         self.statut_var.set(resume)
         self.detail_etat_var.set(resume)
         self._afficher_tirage(solutions[0])
+        self._afficher_tableau(configuration, solutions[0])
         messagebox.showinfo(
             "Calcul terminé",
             resume + "\nVous pouvez maintenant en choisir une aléatoirement.",
@@ -636,6 +810,7 @@ class Application(ttk.Frame):
             )
         )
         self._afficher_tirage(solution, numero_tirage)
+        self._afficher_tableau(self.configuration_solutions, solution)
         messagebox.showinfo(
             "Solution aléatoire",
             "Le tirage n°{} est maintenant sélectionné dans :\n{}".format(
@@ -644,11 +819,17 @@ class Application(ttk.Frame):
             ),
         )
 
-    def _calcul_termine(self, sortie, solution):
+    def _calcul_termine(self, sortie, solution, configuration):
+        self.solutions = [solution]
+        self.solutions_recherche_terminee = True
+        self.configuration_solutions = configuration
+        self.fichier_resultats_solutions = sortie
         self._fin_traitement()
+        self.bouton_creer_excel.state(["!disabled"])
         self.statut_var.set("Calcul terminé : {}".format(sortie))
         self.detail_etat_var.set("Une solution trouvée. Fichier créé : {}".format(sortie))
         self._afficher_tirage(solution)
+        self._afficher_tableau(configuration, solution)
         messagebox.showinfo("Calcul terminé", "Le fichier a été créé :\n{}".format(sortie))
 
     def _calcul_echoue(self, message):
