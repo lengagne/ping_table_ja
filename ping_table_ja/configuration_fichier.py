@@ -9,6 +9,7 @@ from .contraintes import (
     ClubsDifferentsParticipants,
     MemePouleInterdite,
     RangsMatchImposes,
+    RangsMemePouleInterdits,
     RangsParticipantsImposes,
     RangsPositionImposes,
 )
@@ -169,6 +170,13 @@ def _contraintes_depuis_json(definitions, matchs, taille_tableau):
                 if len(rangs) != 2:
                     raise ValueError("La contrainte rangs_match attend exactement deux rangs")
                 resultat.append(RangsMatchImposes(match, rangs[0], rangs[1]))
+            elif type_contrainte == "rangs_meme_poule_interdits":
+                rangs = definition.get("rangs", [])
+                if len(rangs) != 2:
+                    raise ValueError(
+                        "La contrainte rangs_meme_poule_interdits attend exactement deux rangs"
+                    )
+                resultat.append(RangsMemePouleInterdits(match, rangs[0], rangs[1]))
             elif type_contrainte == "rangs_participants":
                 rangs_1 = definition.get("participant_1", [])
                 rangs_2 = definition.get("participant_2", [])

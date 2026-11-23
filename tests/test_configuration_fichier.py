@@ -312,6 +312,26 @@ class TestConfigurationFichier(unittest.TestCase):
         placement[0] = {"poule": 3, "rang_poule": 2}
         self.assertFalse(contrainte.est_respectee(placement))
 
+    def test_interdit_les_rangs_1_et_3_d_une_meme_poule(self):
+        donnees = generer_configuration_standard(8, classement_integral=False)
+        donnees["contraintes"] = [{
+            "type": "rangs_meme_poule_interdits",
+            "cible": {"type": "match", "numero": 1},
+            "rangs": [1, 3],
+        }]
+        with tempfile.TemporaryDirectory() as dossier:
+            chemin = Path(dossier) / "rangs_meme_poule.json"
+            enregistrer_configuration(chemin, donnees)
+            configuration = charger_configuration(chemin)
+        contrainte = configuration.contraintes[0]
+        placement = [None] * 8
+        # Le match 1 utilise les positions 3 et 4.
+        placement[2] = {"poule": 2, "rang_poule": 1}
+        placement[3] = {"poule": 2, "rang_poule": 3}
+        self.assertFalse(contrainte.est_respectee(placement))
+        placement[3] = {"poule": 4, "rang_poule": 3}
+        self.assertTrue(contrainte.est_respectee(placement))
+
     def test_contrainte_groupee_refuse_des_niveaux_differents(self):
         donnees = generer_configuration_standard(
             8, classement_integral=False, barrages_1_contre_4=True
