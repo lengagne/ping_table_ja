@@ -81,6 +81,12 @@ def preparer_donnees_enregistrement(donnees, aucune_contrainte=False):
     return resultat
 
 
+def ajouter_contrainte_donnees(donnees, contrainte):
+    """Ajoute une contrainte et indique que la configuration en contient."""
+    donnees.setdefault("contraintes", []).append(contrainte)
+    return False
+
+
 def parser_reference(texte):
     """Convertit ``position:3`` ou ``vainqueur:2`` en référence JSON."""
     morceaux = str(texte).strip().lower().split(":", 1)
@@ -1377,7 +1383,8 @@ class EditeurConfiguration(tk.Toplevel):
     def _ajouter_contrainte(self):
         contrainte = DialogueContrainte(self).afficher()
         if contrainte:
-            self.donnees.setdefault("contraintes", []).append(contrainte)
+            ajouter_contrainte_donnees(self.donnees, contrainte)
+            self.aucune_contrainte_var.set(False)
             self._rafraichir_tout()
 
     def _ajouter_contrainte_visualisation(self):
@@ -1393,7 +1400,8 @@ class EditeurConfiguration(tk.Toplevel):
             cible_initiale=dict(self.cible_visualisation),
         ).afficher()
         if contrainte:
-            self.donnees.setdefault("contraintes", []).append(contrainte)
+            ajouter_contrainte_donnees(self.donnees, contrainte)
+            self.aucune_contrainte_var.set(False)
             self._rafraichir_tout()
 
     def _modifier_contrainte(self, table=None):
@@ -1404,6 +1412,7 @@ class EditeurConfiguration(tk.Toplevel):
         contrainte = DialogueContrainte(self, self.donnees["contraintes"][index]).afficher()
         if contrainte:
             self.donnees["contraintes"][index] = contrainte
+            self.aucune_contrainte_var.set(False)
             self._rafraichir_tout()
 
     def _supprimer_contrainte(self, table=None):

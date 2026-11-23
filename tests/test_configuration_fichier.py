@@ -16,6 +16,7 @@ from ping_table_ja.excel import (
     mettre_a_jour_tirage_choisi,
 )
 from ping_table_ja.editeur_configuration import (
+    ajouter_contrainte_donnees,
     aide_contrainte,
     calculer_profondeurs_matchs,
     formater_reference,
@@ -166,6 +167,22 @@ class TestConfigurationFichier(unittest.TestCase):
         self.assertEqual(configuration.contraintes, [])
         self.assertEqual(contenu["contraintes"], [])
         self.assertNotIn("aucune_contrainte", contenu)
+
+    def test_ajouter_une_contrainte_desactive_aucune_contrainte(self):
+        donnees = generer_configuration_standard(8)
+        donnees["contraintes"] = []
+        contrainte = {
+            "type": "rangs_position",
+            "cible": {"type": "position", "numero": 1},
+            "rangs": [1],
+            "poules": [1],
+        }
+        aucune_contrainte = ajouter_contrainte_donnees(donnees, contrainte)
+        contenu = preparer_donnees_enregistrement(
+            donnees, aucune_contrainte=aucune_contrainte
+        )
+        self.assertFalse(aucune_contrainte)
+        self.assertEqual(contenu["contraintes"], [contrainte])
 
     def test_references_de_match_de_l_editeur(self):
         self.assertEqual(parser_reference("position:12"), {"type": "position", "numero": 12})
