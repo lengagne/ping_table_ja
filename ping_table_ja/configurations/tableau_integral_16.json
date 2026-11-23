@@ -487,7 +487,6 @@
       ]
     },
     {
-      "nom": "Entrées du tableau bas : positions réservées aux 4es de poule",
       "type": "rangs_position",
       "cible": {
         "type": "positions",
@@ -498,6 +497,7 @@
           15
         ]
       },
+      "nom": "Entrées du tableau bas : positions réservées aux 4es de poule",
       "rangs": [
         4
       ]
@@ -591,6 +591,30 @@
       ],
       "poules": [
         3,
+        4
+      ]
+    },
+    {
+      "type": "rangs_meme_poule_interdits",
+      "cible": {
+        "type": "niveau",
+        "numero": 3
+      },
+      "nom": "Le 1er et le 2e d'une poule ne peuvent se retrouver qu'en finale",
+      "rangs": [
+        1,
+        3
+      ]
+    },
+    {
+      "type": "rangs_meme_poule_interdits",
+      "cible": {
+        "type": "niveau",
+        "numero": 3
+      },
+      "nom": "Le 2eme et le 4e d'une poule ne peuvent se retrouver qu'en finale",
+      "rangs": [
+        2,
         4
       ]
     }

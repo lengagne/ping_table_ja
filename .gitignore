@@ -3,3 +3,5 @@
 */*/*.pyc
 .venv
 ping_table_ja.egg-info/
+exemples/*solutions.xlsx
+exemples/.~lock*
