@@ -10,6 +10,12 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, simpledialog, ttk
 
 from .configuration_fichier import charger_configuration, configuration_par_defaut
+from .disposition_tableau import (
+    bloc_match_visualisation,
+    calculer_disposition_non_compacte,
+    definitions_matchs_visualisation,
+    sorties_classement,
+)
 from .editeur_configuration import ouvrir_editeur
 from .excel import (
     creer_fichier_solution,
@@ -472,40 +478,37 @@ class Application(ttk.Frame):
         canvas = self.canvas_tableau
         canvas.delete("all")
         matchs = configuration.matchs
-        profondeurs = {}
+        definitions = definitions_matchs_visualisation(matchs)
+        taille = len(solution)
+        largeur_match, hauteur_match, pas_colonne = 205, 62, 270
+        profondeur_max = max(2, (taille.bit_length() - 1) + 1)
+        origine = 80 + profondeur_max * pas_colonne
+        coordonnees, bandes, fin_y = calculer_disposition_non_compacte(
+            definitions, taille, origine, pas_colonne, largeur_match,
+            85, 88, 125,
+        )
+        definitions_par_numero = {definition["numero"]: definition for definition in definitions}
 
-        def profondeur(match):
-            if match.numero in profondeurs:
-                return profondeurs[match.numero]
-            precedents = []
-            for participant in (match.participant_1, match.participant_2):
-                precedent = getattr(participant, "match", None)
-                if precedent is not None:
-                    precedents.append(profondeur(precedent))
-            profondeurs[match.numero] = 1 + max(precedents, default=0)
-            return profondeurs[match.numero]
-
-        for match in matchs.values():
-            profondeur(match)
-        principal = [
-            match for match in matchs.values()
-            if min(match.places or (1,)) == 1
-        ]
-        classements = [match for match in matchs.values() if match not in principal]
-        maximum_principal = max(
-            (sum(1 for match in principal if profondeurs[match.numero] == niveau)
-             for niveau in set(profondeurs.values())),
-            default=1,
-        )
-        debut_classements = 90 + maximum_principal * 82 + 90
-        canvas.create_text(
-            24, 18, anchor="nw", text="TABLEAU PRINCIPAL",
-            font=("TkDefaultFont", 12, "bold"), fill="#1f4e78",
-        )
-        canvas.create_text(
-            24, debut_classements - 42, anchor="nw", text="TABLEAUX DE CLASSEMENT",
-            font=("TkDefaultFont", 12, "bold"), fill="#9a3412",
-        )
+        for bande in bandes:
+            for cote, plage in bande["plages"].items():
+                x_titre = origine + pas_colonne if cote == "droite" else 25
+                texte = (
+                    "TABLEAU PLACES {} À {}".format(*plage)
+                    if plage[1] - plage[0] > 1
+                    else "PLACES {}e / {}e".format(*plage)
+                )
+                canvas.create_rectangle(
+                    x_titre, bande["haut"] - 32, x_titre + 255, bande["haut"] - 7,
+                    fill="#eef7ff", outline="#7aa7c7",
+                )
+                canvas.create_text(
+                    x_titre + 8, bande["haut"] - 19, anchor="w", text=texte,
+                    font=("TkDefaultFont", 9, "bold"), fill="#334155",
+                )
+            canvas.create_line(
+                20, bande["bas"] + 61, origine * 2 + largeur_match,
+                bande["bas"] + 61, fill="#cbd5e1", dash=(7, 6),
+            )
 
         def texte_participant(participant):
             if hasattr(participant, "position"):
@@ -520,36 +523,59 @@ class Application(ttk.Frame):
                 precedent,
             )
 
-        for groupe, debut_y in ((principal, 60), (classements, debut_classements)):
-            par_niveau = {}
-            for match in groupe:
-                par_niveau.setdefault(profondeurs[match.numero], []).append(match)
-            for niveau, liste in sorted(par_niveau.items()):
-                x = 40 + (niveau - 1) * 245
-                canvas.create_text(
-                    x, debut_y - 18, anchor="nw", text="Niveau {}".format(niveau),
-                    font=("TkDefaultFont", 9, "bold"),
+        for match in sorted(matchs.values(), key=lambda match: match.numero):
+            x, y = coordonnees[match.numero]
+            definition = definitions_par_numero[match.numero]
+            cote, ordre, _plage = bloc_match_visualisation(definition, taille)
+            for participant in (match.participant_1, match.participant_2):
+                precedent = getattr(participant, "match", None)
+                if precedent is None:
+                    continue
+                definition_precedente = definitions_par_numero[precedent.numero]
+                cote_precedent, ordre_precedent, _ = bloc_match_visualisation(
+                    definition_precedente, taille
                 )
-                for index, match in enumerate(sorted(liste, key=lambda m: m.numero)):
-                    y = debut_y + index * 82
-                    canvas.create_rectangle(
-                        x, y, x + 205, y + 62, fill="#f8fafc", outline="#64748b"
-                    )
+                if ordre_precedent != ordre and participant.resultat == "perdant":
+                    continue
+                source_x, source_y = coordonnees[precedent.numero]
+                direction = -1 if cote == "gauche" else 1
+                source_x = source_x if direction < 0 else source_x + largeur_match
+                cible_x = x + largeur_match if direction < 0 else x
+                milieu_x = (source_x + cible_x) / 2
+                canvas.create_line(
+                    source_x, source_y, milieu_x, source_y,
+                    milieu_x, y, cible_x, y, fill="#64748b",
+                )
+            canvas.create_rectangle(
+                x, y - hauteur_match / 2, x + largeur_match, y + hauteur_match / 2,
+                fill="#f8fafc", outline="#64748b",
+            )
+            canvas.create_text(
+                x + 8, y - 23, anchor="nw",
+                text="MATCH {} — {}".format(match.numero, match.niveau or ""),
+                font=("TkDefaultFont", 9, "bold"),
+            )
+            canvas.create_text(
+                x + 8, y - 3, anchor="nw", text=texte_participant(match.participant_1),
+            )
+            canvas.create_text(
+                x + 8, y + 15, anchor="nw", text=texte_participant(match.participant_2),
+            )
+            classement = sorties_classement(definition)
+            if classement:
+                direction = -1 if cote == "gauche" else 1
+                x_depart = x if direction < 0 else x + largeur_match
+                x_fin = x_depart + direction * 65
+                for rang, decalage_y in zip(classement, (-12, 12)):
+                    canvas.create_line(x_depart, y + decalage_y, x_fin, y + decalage_y)
                     canvas.create_text(
-                        x + 8, y + 8, anchor="nw",
-                        text="MATCH {} - {}".format(match.numero, match.niveau or ""),
-                        font=("TkDefaultFont", 9, "bold"),
+                        x_fin + direction * 5, y + decalage_y,
+                        anchor="w" if direction > 0 else "e",
+                        text="{}{}".format(rang, "er" if rang == 1 else "e"),
+                        font=("TkDefaultFont", 9, "bold"), fill="#1e3a5f",
                     )
-                    canvas.create_text(
-                        x + 8, y + 29, anchor="nw",
-                        text=texte_participant(match.participant_1),
-                    )
-                    canvas.create_text(
-                        x + 8, y + 46, anchor="nw",
-                        text=texte_participant(match.participant_2),
-                    )
-        largeur = 280 + max(profondeurs.values(), default=1) * 245
-        hauteur = debut_classements + max(len(classements), 1) * 82 + 100
+        largeur = origine * 2 + largeur_match + 120
+        hauteur = fin_y + 40
         canvas.configure(scrollregion=(0, 0, largeur, hauteur))
 
     def _creer_excel_solution(self):
