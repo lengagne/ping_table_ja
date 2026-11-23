@@ -14,6 +14,7 @@ TYPES_CONTRAINTES = (
     "rangs_position",
     "poules_differentes",
     "clubs_differents",
+    "rangs_meme_poule_interdits",
     "rangs_match",
     "rangs_participants",
 )
@@ -32,6 +33,11 @@ DESCRIPTIONS_CONTRAINTES = {
     "clubs_differents": (
         "Impose des clubs différents entre les deux participants possibles d'un match.",
         "Aucun rang à saisir. La règle peut viser un match, un ensemble ou un niveau.",
+    ),
+    "rangs_meme_poule_interdits": (
+        "Interdit que deux rangs précis d'une même poule se rencontrent.",
+        "Exemple : rangs 1,3 — un 1er et un 3e peuvent se rencontrer seulement "
+        "s'ils viennent de poules différentes.",
     ),
     "rangs_match": (
         "Impose les deux rangs présents dans un match, sans imposer leur côté.",
@@ -372,6 +378,8 @@ class DialogueContrainte(_DialogueBase):
                 row=ligne, column=1, padx=(12, 0), pady=4, sticky="ew"
             )
             self.entrees_parametres.append((variable, etiquette, entree))
+            if variable is self.rangs:
+                self.etiquette_rangs = etiquette
         cadre_aide = ttk.LabelFrame(self.corps, text="Comment remplir cette contrainte", padding=10)
         cadre_aide.grid(row=8, column=0, columnspan=2, sticky="ew", pady=(12, 0))
         self.aide_var = tk.StringVar()
@@ -431,9 +439,18 @@ class DialogueContrainte(_DialogueBase):
             valeurs = []
             etat = "normal"
         self.entree_cible.configure(values=valeurs, state=etat)
+        libelles_rangs = {
+            "rangs_position": "Rangs de poule autorisés",
+            "rangs_match": "Rangs de poule du match",
+            "rangs_meme_poule_interdits": "Rangs de poule interdits",
+        }
+        self.etiquette_rangs.configure(
+            text=libelles_rangs.get(type_contrainte, "Rangs de poule")
+        )
         champs_actifs = {
             "rangs_position": [self.rangs, self.poules],
             "rangs_match": [self.rangs],
+            "rangs_meme_poule_interdits": [self.rangs],
             "rangs_participants": [self.rangs_1, self.rangs_2],
         }.get(type_contrainte, [])
         for variable, etiquette, entree in self.entrees_parametres:
@@ -488,9 +505,13 @@ class DialogueContrainte(_DialogueBase):
                 raise ValueError("La contrainte rangs_position doit cibler une position")
             if type_cible == "position" and resultat["type"] != "rangs_position":
                 raise ValueError("Une position accepte actuellement une contrainte de rang")
-            if resultat["type"] in ("rangs_match", "rangs_position"):
+            if resultat["type"] in (
+                "rangs_match", "rangs_position", "rangs_meme_poule_interdits"
+            ):
                 rangs = _liste_entiers(self.rangs.get(), obligatoire=True)
-                if resultat["type"] == "rangs_match" and len(rangs) != 2:
+                if resultat["type"] in (
+                    "rangs_match", "rangs_meme_poule_interdits"
+                ) and len(rangs) != 2:
                     raise ValueError("Indiquez exactement deux rangs")
                 resultat["rangs"] = rangs
                 if resultat["type"] == "rangs_position":
@@ -1262,6 +1283,10 @@ class EditeurConfiguration(tk.Toplevel):
             return texte
         if type_contrainte == "rangs_match":
             return "Rangs : {}".format(", ".join(map(str, contrainte.get("rangs", []))))
+        if type_contrainte == "rangs_meme_poule_interdits":
+            return "Même poule interdite pour les rangs : {}".format(
+                ", ".join(map(str, contrainte.get("rangs", [])))
+            )
         if type_contrainte == "rangs_participants":
             return "P1 : {} ; P2 : {}".format(
                 ", ".join(map(str, contrainte.get("participant_1", []))),
