@@ -23,7 +23,7 @@ from .excel import (
     lire_classement,
     mettre_a_jour_tirage_choisi,
 )
-from .solveur import resoudre, resoudre_plusieurs
+from .solveur import resoudre_plusieurs
 
 
 PREFERENCES = Path.home() / ".ping_table_ja" / "preferences.json"
@@ -103,6 +103,8 @@ class Application(ttk.Frame):
         self.detail_excel_var = tk.StringVar(value="—")
         self.detail_mode_var = tk.StringVar(value="Aucun calcul lancé")
         self.detail_etat_var = tk.StringVar(value="En attente")
+        self.detail_etapes = []
+        self.debut_calcul = None
         self.titre_tirage_var = tk.StringVar(value="Aucun tirage affiché")
         self.solutions = []
         self.solutions_recherche_terminee = False
@@ -182,23 +184,23 @@ class Application(ttk.Frame):
 
         self.bouton_une_solution = ttk.Button(
             cadre_actions,
-            text="Calculer une solution",
+            text="Rapide : 1 solution",
             style="Accent.TButton",
             command=lambda: self._demarrer_calcul(mode="une"),
         )
         self.bouton_une_solution.grid(row=0, column=0, sticky="ew", padx=(0, 6), ipady=7)
-        self.bouton_toutes_solutions = ttk.Button(
-            cadre_actions,
-            text="Calculer toutes les solutions",
-            command=lambda: self._demarrer_calcul(mode="toutes"),
-        )
-        self.bouton_toutes_solutions.grid(row=0, column=1, sticky="ew", padx=6, ipady=7)
         self.bouton_n_solutions = ttk.Button(
             cadre_actions,
-            text="Calculer N solutions",
+            text="Rapide : N solutions",
             command=lambda: self._demarrer_calcul(mode="nombre"),
         )
-        self.bouton_n_solutions.grid(row=0, column=2, sticky="ew", padx=6, ipady=7)
+        self.bouton_n_solutions.grid(row=0, column=1, sticky="ew", padx=6, ipady=7)
+        self.bouton_toutes_solutions = ttk.Button(
+            cadre_actions,
+            text="Intelligent : tout évaluer",
+            command=lambda: self._demarrer_calcul(mode="toutes"),
+        )
+        self.bouton_toutes_solutions.grid(row=0, column=2, sticky="ew", padx=6, ipady=7)
         self.bouton_solution_aleatoire = ttk.Button(
             cadre_actions,
             text="Choisir une solution aléatoire",
@@ -215,6 +217,14 @@ class Application(ttk.Frame):
         self.bouton_creer_excel.grid(
             row=0, column=4, sticky="ew", padx=(6, 0), ipady=7
         )
+        ttk.Label(
+            cadre_actions,
+            text=(
+                "Rapide : explore une partie aléatoire des tirages.  "
+                "Intelligent : recherche exhaustive, plus longue, sans solution omise."
+            ),
+            wraplength=1000,
+        ).grid(row=1, column=0, columnspan=5, sticky="w", pady=(8, 0))
         self.progression = ttk.Progressbar(self, mode="indeterminate")
         self.progression.grid(row=8, column=0, columnspan=2, sticky="ew", pady=(14, 8))
         cadre_statut = ttk.Frame(self)
@@ -258,6 +268,7 @@ class Application(ttk.Frame):
                 self.onglet_details,
                 textvariable=variable,
                 wraplength=780,
+                justify="left",
             ).grid(row=ligne, column=1, sticky="w", pady=5)
 
     def _construire_onglet_tirage(self):
@@ -433,6 +444,10 @@ class Application(ttk.Frame):
     def _invalider_solutions(self):
         self.solutions = []
         self.solutions_recherche_terminee = False
+        self.detail_etapes = []
+        self.debut_calcul = None
+        self.detail_mode_var.set("Aucun calcul lancé")
+        self.detail_etat_var.set("En attente")
         self.chemin_excel_solutions = None
         self.configuration_solutions = None
         self.fichier_resultats_solutions = None
@@ -617,6 +632,46 @@ class Application(ttk.Frame):
         self.fichier_resultats_solutions = Path(chemin)
         messagebox.showinfo("Fichier créé", str(chemin))
 
+    def _reinitialiser_progression(self):
+        self.detail_etapes = []
+        self.debut_calcul = time.monotonic()
+
+    def _mettre_a_jour_etape(self, cle, titre, detail):
+        """Ajoute ou remplace une étape dans le récapitulatif du calcul."""
+        temps = 0.0
+        if self.debut_calcul is not None:
+            temps = max(0.0, time.monotonic() - self.debut_calcul)
+        ligne = "{:.1f} s — {} : {}".format(temps, titre, detail)
+        for index, (cle_existante, _) in enumerate(self.detail_etapes):
+            if cle_existante == cle:
+                self.detail_etapes[index] = (cle, ligne)
+                break
+        else:
+            self.detail_etapes.append((cle, ligne))
+        self.detail_etat_var.set("\n".join(texte for _, texte in self.detail_etapes))
+        self.statut_var.set("{} — {}".format(titre, detail))
+
+    @staticmethod
+    def _description_statistiques(statistiques, limite=None):
+        solutions = int(statistiques.get("solutions", 0))
+        branches = int(statistiques.get("candidats_testes", 0))
+        branches_texte = "{:,}".format(branches).replace(",", " ")
+        objectif = " / {}".format(limite) if limite is not None else ""
+        return (
+            "{} branche{} évaluée{}, profondeur {}/{}, "
+            "{}{} solution{} trouvée{}."
+        ).format(
+            branches_texte,
+            "s" if branches > 1 else "",
+            "s" if branches > 1 else "",
+            int(statistiques.get("profondeur_max", 0)),
+            int(statistiques.get("nombre_positions", 0)),
+            solutions,
+            objectif,
+            "s" if solutions > 1 else "",
+            "s" if solutions > 1 else "",
+        )
+
     def _demarrer_calcul(self, mode):
         configuration = Path(self.config_var.get()).expanduser()
         excel = Path(self.excel_var.get()).expanduser()
@@ -630,8 +685,8 @@ class Application(ttk.Frame):
         limite = None
         if mode == "nombre":
             limite = simpledialog.askinteger(
-                "Nombre de solutions",
-                "Combien de solutions faut-il rechercher ?",
+                "Aperçu rapide",
+                "Combien de solutions faut-il inclure dans l'aperçu rapide ?",
                 initialvalue=10,
                 minvalue=1,
                 parent=self.parent,
@@ -639,8 +694,13 @@ class Application(ttk.Frame):
             if limite is None:
                 return
         if mode == "toutes" and not messagebox.askyesno(
-            "Calcul exhaustif",
-            "Le calcul de toutes les solutions peut être long et utiliser beaucoup de mémoire. Continuer ?",
+            "Calcul intelligent et exhaustif",
+            (
+                "Ce mode évalue tout l'espace de recherche et ne laisse aucune solution de côté.\n\n"
+                "Il peut être très long et utiliser beaucoup de mémoire, surtout pour les grands tableaux. "
+                "Vous pourrez arrêter le calcul en conservant les solutions déjà trouvées.\n\n"
+                "Continuer ?"
+            ),
         ):
             return
 
@@ -650,24 +710,23 @@ class Application(ttk.Frame):
         self.bouton_une_solution.state(["disabled"])
         self.bouton_toutes_solutions.state(["disabled"])
         self.bouton_n_solutions.state(["disabled"])
-        if mode != "une":
-            self.bouton_arreter.state(["!disabled"])
+        self.bouton_arreter.state(["!disabled"])
         self.progression.start(12)
+        self._reinitialiser_progression()
         messages = {
-            "une": "Calcul d'une solution en cours…",
-            "toutes": "Calcul de toutes les solutions en cours — 0 trouvée.",
-            "nombre": "Recherche de {} solutions en cours — 0 trouvée.".format(limite),
+            "une": "exploration rapide pour trouver une solution.",
+            "toutes": "préparation de la recherche exhaustive.",
+            "nombre": "exploration rapide pour prévisualiser {} solutions.".format(limite),
         }
-        self.statut_var.set(messages[mode])
         noms_modes = {
-            "une": "Une seule solution",
-            "toutes": "Toutes les solutions",
-            "nombre": "Calcul de {} solutions maximum".format(limite),
+            "une": "Rapide — aperçu limité à une solution",
+            "toutes": "Intelligent — recherche exhaustive de toutes les solutions",
+            "nombre": "Rapide — aperçu aléatoire limité à {} solutions".format(limite),
         }
         self.detail_configuration_var.set(str(configuration))
         self.detail_excel_var.set(str(excel))
         self.detail_mode_var.set(noms_modes[mode])
-        self.detail_etat_var.set(messages[mode])
+        self._mettre_a_jour_etape("preparation", "Préparation", messages[mode])
         self.onglets.select(self.onglet_details)
         threading.Thread(
             target=self._calculer,
@@ -677,102 +736,195 @@ class Application(ttk.Frame):
 
     def _calculer(self, chemin_configuration, chemin_excel, mode, limite):
         try:
+            debut = time.monotonic()
+            self.parent.after(
+                0,
+                self._mettre_a_jour_etape,
+                "configuration",
+                "Configuration",
+                "lecture et validation du fichier de configuration JSON.",
+            )
             configuration = charger_configuration(chemin_configuration)
+            self.parent.after(
+                0,
+                self._mettre_a_jour_etape,
+                "configuration",
+                "Configuration",
+                "« {} » validée.".format(
+                    configuration.nom or chemin_configuration.name
+                ),
+            )
+            self.parent.after(
+                0,
+                self._mettre_a_jour_etape,
+                "donnees",
+                "Données Excel",
+                "lecture de l'onglet Excel « {} ».".format(configuration.onglet_excel),
+            )
             classements = lire_classement(chemin_excel, configuration.onglet_excel)
             joueurs = creer_liste_joueurs(classements, configuration.nombre_positions)
             if len(joueurs) != configuration.nombre_positions:
                 raise ValueError(
                     "{} joueurs trouvés ; {} sont attendus.".format(len(joueurs), configuration.nombre_positions)
                 )
-            if mode != "une":
-                derniere_notification = [0.0]
-
-                def notifier(nombre):
-                    maintenant = time.monotonic()
-                    if maintenant - derniere_notification[0] >= 0.1:
-                        derniere_notification[0] = maintenant
-                        self.parent.after(0, self._afficher_progression_solutions, nombre, limite)
-
-                solutions, recherche_terminee = resoudre_plusieurs(
-                    joueurs,
-                    configuration.contraintes,
+            self.parent.after(
+                0,
+                self._mettre_a_jour_etape,
+                "donnees",
+                "Données Excel",
+                "{} poules et {} joueurs chargés.".format(
+                    len(classements), len(joueurs)
+                ),
+            )
+            self.parent.after(
+                0,
+                self._mettre_a_jour_etape,
+                "construction",
+                "Construction du problème",
+                "{} joueurs, {} positions, {} matchs et {} contraintes actives.".format(
+                    len(joueurs),
                     configuration.nombre_positions,
-                    limite=limite,
-                    notifier=notifier,
-                    arreter=self.arret_calcul.is_set,
+                    len(configuration.matchs),
+                    len(configuration.contraintes),
+                ),
+            )
+
+            limite_recherche = 1 if mode == "une" else limite
+            mode_rapide = mode in ("une", "nombre")
+            if mode_rapide:
+                description_resolution = "exploration aléatoire limitée à {} solution{}.".format(
+                    limite_recherche,
+                    "s" if limite_recherche and limite_recherche > 1 else "",
                 )
-                if not solutions:
-                    if self.arret_calcul.is_set():
-                        self.parent.after(0, self._calcul_echoue, "Calcul arrêté avant de trouver une solution.")
-                        return
-                    raise ValueError("Aucune solution ne respecte toutes les contraintes.")
-                sortie = chemin_excel.with_name(chemin_excel.stem + "_solutions.xlsx")
-                mode_recap = (
-                    "Toutes les solutions"
-                    if limite is None
-                    else "Jusqu'à {} solutions".format(limite)
-                )
-                creer_fichier_solution(
-                    sortie,
-                    solutions[0],
-                    solutions=solutions,
-                    recap={
-                        "configuration": str(chemin_configuration),
-                        "excel": str(chemin_excel),
-                        "mode": mode_recap,
-                        "recherche_terminee": recherche_terminee,
-                    },
-                    numero_tirage_choisi=1,
-                    matchs=configuration.matchs,
-                )
+            else:
+                description_resolution = "exploration exhaustive de toutes les solutions."
+            titre_resolution = (
+                "Résolution rapide" if mode_rapide else "Résolution exhaustive"
+            )
+            self.parent.after(
+                0,
+                self._mettre_a_jour_etape,
+                "resolution",
+                titre_resolution,
+                description_resolution,
+            )
+
+            derniere_notification = [0.0]
+            dernieres_statistiques = {}
+
+            def notifier_statistiques(statistiques):
+                statistiques["nombre_positions"] = configuration.nombre_positions
+                dernieres_statistiques.clear()
+                dernieres_statistiques.update(statistiques)
+                maintenant = time.monotonic()
+                if maintenant - derniere_notification[0] < 0.1:
+                    return
+                derniere_notification[0] = maintenant
                 self.parent.after(
                     0,
-                    self._toutes_solutions_terminees,
-                    solutions,
-                    chemin_excel,
-                    configuration,
-                    recherche_terminee,
-                    self.arret_calcul.is_set(),
-                    limite,
-                    sortie,
+                    self._mettre_a_jour_etape,
+                    "resolution",
+                    titre_resolution,
+                    self._description_statistiques(
+                        statistiques, limite_recherche if mode_rapide else None
+                    ),
                 )
-                return
 
-            solution = resoudre(joueurs, configuration.contraintes, configuration.nombre_positions)
-            if solution is None:
+            solutions, recherche_terminee = resoudre_plusieurs(
+                joueurs,
+                configuration.contraintes,
+                configuration.nombre_positions,
+                limite=limite_recherche,
+                arreter=self.arret_calcul.is_set,
+                melanger_candidats=mode_rapide,
+                notifier_statistiques=notifier_statistiques,
+            )
+            if not solutions:
+                if self.arret_calcul.is_set():
+                    self.parent.after(
+                        0,
+                        self._calcul_echoue,
+                        "Calcul arrêté avant de trouver une solution.",
+                    )
+                    return
                 raise ValueError("Aucune solution ne respecte toutes les contraintes.")
-            sortie = chemin_excel.with_name(chemin_excel.stem + "_solution.xlsx")
+
+            dernieres_statistiques["nombre_positions"] = configuration.nombre_positions
+            self.parent.after(
+                0,
+                self._mettre_a_jour_etape,
+                "resolution",
+                titre_resolution,
+                self._description_statistiques(
+                    dernieres_statistiques, limite_recherche if mode_rapide else None
+                ),
+            )
+            suffixe = "_solution.xlsx" if mode == "une" else "_solutions.xlsx"
+            sortie = chemin_excel.with_name(chemin_excel.stem + suffixe)
+            self.parent.after(
+                0,
+                self._mettre_a_jour_etape,
+                "export",
+                "Création du résultat",
+                "écriture du fichier Excel {}.".format(sortie.name),
+            )
+            if mode == "toutes":
+                mode_recap = "Intelligent — toutes les solutions"
+            elif mode == "nombre":
+                mode_recap = "Rapide — aperçu de {} solutions maximum".format(limite)
+            else:
+                mode_recap = "Rapide — une solution"
             creer_fichier_solution(
                 sortie,
-                solution,
+                solutions[0],
+                solutions=solutions,
                 recap={
                     "configuration": str(chemin_configuration),
                     "excel": str(chemin_excel),
-                    "mode": "Une seule solution",
-                    "recherche_terminee": True,
+                    "mode": mode_recap,
+                    "recherche_terminee": recherche_terminee,
                 },
+                numero_tirage_choisi=1,
                 matchs=configuration.matchs,
             )
-            self.parent.after(0, self._calcul_termine, sortie, solution, configuration)
+            duree = time.monotonic() - debut
+            if mode == "une":
+                self.parent.after(
+                    0,
+                    self._calcul_termine,
+                    sortie,
+                    solutions[0],
+                    configuration,
+                    recherche_terminee,
+                    duree,
+                    dernieres_statistiques,
+                )
+                return
+            self.parent.after(
+                0,
+                self._toutes_solutions_terminees,
+                solutions,
+                chemin_excel,
+                configuration,
+                recherche_terminee,
+                self.arret_calcul.is_set(),
+                limite_recherche,
+                sortie,
+                duree,
+                dernieres_statistiques,
+            )
         except Exception as erreur:
             traceback.print_exc()
             self.parent.after(0, self._calcul_echoue, str(erreur))
 
-    def _afficher_progression_solutions(self, nombre, limite):
-        objectif = " / {}".format(limite) if limite is not None else ""
-        self.statut_var.set("Calcul en cours — {}{} solution{} trouvée{}.".format(
-            nombre,
-            objectif,
-            "s" if nombre > 1 else "",
-            "s" if nombre > 1 else "",
-        ))
-        self.detail_etat_var.set(self.statut_var.get())
-
     def _arreter_calcul(self):
         self.arret_calcul.set()
         self.bouton_arreter.state(["disabled"])
-        self.statut_var.set("Arrêt demandé… conservation des solutions déjà trouvées.")
-        self.detail_etat_var.set(self.statut_var.get())
+        self._mettre_a_jour_etape(
+            "arret",
+            "Arrêt demandé",
+            "fin de la branche en cours, puis conservation des solutions déjà trouvées.",
+        )
 
     def _toutes_solutions_terminees(
         self,
@@ -783,6 +935,8 @@ class Application(ttk.Frame):
         calcul_arrete,
         limite,
         sortie,
+        duree,
+        statistiques,
     ):
         self.solutions = solutions
         self.solutions_recherche_terminee = recherche_terminee
@@ -798,13 +952,17 @@ class Application(ttk.Frame):
             resume = "Objectif atteint : {} solutions calculées.".format(len(solutions))
         else:
             resume = "Calcul terminé : {} solutions calculées.".format(len(solutions))
-        self.statut_var.set(resume)
-        self.detail_etat_var.set(resume)
+        resume_detaille = "{} Durée : {:.1f} s. {}".format(
+            resume,
+            duree,
+            self._description_statistiques(statistiques),
+        )
+        self._mettre_a_jour_etape("resultat", "Résultat", resume_detaille)
         self._afficher_tirage(solutions[0])
         self._afficher_tableau(configuration, solutions[0])
         messagebox.showinfo(
             "Calcul terminé",
-            resume + "\nVous pouvez maintenant en choisir une aléatoirement.",
+            resume_detaille + "\nVous pouvez maintenant en choisir une aléatoirement.",
         )
 
     def _choisir_solution_aleatoire(self):
@@ -825,15 +983,16 @@ class Application(ttk.Frame):
         except Exception as erreur:
             messagebox.showerror("Erreur", str(erreur))
             return
-        self.statut_var.set("Solution aléatoire créée : {}".format(sortie))
-        self.detail_etat_var.set(
+        self._mettre_a_jour_etape(
+            "selection",
+            "Tirage choisi",
             "Tirage n°{} choisi parmi {} solution{} trouvée{}. Fichier : {}".format(
                 numero_tirage,
                 len(self.solutions),
                 "s" if len(self.solutions) > 1 else "",
                 "s" if len(self.solutions) > 1 else "",
                 sortie,
-            )
+            ),
         )
         self._afficher_tirage(solution, numero_tirage)
         self._afficher_tableau(self.configuration_solutions, solution)
@@ -845,23 +1004,34 @@ class Application(ttk.Frame):
             ),
         )
 
-    def _calcul_termine(self, sortie, solution, configuration):
+    def _calcul_termine(
+        self,
+        sortie,
+        solution,
+        configuration,
+        recherche_terminee,
+        duree,
+        statistiques,
+    ):
         self.solutions = [solution]
-        self.solutions_recherche_terminee = True
+        self.solutions_recherche_terminee = recherche_terminee
         self.configuration_solutions = configuration
         self.fichier_resultats_solutions = sortie
         self._fin_traitement()
         self.bouton_creer_excel.state(["!disabled"])
-        self.statut_var.set("Calcul terminé : {}".format(sortie))
-        self.detail_etat_var.set("Une solution trouvée. Fichier créé : {}".format(sortie))
+        resume = "Une solution trouvée en {:.1f} s. {} Fichier créé : {}".format(
+            duree,
+            self._description_statistiques(statistiques),
+            sortie,
+        )
+        self._mettre_a_jour_etape("resultat", "Résultat", resume)
         self._afficher_tirage(solution)
         self._afficher_tableau(configuration, solution)
         messagebox.showinfo("Calcul terminé", "Le fichier a été créé :\n{}".format(sortie))
 
     def _calcul_echoue(self, message):
         self._fin_traitement()
-        self.statut_var.set("Échec du calcul.")
-        self.detail_etat_var.set("Échec : {}".format(message))
+        self._mettre_a_jour_etape("resultat", "Échec du calcul", message)
         messagebox.showerror("Erreur", message)
 
     def _fin_traitement(self):

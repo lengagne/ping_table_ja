@@ -1,5 +1,7 @@
 """Algorithme de résolution par retour arrière."""
 
+import random
+
 
 def resoudre(joueurs, contraintes, nombre_positions=32):
     placement = [None] * nombre_positions
@@ -60,15 +62,36 @@ def resoudre_plusieurs(
     limite=None,
     notifier=None,
     arreter=None,
+    melanger_candidats=False,
+    graine=None,
+    notifier_statistiques=None,
 ):
     """Énumère les solutions, avec limite, progression et arrêt facultatifs.
 
     Retourne ``(solutions, recherche_terminee)``. Le booléen vaut ``False``
     lorsque la limite a été atteinte ou que l'utilisateur a demandé l'arrêt.
+    ``melanger_candidats`` fait varier la partie de l'arbre visitée en premier,
+    ce qui convient à un aperçu rapide limité. ``notifier_statistiques`` reçoit
+    périodiquement les compteurs de recherche sans modifier le résultat.
     """
     placement = [None] * nombre_positions
     solutions = []
     recherche_interrompue = False
+    generateur_aleatoire = random.Random(graine) if melanger_candidats else None
+    statistiques = {
+        "noeuds_explores": 0,
+        "candidats_testes": 0,
+        "retours_arriere": 0,
+        "profondeur": 0,
+        "profondeur_max": 0,
+        "solutions": 0,
+    }
+
+    def publier_statistiques(force=False):
+        if notifier_statistiques is None:
+            return
+        if force or statistiques["noeuds_explores"] % 250 == 0:
+            notifier_statistiques(dict(statistiques))
 
     def doit_arreter():
         nonlocal recherche_interrompue
@@ -85,6 +108,7 @@ def resoudre_plusieurs(
     def candidats(position, disponibles):
         resultat = []
         for joueur in disponibles:
+            statistiques["candidats_testes"] += 1
             placement[position] = joueur
             if compatibles():
                 resultat.append(joueur)
@@ -92,13 +116,21 @@ def resoudre_plusieurs(
         return resultat
 
     def rechercher(disponibles):
+        statistiques["noeuds_explores"] += 1
+        statistiques["profondeur"] = nombre_positions - len(disponibles)
+        statistiques["profondeur_max"] = max(
+            statistiques["profondeur_max"], statistiques["profondeur"]
+        )
+        publier_statistiques()
         if doit_arreter():
             return
         if not disponibles:
             if all(c.est_respectee(placement) for c in contraintes):
                 solutions.append(list(placement))
+                statistiques["solutions"] = len(solutions)
                 if notifier is not None:
                     notifier(len(solutions))
+                publier_statistiques(force=True)
             return
 
         meilleure_position, meilleurs = None, None
@@ -107,18 +139,25 @@ def resoudre_plusieurs(
                 continue
             possibles = candidats(position, disponibles)
             if not possibles:
+                statistiques["retours_arriere"] += 1
                 return
             if meilleurs is None or len(possibles) < len(meilleurs):
                 meilleure_position, meilleurs = position, possibles
             if len(meilleurs) == 1:
                 break
 
+        if generateur_aleatoire is not None and len(meilleurs) > 1:
+            generateur_aleatoire.shuffle(meilleurs)
         for joueur in meilleurs:
             if doit_arreter():
                 return
             placement[meilleure_position] = joueur
             rechercher([autre for autre in disponibles if autre is not joueur])
             placement[meilleure_position] = None
+            statistiques["retours_arriere"] += 1
 
     rechercher(list(joueurs))
+    statistiques["profondeur"] = 0
+    statistiques["solutions"] = len(solutions)
+    publier_statistiques(force=True)
     return solutions, not recherche_interrompue

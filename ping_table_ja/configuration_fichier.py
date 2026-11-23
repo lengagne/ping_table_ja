@@ -313,4 +313,4 @@ def enregistrer_configuration(chemin, donnees):
 
 def configuration_par_defaut():
     """Retourne le fichier de configuration livré avec l'application."""
-    return Path(__file__).resolve().parent / "configurations" / "double_ko32.json"
+    return Path(__file__).resolve().parent / "configurations" / "tableau_integral_32.json"

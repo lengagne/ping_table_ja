@@ -56,6 +56,21 @@ L'interface :
 3. permet de choisir le fichier Excel des classements ;
 4. lance la résolution avec le bouton **Calculer**.
 
+Deux stratégies de recherche sont proposées :
+
+- **Rapide** explore les branches dans un ordre aléatoire et s'arrête après
+  une solution ou après le nombre de solutions demandé. Elle donne rapidement
+  un aperçu valide, mais ne couvre pas forcément tout l'espace de recherche ;
+- **Intelligent : tout évaluer** effectue une recherche exhaustive. Il garantit
+  qu'aucune solution n'a été omise, mais peut être très long et consommer
+  beaucoup de mémoire sur les grands tableaux.
+
+L'onglet **Détails du calcul** suit séparément le chargement des fichiers, la
+construction du problème, la résolution et la création du résultat. Pendant
+la résolution, il affiche le nombre de branches évaluées, la profondeur
+atteinte et le nombre de solutions trouvées. Le calcul exhaustif peut être
+arrêté en conservant les solutions déjà calculées.
+
 Les boutons **Créer…** et **Éditer…** ouvrent l'éditeur graphique des
 configurations JSON v2. Ses onglets permettent de régler les paramètres
 généraux, de générer une structure standard, de partir de zéro, puis
@@ -118,7 +133,7 @@ Le résultat est créé à côté du fichier Excel avec le suffixe
 `_solution.xlsx`.
 
 La configuration livrée par défaut est
-`ping_table_ja/configurations/double_ko32.json`.
+`ping_table_ja/configurations/tableau_integral_32.json`.
 
 ### Ligne de commande
 
