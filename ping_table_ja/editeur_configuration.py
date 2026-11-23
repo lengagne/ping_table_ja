@@ -147,8 +147,26 @@ def calculer_profondeurs_matchs(matchs):
 def abscisse_match_visualisation(
     profondeur, places, taille_tableau, vue_compacte, origine, pas_colonne
 ):
-    """Aligne les niveaux horizontalement dans les deux modes de visualisation."""
-    return origine + (profondeur - 1) * pas_colonne
+    """Place les barrages au centre et déploie les deux tableaux en miroir."""
+    if vue_compacte or not places:
+        return origine + (profondeur - 1) * pas_colonne
+    milieu = taille_tableau // 2
+    direction = -1 if min(places) > milieu else 1
+    return origine + direction * (profondeur - 1) * pas_colonne
+
+
+def zone_match_visualisation(match, taille_tableau):
+    """Classe un match dans la branche et la zone verticale non compactes."""
+    places = [int(place) for place in match.get("places", [])]
+    if match.get("niveau") == "barrage_2_3" or not places:
+        return "centre"
+    milieu = taille_tableau // 2
+    gauche = min(places) > milieu
+    debut_branche = milieu + 1 if gauche else 1
+    principal = min(places) == debut_branche
+    if gauche:
+        return "gauche_principal" if principal else "gauche_classement"
+    return "droite_principal" if principal else "droite_classement"
 
 
 def indices_contraintes_du_match(match, contraintes, profondeur=None):
@@ -978,8 +996,14 @@ class EditeurConfiguration(tk.Toplevel):
         pas_colonne, espace_match = 235 * z, 56 * z
         profondeur_max = max(profondeurs.values(), default=1)
         vue_compacte = self.vue_compacte_var.get()
-        origine_tableau = marge_x + 85 * z
-        x_positions = marge_x
+        if vue_compacte:
+            origine_tableau = marge_x + 85 * z
+            x_positions = marge_x
+        else:
+            # Les barrages forment l'axe central. On réserve autant de place
+            # à gauche qu'à droite pour les deux tableaux en miroir.
+            origine_tableau = marge_x + (profondeur_max - 1) * pas_colonne + 170 * z
+            x_positions = origine_tableau - 85 * z
         positions_coordonnees = {
             numero: (x_positions, marge_y + (numero - 1) * pas_joueur)
             for numero in range(1, taille + 1)
@@ -1048,18 +1072,21 @@ class EditeurConfiguration(tk.Toplevel):
         par_numero = {int(match["numero"]): match for match in matchs}
         coordonnees_matchs = {}
 
-        def coordonnee_source(reference):
+        def coordonnee_source(reference, direction=1):
             type_reference = reference.get("type")
             if type_reference == "position":
                 numero = int(reference.get("numero", 0))
                 if numero not in positions_coordonnees:
                     raise ValueError("Position introuvable : {}".format(numero))
                 x, y = positions_coordonnees[numero]
-                return x + 50 * z, y
+                return x + (50 * z if direction > 0 else -30 * z), y
             numero_match = int(reference.get("match", 0))
             if numero_match not in coordonnees_matchs:
                 raise ValueError("Match précédent non positionné : {}".format(numero_match))
             x, y = coordonnees_matchs[numero_match]
+            zone_source = zone_match_visualisation(par_numero[numero_match], taille)
+            if not vue_compacte and zone_source.startswith("gauche"):
+                return x, y
             return x + largeur_match, y
 
         for profondeur in range(1, profondeur_max + 1):
@@ -1071,10 +1098,20 @@ class EditeurConfiguration(tk.Toplevel):
                 "cible_cliquable",
                 "cible:niveau:{}".format(profondeur),
             )
-            groupes_entetes = [(
-                origine_tableau + (profondeur - 1) * pas_colonne,
-                groupe,
-            )]
+            if vue_compacte:
+                groupes_entetes = [(
+                    origine_tableau + (profondeur - 1) * pas_colonne,
+                    groupe,
+                )]
+            else:
+                groupes_par_x = {}
+                for match in groupe:
+                    x_entete = abscisse_match_visualisation(
+                        profondeur, match.get("places", []), taille, False,
+                        origine_tableau, pas_colonne,
+                    )
+                    groupes_par_x.setdefault(x_entete, []).append(match)
+                groupes_entetes = sorted(groupes_par_x.items())
             for x_colonne, groupe_entete in groupes_entetes:
                 numeros_entete = {
                     int(match["numero"]) for match in groupe_entete
@@ -1116,33 +1153,55 @@ class EditeurConfiguration(tk.Toplevel):
                 )
             souhaits = []
             for match in groupe:
+                direction = (
+                    -1 if not vue_compacte
+                    and zone_match_visualisation(match, taille).startswith("gauche")
+                    else 1
+                )
                 sources = [
-                    coordonnee_source(match.get("participant_1", {})),
-                    coordonnee_source(match.get("participant_2", {})),
+                    coordonnee_source(match.get("participant_1", {}), direction),
+                    coordonnee_source(match.get("participant_2", {}), direction),
                 ]
                 souhaits.append((sum(source[1] for source in sources) / 2, match, sources))
             souhaits.sort(key=lambda element: element[0])
-            precedent_y_principal = marge_y - espace_match
-            precedent_y_classement = debut_classements = (
+            precedents_y_principaux = {
+                "centre": marge_y - espace_match,
+                "gauche_principal": marge_y - espace_match,
+                "droite_principal": marge_y - espace_match,
+            }
+            precedent_y_classement_gauche = debut_classements = (
                 marge_y + taille * pas_joueur + 120 * z
             ) - espace_match
-            index_classement = 0
+            precedent_y_classement_droite = debut_classements - espace_match
+            index_classement_gauche = 0
+            index_classement_droite = 0
             for souhaite_y, match, sources in souhaits:
-                est_classement = (
-                    not vue_compacte
-                    and min(match.get("places", [1])) > 1
-                )
+                zone = zone_match_visualisation(match, taille)
+                est_classement = not vue_compacte and zone.endswith("classement")
                 if est_classement:
+                    if zone.startswith("gauche"):
+                        y = max(
+                            souhaite_y,
+                            debut_classements + index_classement_gauche * espace_match,
+                            precedent_y_classement_gauche + espace_match,
+                        )
+                        precedent_y_classement_gauche = y
+                        index_classement_gauche += 1
+                    else:
+                        y = max(
+                            souhaite_y,
+                            debut_classements + index_classement_droite * espace_match,
+                            precedent_y_classement_droite + espace_match,
+                        )
+                        precedent_y_classement_droite = y
+                        index_classement_droite += 1
+                else:
+                    cle_principale = zone if zone in precedents_y_principaux else "centre"
                     y = max(
                         souhaite_y,
-                        debut_classements + index_classement * espace_match,
-                        precedent_y_classement + espace_match,
+                        precedents_y_principaux[cle_principale] + espace_match,
                     )
-                    precedent_y_classement = y
-                    index_classement += 1
-                else:
-                    y = max(souhaite_y, precedent_y_principal + espace_match)
-                    precedent_y_principal = y
+                    precedents_y_principaux[cle_principale] = y
                 x = abscisse_match_visualisation(
                     profondeur,
                     match.get("places", []),
@@ -1152,6 +1211,7 @@ class EditeurConfiguration(tk.Toplevel):
                     pas_colonne,
                 )
                 coordonnees_matchs[int(match["numero"])] = (x, y)
+                direction = -1 if not vue_compacte and zone.startswith("gauche") else 1
                 for index, (source_x, source_y) in enumerate(sources, start=1):
                     reference = match.get("participant_{}".format(index), {})
                     numero_source = int(reference.get("match", 0))
@@ -1165,25 +1225,29 @@ class EditeurConfiguration(tk.Toplevel):
                         and not source_est_barrage
                     ):
                         canvas.create_text(
-                            x - 8 * z,
+                            x - 8 * z if direction > 0 else x + largeur_match + 8 * z,
                             y - hauteur_match * 0.23 if index == 1 else y + hauteur_match * 0.23,
                             text="Perdant match {}".format(numero_source),
-                            anchor="e",
+                            anchor="e" if direction > 0 else "w",
                             fill="#9a3412",
                             font=("TkDefaultFont", max(7, int(8 * z)), "italic"),
                         )
                         continue
                     cible_y = y - hauteur_match * 0.23 if index == 1 else y + hauteur_match * 0.23
-                    milieu_x = (source_x + x) / 2
+                    cible_x = x if direction > 0 else x + largeur_match
+                    milieu_x = (source_x + cible_x) / 2
                     canvas.create_line(
-                        source_x, source_y, milieu_x, source_y, milieu_x, cible_y, x, cible_y,
+                        source_x, source_y, milieu_x, source_y, milieu_x, cible_y,
+                        cible_x, cible_y,
                         fill="#5f6368", width=max(1, int(z)),
                     )
                     if reference.get("type") in ("vainqueur", "perdant"):
                         canvas.create_text(
-                            source_x + 7 * z, source_y - 7 * z,
+                            source_x + (7 * z if direction > 0 else -7 * z),
+                            source_y - 7 * z,
                             text="V" if reference["type"] == "vainqueur" else "P",
-                            anchor="w", fill="#166534" if reference["type"] == "vainqueur" else "#9a3412",
+                            anchor="w" if direction > 0 else "e",
+                            fill="#166534" if reference["type"] == "vainqueur" else "#9a3412",
                             font=("TkDefaultFont", max(7, int(8 * z)), "bold"),
                         )
                 couleur = "#dbeafe" if str(match.get("niveau", "")).startswith("1/") or match.get("niveau") == "finale" else "#fef3c7"
@@ -1243,7 +1307,11 @@ class EditeurConfiguration(tk.Toplevel):
             marge_y + taille * pas_joueur,
             max((y for _x, y in coordonnees_matchs.values()), default=0) + 100 * z,
         )
-        largeur = marge_x + 150 * z + profondeur_max * pas_colonne
+        largeur = (
+            marge_x + 150 * z + profondeur_max * pas_colonne
+            if vue_compacte
+            else origine_tableau + profondeur_max * pas_colonne + largeur_match + marge_x
+        )
         canvas.configure(scrollregion=(0, 0, largeur, hauteur))
         canvas.tag_bind(
             "cible_cliquable",
