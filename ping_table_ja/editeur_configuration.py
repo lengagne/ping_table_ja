@@ -1,13 +1,17 @@
 """Éditeur graphique des configurations JSON v2."""
 
 import json
-import math
 from pathlib import Path
 import sys
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
 from .configuration_fichier import charger_configuration, enregistrer_configuration
+from .disposition_tableau import (
+    bloc_match_visualisation,
+    calculer_disposition_non_compacte,
+    sorties_classement,
+)
 from .generateur_tableau import generer_configuration_standard
 
 
@@ -168,144 +172,6 @@ def zone_match_visualisation(match, taille_tableau):
     if gauche:
         return "gauche_principal" if principal else "gauche_classement"
     return "droite_principal" if principal else "droite_classement"
-
-
-def bloc_match_visualisation(match, taille_tableau):
-    """Retourne la moitié, la bande verticale et sa plage de places."""
-    places = [int(place) for place in match.get("places", [])]
-    if match.get("niveau") == "barrage_2_3" or not places:
-        return "centre", 0, (1, taille_tableau)
-    milieu = taille_tableau // 2
-    gauche = min(places) > milieu
-    minimum_relatif = min(places) - (milieu if gauche else 0)
-    if minimum_relatif <= 1:
-        ordre = 0
-        debut_relatif, fin_relatif = 1, milieu
-    else:
-        ordre = int(math.floor(math.log2(minimum_relatif - 1)))
-        debut_relatif = 2 ** ordre + 1
-        fin_relatif = min(2 ** (ordre + 1), milieu)
-    decalage = milieu if gauche else 0
-    return (
-        "gauche" if gauche else "droite",
-        ordre,
-        (debut_relatif + decalage, fin_relatif + decalage),
-    )
-
-
-def calculer_disposition_non_compacte(
-    matchs, taille_tableau, origine_x, pas_colonne, largeur_match,
-    debut_y, espace_match, espace_bandes
-):
-    """Dispose deux séries de tableaux en miroir, empilées par classement."""
-    par_numero = {int(match["numero"]): match for match in matchs}
-    groupes = {}
-    barrages = []
-    for match in matchs:
-        numero = int(match["numero"])
-        cote, ordre, plage = bloc_match_visualisation(match, taille_tableau)
-        if cote == "centre":
-            barrages.append(match)
-        else:
-            groupes.setdefault((cote, ordre, plage), []).append(match)
-
-    ordres = sorted({cle[1] for cle in groupes} | ({0} if barrages else set()))
-    coordonnees = {}
-    bandes = []
-    y_courant = debut_y
-
-    def dependances_internes(match, numeros_groupe):
-        resultat = []
-        for cle in ("participant_1", "participant_2"):
-            reference = match.get(cle, {})
-            if reference.get("type") in ("vainqueur", "perdant"):
-                numero = int(reference.get("match", 0))
-                if numero in numeros_groupe:
-                    resultat.append(numero)
-        return resultat
-
-    for ordre in ordres:
-        groupes_bande = [
-            (cle, valeur) for cle, valeur in groupes.items() if cle[1] == ordre
-        ]
-        informations = []
-        maximum_premier_tour = len(barrages) if ordre == 0 else 0
-        for cle, matchs_groupe in groupes_bande:
-            numeros = {int(match["numero"]) for match in matchs_groupe}
-            etapes = {}
-
-            def etape(numero):
-                if numero in etapes:
-                    return etapes[numero]
-                parents = dependances_internes(par_numero[numero], numeros)
-                etapes[numero] = 0 if not parents else 1 + max(etape(p) for p in parents)
-                return etapes[numero]
-
-            for numero in numeros:
-                etape(numero)
-            premier_tour = sorted(numero for numero, valeur in etapes.items() if valeur == 0)
-            maximum_premier_tour = max(maximum_premier_tour, len(premier_tour))
-            informations.append((cle, matchs_groupe, numeros, etapes, premier_tour))
-
-        nombre_lignes = max(1, maximum_premier_tour)
-        hauteur_bande = max(90, nombre_lignes * espace_match)
-        centre_lignes = [
-            y_courant + (index + 0.5) * hauteur_bande / nombre_lignes
-            for index in range(nombre_lignes)
-        ]
-
-        if ordre == 0 and barrages:
-            for index, match in enumerate(sorted(barrages, key=lambda m: int(m["numero"]))):
-                ligne = int(index * nombre_lignes / max(1, len(barrages)))
-                coordonnees[int(match["numero"])] = (
-                    origine_x, centre_lignes[min(ligne, nombre_lignes - 1)]
-                )
-
-        plages = {}
-        for cle, matchs_groupe, numeros, etapes, premier_tour in informations:
-            cote, _ordre, plage = cle
-            plages[cote] = plage
-            for index, numero in enumerate(premier_tour):
-                ligne = int(index * nombre_lignes / max(1, len(premier_tour)))
-                direction = -1 if cote == "gauche" else 1
-                x = origine_x + direction * pas_colonne
-                if direction < 0:
-                    x -= largeur_match
-                coordonnees[numero] = (x, centre_lignes[min(ligne, nombre_lignes - 1)])
-            for valeur in range(1, max(etapes.values(), default=0) + 1):
-                candidats = []
-                for numero in sorted(n for n, e in etapes.items() if e == valeur):
-                    parents = dependances_internes(par_numero[numero], numeros)
-                    souhaite_y = sum(coordonnees[parent][1] for parent in parents) / len(parents)
-                    candidats.append((souhaite_y, numero))
-                candidats.sort()
-                ordonnees = []
-                for souhaite_y, _numero in candidats:
-                    ordonnees.append(
-                        max(souhaite_y, ordonnees[-1] + espace_match if ordonnees else souhaite_y)
-                    )
-                if ordonnees:
-                    decalage = (
-                        sum(souhaite for souhaite, _numero in candidats) / len(candidats)
-                        - sum(ordonnees) / len(ordonnees)
-                    )
-                    ordonnees = [y + decalage for y in ordonnees]
-                for (_souhaite_y, numero), y in zip(candidats, ordonnees):
-                    direction = -1 if cote == "gauche" else 1
-                    x = origine_x + direction * (valeur + 1) * pas_colonne
-                    if direction < 0:
-                        x -= largeur_match
-                    coordonnees[numero] = (x, y)
-
-        bandes.append({
-            "ordre": ordre,
-            "haut": y_courant,
-            "bas": y_courant + hauteur_bande,
-            "plages": plages,
-        })
-        y_courant += hauteur_bande + espace_bandes
-
-    return coordonnees, bandes, y_courant
 
 
 def indices_contraintes_du_match(match, contraintes, profondeur=None):
@@ -1503,6 +1369,29 @@ class EditeurConfiguration(tk.Toplevel):
                         font=("TkDefaultFont", max(7, int(8 * z)), "bold"),
                         tags=tags_match,
                     )
+                classement_final = sorties_classement(match)
+                if not vue_compacte and classement_final:
+                    cote, _ordre, _plage = bloc_match_visualisation(match, taille)
+                    direction_sortie = -1 if cote == "gauche" else 1
+                    x_depart = x if direction_sortie < 0 else x + largeur_match
+                    x_fin = x_depart + direction_sortie * 58 * z
+                    for rang, decalage_y in zip(classement_final, (-10 * z, 10 * z)):
+                        canvas.create_line(
+                            x_depart,
+                            y + decalage_y,
+                            x_fin,
+                            y + decalage_y,
+                            fill="#475569",
+                            width=max(1, int(z)),
+                        )
+                        canvas.create_text(
+                            x_fin + direction_sortie * 5 * z,
+                            y + decalage_y,
+                            text="{}{}".format(rang, "er" if rang == 1 else "e"),
+                            anchor="w" if direction_sortie > 0 else "e",
+                            fill="#1e3a5f",
+                            font=("TkDefaultFont", max(8, int(9 * z)), "bold"),
+                        )
 
         hauteur = max(
             marge_y + taille * pas_joueur,
