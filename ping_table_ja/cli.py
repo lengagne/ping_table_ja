@@ -47,7 +47,7 @@ def main(argv=None):
         print("{:2d}. {} | {} | Poule {} | Rang {}".format(
             position, joueur["nom"], joueur["club"], joueur["poule"], joueur["rang_poule"]
         ))
-    creer_fichier_solution(arguments.sortie, solution)
+    creer_fichier_solution(arguments.sortie, solution, matchs=matchs)
     print("Fichier créé : {}".format(arguments.sortie))
     return 0
 

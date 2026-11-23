@@ -16,6 +16,7 @@ from ping_table_ja.excel import (
     mettre_a_jour_tirage_choisi,
 )
 from ping_table_ja.editeur_configuration import (
+    abscisse_match_visualisation,
     ajouter_contrainte_donnees,
     aide_contrainte,
     calculer_profondeurs_matchs,
@@ -131,6 +132,26 @@ class TestConfigurationFichier(unittest.TestCase):
                 [profondeurs[match["numero"]] for match in donnees["matchs"]],
                 sorted(profondeurs.values()),
             )
+
+    def test_vue_developpee_separe_gagnants_et_perdants(self):
+        origine = 1000
+        pas = 200
+        self.assertEqual(
+            abscisse_match_visualisation(1, [1, 32], 32, False, origine, pas),
+            origine,
+        )
+        self.assertEqual(
+            abscisse_match_visualisation(2, [1, 16], 32, False, origine, pas),
+            origine + pas,
+        )
+        self.assertEqual(
+            abscisse_match_visualisation(2, [17, 32], 32, False, origine, pas),
+            origine - pas,
+        )
+        self.assertEqual(
+            abscisse_match_visualisation(3, [17, 24], 32, True, origine, pas),
+            origine + 2 * pas,
+        )
 
     def test_contrainte_de_colonne_est_retrouvee_une_seule_fois(self):
         donnees = generer_configuration_standard(32, barrages_1_contre_4=False)
@@ -507,6 +528,46 @@ class TestConfigurationFichier(unittest.TestCase):
 
             with self.assertRaisesRegex(ValueError, "compris entre 1 et 2"):
                 mettre_a_jour_tirage_choisi(chemin, 3)
+
+    def test_classeur_contient_un_tableau_interactif(self):
+        donnees = generer_configuration_standard(8, classement_integral=True)
+        solution = [
+            {
+                "nom": "J{}".format(position),
+                "club": "Club {}".format(position),
+                "poule": (position - 1) // 4 + 1,
+                "rang_poule": (position - 1) % 4 + 1,
+            }
+            for position in range(1, 9)
+        ]
+        with tempfile.TemporaryDirectory() as dossier:
+            configuration_json = Path(dossier) / "configuration.json"
+            enregistrer_configuration(configuration_json, donnees)
+            configuration = charger_configuration(configuration_json)
+            chemin = Path(dossier) / "tableau.xlsx"
+            creer_fichier_solution(
+                chemin, solution, matchs=configuration.matchs
+            )
+            classeur = load_workbook(chemin, data_only=False)
+            self.assertIn("Tableau", classeur.sheetnames)
+            feuille = classeur["Tableau"]
+            self.assertEqual(feuille["B3"].value, "NIVEAU 1")
+            self.assertEqual(feuille["E6"].value, "☐")
+            self.assertEqual(feuille["E7"].value, "☐")
+            self.assertTrue(feuille["C8"].value.startswith("=IF(COUNTIF"))
+            formules_propagation = [
+                cellule.value
+                for ligne in feuille.iter_rows()
+                for cellule in ligne
+                if isinstance(cellule.value, str)
+                and cellule.value.startswith("='Tableau'!")
+            ]
+            self.assertTrue(formules_propagation)
+            self.assertEqual(
+                feuille.data_validations.dataValidation[0].formula1,
+                '"☐,☑"',
+            )
+            classeur.close()
 
 
 if __name__ == "__main__":

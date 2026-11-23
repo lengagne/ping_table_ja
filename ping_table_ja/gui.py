@@ -525,6 +525,7 @@ class Application(ttk.Frame):
                         "recherche_terminee": recherche_terminee,
                     },
                     numero_tirage_choisi=1,
+                    matchs=configuration.matchs,
                 )
                 self.parent.after(
                     0,
@@ -552,6 +553,7 @@ class Application(ttk.Frame):
                     "mode": "Une seule solution",
                     "recherche_terminee": True,
                 },
+                matchs=configuration.matchs,
             )
             self.parent.after(0, self._calcul_termine, sortie, solution)
         except Exception as erreur:
