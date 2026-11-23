@@ -1165,6 +1165,7 @@ class EditeurConfiguration(tk.Toplevel):
                 souhaits.append((sum(source[1] for source in sources) / 2, match, sources))
             souhaits.sort(key=lambda element: element[0])
             precedents_y_principaux = {
+                "compact": marge_y - espace_match,
                 "centre": marge_y - espace_match,
                 "gauche_principal": marge_y - espace_match,
                 "droite_principal": marge_y - espace_match,
@@ -1196,7 +1197,11 @@ class EditeurConfiguration(tk.Toplevel):
                         precedent_y_classement_droite = y
                         index_classement_droite += 1
                 else:
-                    cle_principale = zone if zone in precedents_y_principaux else "centre"
+                    cle_principale = (
+                        "compact"
+                        if vue_compacte
+                        else zone if zone in precedents_y_principaux else "centre"
+                    )
                     y = max(
                         souhaite_y,
                         precedents_y_principaux[cle_principale] + espace_match,
@@ -1235,23 +1240,6 @@ class EditeurConfiguration(tk.Toplevel):
                         continue
                     cible_y = y - hauteur_match * 0.23 if index == 1 else y + hauteur_match * 0.23
                     cible_x = x if direction > 0 else x + largeur_match
-                    sortie_verticale_barrage = (
-                        not vue_compacte
-                        and source_est_barrage
-                        and reference.get("type") == "perdant"
-                        and direction < 0
-                    )
-                    if sortie_verticale_barrage:
-                        # Le trait du perdant ne traverse plus la case du barrage :
-                        # il quitte le milieu du bord le plus proche (haut ou bas),
-                        # puis rejoint le tableau gauche.
-                        x_barrage, y_barrage = coordonnees_matchs[numero_source]
-                        source_x = x_barrage + largeur_match / 2
-                        source_y = y_barrage + (
-                            -hauteur_match / 2
-                            if cible_y < y_barrage
-                            else hauteur_match / 2
-                        )
                     milieu_x = (source_x + cible_x) / 2
                     canvas.create_line(
                         source_x, source_y, milieu_x, source_y, milieu_x, cible_y,
@@ -1259,17 +1247,11 @@ class EditeurConfiguration(tk.Toplevel):
                         fill="#5f6368", width=max(1, int(z)),
                     )
                     if reference.get("type") in ("vainqueur", "perdant"):
-                        decalage_etiquette = 7 * z if direction > 0 else -7 * z
-                        ancre_etiquette = "w" if direction > 0 else "e"
-                        if sortie_verticale_barrage:
-                            decalage_etiquette = 0
-                            ancre_etiquette = "center"
                         canvas.create_text(
-                            source_x + decalage_etiquette,
-                            source_y + (-7 * z if cible_y < y_barrage else 7 * z)
-                            if sortie_verticale_barrage else source_y - 7 * z,
+                            source_x + (7 * z if direction > 0 else -7 * z),
+                            source_y - 7 * z,
                             text="V" if reference["type"] == "vainqueur" else "P",
-                            anchor=ancre_etiquette,
+                            anchor="w" if direction > 0 else "e",
                             fill="#166534" if reference["type"] == "vainqueur" else "#9a3412",
                             font=("TkDefaultFont", max(7, int(8 * z)), "bold"),
                         )
