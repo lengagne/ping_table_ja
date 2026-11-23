@@ -1238,12 +1238,12 @@
       }
     },
     {
-      "nom": "Le 1er et le 2e d'une poule ne peuvent se retrouver qu'en finale",
       "type": "rangs_meme_poule_interdits",
       "cible": {
         "type": "niveau",
         "numero": 4
       },
+      "nom": "Le 1er et le 2e d'une poule ne peuvent se retrouver qu'en finale",
       "rangs": [
         1,
         2
@@ -1305,6 +1305,18 @@
       "poules": [
         3,
         4
+      ]
+    },
+    {
+      "type": "rangs_meme_poule_interdits",
+      "cible": {
+        "type": "niveau",
+        "numero": 4
+      },
+      "nom": "Le 2e et le 3e d'une poule ne peuvent se retrouver qu'en finale",
+      "rangs": [
+        2,
+        3
       ]
     }
   ]

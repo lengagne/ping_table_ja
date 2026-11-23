@@ -6860,6 +6860,18 @@
         3,
         4
       ]
+    },
+    {
+      "type": "rangs_meme_poule_interdits",
+      "cible": {
+        "type": "niveau",
+        "numero": 6
+      },
+      "nom": "le 2e et 3e d'une meme poule ne peuvent se rencontrer qu'en finale",
+      "rangs": [
+        2,
+        3
+      ]
     }
   ]
 }
