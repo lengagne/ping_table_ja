@@ -26,6 +26,7 @@ from ping_table_ja.editeur_configuration import (
     indices_contraintes_pour_cible,
     parser_reference,
     preparer_donnees_enregistrement,
+    zone_match_visualisation,
 )
 from ping_table_ja.generateur_tableau import generer_configuration_standard, niveaux_principaux
 from ping_table_ja.gui import construire_matrice_classements, construire_matrice_tirage
@@ -146,11 +147,35 @@ class TestConfigurationFichier(unittest.TestCase):
         )
         self.assertEqual(
             abscisse_match_visualisation(2, [17, 32], 32, False, origine, pas),
-            origine + pas,
+            origine - pas,
         )
         self.assertEqual(
             abscisse_match_visualisation(3, [17, 24], 32, True, origine, pas),
             origine + 2 * pas,
+        )
+
+    def test_vue_developpee_separe_les_tableaux_et_leurs_classements(self):
+        self.assertEqual(
+            zone_match_visualisation(
+                {"niveau": "barrage_2_3", "places": [1, 32]}, 32
+            ),
+            "centre",
+        )
+        self.assertEqual(
+            zone_match_visualisation({"niveau": "1/8", "places": [1, 16]}, 32),
+            "droite_principal",
+        )
+        self.assertEqual(
+            zone_match_visualisation({"niveau": "places_9_16", "places": [9, 16]}, 32),
+            "droite_classement",
+        )
+        self.assertEqual(
+            zone_match_visualisation({"niveau": "places_17_32", "places": [17, 32]}, 32),
+            "gauche_principal",
+        )
+        self.assertEqual(
+            zone_match_visualisation({"niveau": "places_25_32", "places": [25, 32]}, 32),
+            "gauche_classement",
         )
 
     def test_contrainte_de_colonne_est_retrouvee_une_seule_fois(self):
