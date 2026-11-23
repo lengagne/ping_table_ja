@@ -48,7 +48,7 @@ DESCRIPTIONS_CIBLES = {
     "match": "La valeur de cible est le numéro d'un match, par exemple 7.",
     "matchs": "Saisissez plusieurs numéros de matchs séparés par des virgules : 3,7,12.",
     "niveau": (
-        "Saisissez le nom exact du niveau, par exemple 1/8, 1/4 ou finale. "
+        "Choisissez la colonne graphique complète : Niveau 1, Niveau 2, etc. "
         "Le champ « Matchs exclus » permet de surcharger la règle pour certains matchs."
     ),
 }
@@ -131,7 +131,7 @@ def calculer_profondeurs_matchs(matchs):
     return profondeurs
 
 
-def indices_contraintes_du_match(match, contraintes):
+def indices_contraintes_du_match(match, contraintes, profondeur=None):
     """Retourne les contraintes visant directement le match ou son niveau."""
     resultat = []
     for index, contrainte in enumerate(contraintes):
@@ -144,7 +144,13 @@ def indices_contraintes_du_match(match, contraintes):
             and int(match["numero"]) in [int(n) for n in cible.get("numeros", [])]
         ) or (
             cible.get("type") == "niveau"
-            and str(cible.get("niveau", "")) == str(match.get("niveau", ""))
+            and (
+                ("numero" in cible and int(cible.get("numero", 0)) == profondeur)
+                or (
+                    "numero" not in cible
+                    and str(cible.get("niveau", "")) == str(match.get("niveau", ""))
+                )
+            )
             and int(match["numero"]) not in {
                 int(numero) for numero in cible.get("exclusions_matchs", [])
             }
@@ -169,18 +175,25 @@ def indices_contraintes_pour_cible(cible, contraintes, matchs):
         return list(range(len(contraintes)))
     if cible.get("type") == "position":
         return indices_contraintes_de_position(cible["numero"], contraintes)
-    numeros = (
-        [cible["numero"]]
-        if cible.get("type") == "match"
-        else cible.get("numeros", [])
-    )
+    profondeurs = calculer_profondeurs_matchs(matchs)
+    if cible.get("type") == "niveau":
+        numeros = [
+            numero for numero, profondeur in profondeurs.items()
+            if profondeur == int(cible["numero"])
+        ]
+    else:
+        numeros = (
+            [cible["numero"]]
+            if cible.get("type") == "match"
+            else cible.get("numeros", [])
+        )
     par_numero = {int(match["numero"]): match for match in matchs}
     return sorted({
         index
         for numero in numeros
         if int(numero) in par_numero
         for index in indices_contraintes_du_match(
-            par_numero[int(numero)], contraintes
+            par_numero[int(numero)], contraintes, profondeurs[int(numero)]
         )
     })
 
@@ -301,6 +314,8 @@ class DialogueContrainte(_DialogueBase):
             value=",".join(str(numero) for numero in self.exclusions_matchs)
         )
         valeur_cible = cible.get("numero", cible.get("niveau", ""))
+        if cible.get("type") == "niveau" and "numero" in cible:
+            valeur_cible = "Niveau {}".format(cible["numero"])
         if cible.get("type") == "matchs":
             valeur_cible = ",".join(str(n) for n in cible.get("numeros", []))
         self.valeur_cible = tk.StringVar(value=str(valeur_cible))
@@ -385,7 +400,14 @@ class DialogueContrainte(_DialogueBase):
         }
         self.libelle_cible.configure(text=libelles[type_cible])
         if type_cible == "niveau":
-            valeurs = list(dict.fromkeys(str(match.get("niveau", "")) for match in matchs))
+            profondeurs = calculer_profondeurs_matchs(matchs)
+            valeurs = [
+                "Niveau {}".format(numero)
+                for numero in range(1, max(profondeurs.values(), default=0) + 1)
+            ]
+            valeur_actuelle = self.valeur_cible.get()
+            if valeur_actuelle and valeur_actuelle not in valeurs:
+                valeurs.append(valeur_actuelle)
             etat = "readonly"
         elif type_cible == "match":
             valeurs = [str(match["numero"]) for match in matchs]
@@ -442,7 +464,11 @@ class DialogueContrainte(_DialogueBase):
                     )
                 cible["numeros"] = numeros
             else:
-                cible["niveau"] = valeur
+                if valeur.lower().startswith("niveau "):
+                    cible["numero"] = int(valeur.split(None, 1)[1])
+                else:
+                    # Ancienne cible nommée conservée lors de sa modification.
+                    cible["niveau"] = valeur
                 exclusions = _liste_entiers(self.exclusions_var.get())
                 if exclusions:
                     cible["exclusions_matchs"] = sorted(set(exclusions))
@@ -778,6 +804,8 @@ class EditeurConfiguration(tk.Toplevel):
             return "Cible : position {}{}".format(cible["numero"], suffixe)
         if cible.get("type") == "match":
             return "Cible : match {}{}".format(cible["numero"], suffixe)
+        if cible.get("type") == "niveau":
+            return "Cible : niveau {}{}".format(cible["numero"], suffixe)
         return "Cible : matchs {}{}".format(
             ", ".join(str(numero) for numero in cible.get("numeros", [])), suffixe
         )
@@ -809,6 +837,12 @@ class EditeurConfiguration(tk.Toplevel):
             return [int(cible["numero"])]
         if cible.get("type") == "matchs":
             return [int(numero) for numero in cible.get("numeros", [])]
+        if cible.get("type") == "niveau":
+            profondeurs = calculer_profondeurs_matchs(self.donnees.get("matchs", []))
+            return sorted(
+                numero for numero, profondeur in profondeurs.items()
+                if profondeur == int(cible["numero"])
+            )
         return []
 
     def _afficher_toutes_contraintes_visualisation(self):
@@ -826,6 +860,8 @@ class EditeurConfiguration(tk.Toplevel):
         _prefixe, type_cible, valeur = tag_cible.split(":", 2)
         if type_cible == "position":
             cible = {"type": "position", "numero": int(valeur)}
+        elif type_cible == "niveau":
+            cible = {"type": "niveau", "numero": int(valeur)}
         else:
             numeros = [int(numero) for numero in valeur.split(",") if numero]
             if type_cible == "match" and evenement.state & 0x0004:
@@ -909,6 +945,12 @@ class EditeurConfiguration(tk.Toplevel):
                 matchs_selectionnes.update(
                     int(numero) for numero in self.cible_visualisation.get("numeros", [])
                 )
+            elif self.cible_visualisation.get("type") == "niveau":
+                niveau_selectionne = int(self.cible_visualisation["numero"])
+                matchs_selectionnes.update(
+                    numero for numero, profondeur in profondeurs.items()
+                    if profondeur == niveau_selectionne
+                )
         for numero, (x, y) in positions_coordonnees.items():
             tags = ("cible_cliquable", "cible:position:{}".format(numero))
             contraintes_position = indices_contraintes_de_position(numero, contraintes)
@@ -976,8 +1018,21 @@ class EditeurConfiguration(tk.Toplevel):
             x_colonne = marge_x + 85 * z + (profondeur - 1) * pas_colonne
             tags_colonne = (
                 "cible_cliquable",
-                "cible:colonne:{}".format(",".join(map(str, numeros_colonne))),
+                "cible:niveau:{}".format(profondeur),
             )
+            noms_niveaux = list(dict.fromkeys(
+                str(match.get("niveau", "")) for match in groupe
+            ))
+            niveaux_principaux = [
+                nom for nom in noms_niveaux
+                if nom.startswith("1/") or nom == "finale"
+            ]
+            libelle_tour = ", ".join(niveaux_principaux)
+            if not libelle_tour:
+                if noms_niveaux == ["barrage_2_3"]:
+                    libelle_tour = "Barrages 2–3"
+                else:
+                    libelle_tour = "Classement"
             canvas.create_rectangle(
                 x_colonne,
                 8 * z,
@@ -990,7 +1045,9 @@ class EditeurConfiguration(tk.Toplevel):
             canvas.create_text(
                 x_colonne + largeur_match / 2,
                 25 * z,
-                text="NIVEAU {}\n{} match(s)".format(profondeur, len(groupe)),
+                text="NIVEAU {} — {}\n{} match(s)".format(
+                    profondeur, libelle_tour, len(groupe)
+                ),
                 justify="center",
                 font=("TkDefaultFont", max(7, int(8 * z)), "bold"),
                 tags=tags_colonne,
@@ -1026,7 +1083,7 @@ class EditeurConfiguration(tk.Toplevel):
                         )
                 couleur = "#dbeafe" if str(match.get("niveau", "")).startswith("1/") or match.get("niveau") == "finale" else "#fef3c7"
                 contraintes_match = indices_contraintes_du_match(
-                    match, self.donnees.get("contraintes", [])
+                    match, self.donnees.get("contraintes", []), profondeur
                 )
                 selectionne = index_contrainte_selectionnee in contraintes_match
                 contour = "#dc2626" if contraintes_match else "#3f3f46"
@@ -1209,7 +1266,12 @@ class EditeurConfiguration(tk.Toplevel):
             texte = "Groupe : {} matchs ({})".format(len(numeros), niveau)
         elif type_cible == "niveau":
             prefixe = "Héritée du niveau" if contexte_visualisation else "Niveau entier"
-            texte = "{} {}".format(prefixe, cible.get("niveau", ""))
+            if "numero" in cible:
+                texte = "{} {}".format(prefixe, cible.get("numero", ""))
+            else:
+                texte = "{} {} (ancienne notation)".format(
+                    prefixe, cible.get("niveau", "")
+                )
         else:
             texte = "Cible inconnue"
         exclusions = cible.get("exclusions_matchs", [])
@@ -1341,28 +1403,39 @@ class EditeurConfiguration(tk.Toplevel):
         )
         if depuis_visualisation and cible.get("type") == "niveau":
             numeros = self._numeros_matchs_cible_visualisation()
-            niveau = str(cible.get("niveau", ""))
             matchs = {
                 int(match["numero"]): match for match in self.donnees.get("matchs", [])
             }
-            numeros = [
-                numero for numero in numeros
-                if numero in matchs and str(matchs[numero].get("niveau", "")) == niveau
-            ]
+            profondeurs = calculer_profondeurs_matchs(self.donnees.get("matchs", []))
+            if "numero" in cible:
+                niveau = int(cible["numero"])
+                numeros = [numero for numero in numeros if profondeurs.get(numero) == niveau]
+                numeros_niveau = {
+                    numero for numero, profondeur in profondeurs.items()
+                    if profondeur == niveau
+                }
+                description_niveau = "Niveau {}".format(niveau)
+            else:
+                niveau = str(cible.get("niveau", ""))
+                numeros = [
+                    numero for numero in numeros
+                    if numero in matchs and str(matchs[numero].get("niveau", "")) == niveau
+                ]
+                numeros_niveau = {
+                    numero for numero, match in matchs.items()
+                    if str(match.get("niveau", "")) == niveau
+                }
+                description_niveau = niveau
             if numeros and messagebox.askyesno(
                 "Retirer la contrainte héritée",
                 "Retirer cette contrainte de niveau uniquement des matchs {} ?\n\n"
                 "La contrainte restera active sur les autres matchs du niveau {}.".format(
-                    ", ".join(map(str, numeros)), niveau
+                    ", ".join(map(str, numeros)), description_niveau
                 ),
                 parent=self,
             ):
                 exclusions = {int(n) for n in cible.get("exclusions_matchs", [])}
                 exclusions.update(numeros)
-                numeros_niveau = {
-                    numero for numero, match in matchs.items()
-                    if str(match.get("niveau", "")) == niveau
-                }
                 if numeros_niveau and numeros_niveau.issubset(exclusions):
                     del self.donnees["contraintes"][index]
                 else:

@@ -204,6 +204,36 @@ class TestConfigurationFichier(unittest.TestCase):
         ]
         self.assertEqual(indices_contraintes_du_match(match, contraintes), [0, 1])
 
+    def test_contrainte_sur_un_niveau_graphique(self):
+        donnees = generer_configuration_standard(8, classement_integral=True)
+        donnees["contraintes"] = [{
+            "type": "clubs_differents",
+            "cible": {"type": "niveau", "numero": 2},
+        }]
+        profondeurs = calculer_profondeurs_matchs(donnees["matchs"])
+        matchs_niveau_2 = [
+            match for match in donnees["matchs"]
+            if profondeurs[match["numero"]] == 2
+        ]
+        self.assertEqual(len(matchs_niveau_2), 4)
+        self.assertEqual(
+            indices_contraintes_du_match(
+                matchs_niveau_2[0], donnees["contraintes"], profondeur=2
+            ),
+            [0],
+        )
+        self.assertEqual(
+            indices_contraintes_du_match(
+                donnees["matchs"][0], donnees["contraintes"], profondeur=1
+            ),
+            [],
+        )
+        with tempfile.TemporaryDirectory() as dossier:
+            chemin = Path(dossier) / "niveau_graphique.json"
+            enregistrer_configuration(chemin, donnees)
+            configuration = charger_configuration(chemin)
+        self.assertEqual(len(configuration.contraintes), 4)
+
     def test_cibles_position_et_ensemble_de_matchs(self):
         donnees = generer_configuration_standard(
             8, classement_integral=False, barrages_1_contre_4=True
