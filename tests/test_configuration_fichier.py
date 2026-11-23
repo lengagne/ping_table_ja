@@ -55,10 +55,16 @@ class TestConfigurationFichier(unittest.TestCase):
         self.assertEqual(donnees["matchs"][0]["niveau"], "barrage_2_3")
         self.assertEqual(donnees["matchs"][0]["participant_1"]["numero"], 3)
         self.assertEqual(donnees["matchs"][0]["participant_2"]["numero"], 4)
-        self.assertEqual(donnees["matchs"][1]["participant_1"]["numero"], 1)
-        self.assertEqual(donnees["matchs"][1]["participant_2"], {"type": "vainqueur", "match": 1})
-        self.assertEqual(donnees["matchs"][2]["participant_1"], {"type": "perdant", "match": 1})
-        self.assertEqual(donnees["matchs"][2]["participant_2"]["numero"], 2)
+        match_premier = next(
+            match for match in donnees["matchs"]
+            if match["participant_1"] == {"type": "position", "numero": 1}
+        )
+        self.assertEqual(match_premier["participant_2"], {"type": "vainqueur", "match": 1})
+        match_quatrieme = next(
+            match for match in donnees["matchs"]
+            if match["participant_2"] == {"type": "position", "numero": 2}
+        )
+        self.assertEqual(match_quatrieme["participant_1"], {"type": "perdant", "match": 1})
         self.assertEqual(len(donnees["contraintes"]), 3)
         self.assertTrue(all(
             contrainte["cible"]["type"] == "niveau"
@@ -91,14 +97,20 @@ class TestConfigurationFichier(unittest.TestCase):
             (3, 4), (5, 6), (11, 12), (13, 14),
             (19, 20), (21, 22), (27, 28), (29, 30),
         ])
-        self.assertEqual(
-            [sans["matchs"][index]["participant_1"]["numero"] for index in range(1, 24, 3)],
-            [1, 8, 9, 16, 17, 24, 25, 32],
-        )
-        self.assertEqual(
-            [sans["matchs"][index]["participant_2"]["numero"] for index in range(2, 24, 3)],
-            [2, 7, 10, 15, 18, 23, 26, 31],
-        )
+        entrees_premiers = [
+            match["participant_1"]["numero"]
+            for match in sans["matchs"]
+            if match["niveau"] == "1/8"
+            and match["participant_1"].get("type") == "position"
+        ]
+        entrees_quatriemes = [
+            match["participant_2"]["numero"]
+            for match in sans["matchs"]
+            if match["niveau"] == "places_17_32"
+            and match["participant_2"].get("type") == "position"
+        ]
+        self.assertEqual(entrees_premiers, [1, 8, 9, 16, 17, 24, 25, 32])
+        self.assertEqual(entrees_quatriemes, [2, 7, 10, 15, 18, 23, 26, 31])
         premiers_matchs_avec = [
             (match["participant_1"]["numero"], match["participant_2"]["numero"])
             for match in avec["matchs"][:16]
@@ -107,6 +119,17 @@ class TestConfigurationFichier(unittest.TestCase):
             (1, 2), (3, 4), (5, 6), (8, 7),
             (9, 10), (11, 12), (13, 14), (16, 15),
         ])
+
+    def test_numeros_matchs_suivent_les_niveaux_graphiques(self):
+        for barrage_1_4 in (False, True):
+            donnees = generer_configuration_standard(
+                32, barrages_1_contre_4=barrage_1_4
+            )
+            profondeurs = calculer_profondeurs_matchs(donnees["matchs"])
+            self.assertEqual(
+                [profondeurs[match["numero"]] for match in donnees["matchs"]],
+                sorted(profondeurs.values()),
+            )
 
     def test_contrainte_de_colonne_est_retrouvee_une_seule_fois(self):
         donnees = generer_configuration_standard(32, barrages_1_contre_4=False)
