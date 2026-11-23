@@ -1,6 +1,7 @@
 """Éditeur graphique des configurations JSON v2."""
 
 import json
+import math
 from pathlib import Path
 import sys
 import tkinter as tk
@@ -167,6 +168,144 @@ def zone_match_visualisation(match, taille_tableau):
     if gauche:
         return "gauche_principal" if principal else "gauche_classement"
     return "droite_principal" if principal else "droite_classement"
+
+
+def bloc_match_visualisation(match, taille_tableau):
+    """Retourne la moitié, la bande verticale et sa plage de places."""
+    places = [int(place) for place in match.get("places", [])]
+    if match.get("niveau") == "barrage_2_3" or not places:
+        return "centre", 0, (1, taille_tableau)
+    milieu = taille_tableau // 2
+    gauche = min(places) > milieu
+    minimum_relatif = min(places) - (milieu if gauche else 0)
+    if minimum_relatif <= 1:
+        ordre = 0
+        debut_relatif, fin_relatif = 1, milieu
+    else:
+        ordre = int(math.floor(math.log2(minimum_relatif - 1)))
+        debut_relatif = 2 ** ordre + 1
+        fin_relatif = min(2 ** (ordre + 1), milieu)
+    decalage = milieu if gauche else 0
+    return (
+        "gauche" if gauche else "droite",
+        ordre,
+        (debut_relatif + decalage, fin_relatif + decalage),
+    )
+
+
+def calculer_disposition_non_compacte(
+    matchs, taille_tableau, origine_x, pas_colonne, largeur_match,
+    debut_y, espace_match, espace_bandes
+):
+    """Dispose deux séries de tableaux en miroir, empilées par classement."""
+    par_numero = {int(match["numero"]): match for match in matchs}
+    groupes = {}
+    barrages = []
+    for match in matchs:
+        numero = int(match["numero"])
+        cote, ordre, plage = bloc_match_visualisation(match, taille_tableau)
+        if cote == "centre":
+            barrages.append(match)
+        else:
+            groupes.setdefault((cote, ordre, plage), []).append(match)
+
+    ordres = sorted({cle[1] for cle in groupes} | ({0} if barrages else set()))
+    coordonnees = {}
+    bandes = []
+    y_courant = debut_y
+
+    def dependances_internes(match, numeros_groupe):
+        resultat = []
+        for cle in ("participant_1", "participant_2"):
+            reference = match.get(cle, {})
+            if reference.get("type") in ("vainqueur", "perdant"):
+                numero = int(reference.get("match", 0))
+                if numero in numeros_groupe:
+                    resultat.append(numero)
+        return resultat
+
+    for ordre in ordres:
+        groupes_bande = [
+            (cle, valeur) for cle, valeur in groupes.items() if cle[1] == ordre
+        ]
+        informations = []
+        maximum_premier_tour = len(barrages) if ordre == 0 else 0
+        for cle, matchs_groupe in groupes_bande:
+            numeros = {int(match["numero"]) for match in matchs_groupe}
+            etapes = {}
+
+            def etape(numero):
+                if numero in etapes:
+                    return etapes[numero]
+                parents = dependances_internes(par_numero[numero], numeros)
+                etapes[numero] = 0 if not parents else 1 + max(etape(p) for p in parents)
+                return etapes[numero]
+
+            for numero in numeros:
+                etape(numero)
+            premier_tour = sorted(numero for numero, valeur in etapes.items() if valeur == 0)
+            maximum_premier_tour = max(maximum_premier_tour, len(premier_tour))
+            informations.append((cle, matchs_groupe, numeros, etapes, premier_tour))
+
+        nombre_lignes = max(1, maximum_premier_tour)
+        hauteur_bande = max(90, nombre_lignes * espace_match)
+        centre_lignes = [
+            y_courant + (index + 0.5) * hauteur_bande / nombre_lignes
+            for index in range(nombre_lignes)
+        ]
+
+        if ordre == 0 and barrages:
+            for index, match in enumerate(sorted(barrages, key=lambda m: int(m["numero"]))):
+                ligne = int(index * nombre_lignes / max(1, len(barrages)))
+                coordonnees[int(match["numero"])] = (
+                    origine_x, centre_lignes[min(ligne, nombre_lignes - 1)]
+                )
+
+        plages = {}
+        for cle, matchs_groupe, numeros, etapes, premier_tour in informations:
+            cote, _ordre, plage = cle
+            plages[cote] = plage
+            for index, numero in enumerate(premier_tour):
+                ligne = int(index * nombre_lignes / max(1, len(premier_tour)))
+                direction = -1 if cote == "gauche" else 1
+                x = origine_x + direction * pas_colonne
+                if direction < 0:
+                    x -= largeur_match
+                coordonnees[numero] = (x, centre_lignes[min(ligne, nombre_lignes - 1)])
+            for valeur in range(1, max(etapes.values(), default=0) + 1):
+                candidats = []
+                for numero in sorted(n for n, e in etapes.items() if e == valeur):
+                    parents = dependances_internes(par_numero[numero], numeros)
+                    souhaite_y = sum(coordonnees[parent][1] for parent in parents) / len(parents)
+                    candidats.append((souhaite_y, numero))
+                candidats.sort()
+                ordonnees = []
+                for souhaite_y, _numero in candidats:
+                    ordonnees.append(
+                        max(souhaite_y, ordonnees[-1] + espace_match if ordonnees else souhaite_y)
+                    )
+                if ordonnees:
+                    decalage = (
+                        sum(souhaite for souhaite, _numero in candidats) / len(candidats)
+                        - sum(ordonnees) / len(ordonnees)
+                    )
+                    ordonnees = [y + decalage for y in ordonnees]
+                for (_souhaite_y, numero), y in zip(candidats, ordonnees):
+                    direction = -1 if cote == "gauche" else 1
+                    x = origine_x + direction * (valeur + 1) * pas_colonne
+                    if direction < 0:
+                        x -= largeur_match
+                    coordonnees[numero] = (x, y)
+
+        bandes.append({
+            "ordre": ordre,
+            "haut": y_courant,
+            "bas": y_courant + hauteur_bande,
+            "plages": plages,
+        })
+        y_courant += hauteur_bande + espace_bandes
+
+    return coordonnees, bandes, y_courant
 
 
 def indices_contraintes_du_match(match, contraintes, profondeur=None):
@@ -1004,10 +1143,45 @@ class EditeurConfiguration(tk.Toplevel):
             # à gauche qu'à droite pour les deux tableaux en miroir.
             origine_tableau = marge_x + (profondeur_max - 1) * pas_colonne + 170 * z
             x_positions = origine_tableau - 85 * z
+        disposition_non_compacte = {}
+        bandes_non_compactes = []
+        fin_vue_non_compacte = 0
+        if not vue_compacte:
+            disposition_non_compacte, bandes_non_compactes, fin_vue_non_compacte = (
+                calculer_disposition_non_compacte(
+                    matchs,
+                    taille,
+                    origine_tableau,
+                    pas_colonne,
+                    largeur_match,
+                    marge_y + 35 * z,
+                    68 * z,
+                    95 * z,
+                )
+            )
         positions_coordonnees = {
             numero: (x_positions, marge_y + (numero - 1) * pas_joueur)
             for numero in range(1, taille + 1)
         }
+        if not vue_compacte:
+            positions_utilisees = {}
+            for match in matchs:
+                numero_match = int(match["numero"])
+                if numero_match not in disposition_non_compacte:
+                    continue
+                _x_match, y_match = disposition_non_compacte[numero_match]
+                for index in (1, 2):
+                    reference = match.get("participant_{}".format(index), {})
+                    if reference.get("type") == "position":
+                        numero_position = int(reference.get("numero", 0))
+                        positions_utilisees.setdefault(numero_position, []).append(
+                            y_match + (-11 * z if index == 1 else 11 * z)
+                        )
+            for numero_position, ordonnees in positions_utilisees.items():
+                positions_coordonnees[numero_position] = (
+                    x_positions,
+                    sum(ordonnees) / len(ordonnees),
+                )
         contraintes = self.donnees.get("contraintes", [])
         position_selectionnee = (
             int(self.cible_visualisation["numero"])
@@ -1028,6 +1202,46 @@ class EditeurConfiguration(tk.Toplevel):
                 matchs_selectionnes.update(
                     numero for numero, profondeur in profondeurs.items()
                     if profondeur == niveau_selectionne
+                )
+        if not vue_compacte:
+            for bande in bandes_non_compactes:
+                haut, bas = bande["haut"], bande["bas"]
+                plages = bande["plages"]
+                for cote, plage in plages.items():
+                    x_libelle = (
+                        origine_tableau + pas_colonne
+                        if cote == "droite"
+                        else max(15 * z, origine_tableau - profondeur_max * pas_colonne)
+                    )
+                    largeur_libelle = 220 * z
+                    texte = (
+                        "TABLEAU PLACES {} À {}".format(plage[0], plage[1])
+                        if plage[1] - plage[0] > 1
+                        else "PLACES {}e / {}e".format(plage[0], plage[1])
+                    )
+                    canvas.create_rectangle(
+                        x_libelle,
+                        haut - 27 * z,
+                        x_libelle + largeur_libelle,
+                        haut - 4 * z,
+                        fill="#eef7ff",
+                        outline="#7aa7c7",
+                    )
+                    canvas.create_text(
+                        x_libelle + 8 * z,
+                        haut - 15 * z,
+                        text=texte,
+                        anchor="w",
+                        fill="#334155",
+                        font=("TkDefaultFont", max(7, int(8 * z)), "bold"),
+                    )
+                canvas.create_line(
+                    15 * z,
+                    bas + 47 * z,
+                    origine_tableau * 2 + largeur_match,
+                    bas + 47 * z,
+                    fill="#d4d4d8",
+                    dash=(6, 6),
                 )
         for numero, (x, y) in positions_coordonnees.items():
             tags = ("cible_cliquable", "cible:position:{}".format(numero))
@@ -1085,7 +1299,9 @@ class EditeurConfiguration(tk.Toplevel):
                 raise ValueError("Match précédent non positionné : {}".format(numero_match))
             x, y = coordonnees_matchs[numero_match]
             zone_source = zone_match_visualisation(par_numero[numero_match], taille)
-            if not vue_compacte and zone_source.startswith("gauche"):
+            if not vue_compacte and (
+                zone_source.startswith("gauche") or direction < 0
+            ):
                 return x, y
             return x + largeur_match, y
 
@@ -1178,44 +1394,25 @@ class EditeurConfiguration(tk.Toplevel):
             index_classement_droite = 0
             for souhaite_y, match, sources in souhaits:
                 zone = zone_match_visualisation(match, taille)
-                est_classement = not vue_compacte and zone.endswith("classement")
-                if est_classement:
-                    if zone.startswith("gauche"):
-                        y = max(
-                            souhaite_y,
-                            debut_classements + index_classement_gauche * espace_match,
-                            precedent_y_classement_gauche + espace_match,
-                        )
-                        precedent_y_classement_gauche = y
-                        index_classement_gauche += 1
-                    else:
-                        y = max(
-                            souhaite_y,
-                            debut_classements + index_classement_droite * espace_match,
-                            precedent_y_classement_droite + espace_match,
-                        )
-                        precedent_y_classement_droite = y
-                        index_classement_droite += 1
+                numero_match = int(match["numero"])
+                if not vue_compacte:
+                    x, y = disposition_non_compacte[numero_match]
                 else:
-                    cle_principale = (
-                        "compact"
-                        if vue_compacte
-                        else zone if zone in precedents_y_principaux else "centre"
-                    )
+                    cle_principale = "compact"
                     y = max(
                         souhaite_y,
                         precedents_y_principaux[cle_principale] + espace_match,
                     )
                     precedents_y_principaux[cle_principale] = y
-                x = abscisse_match_visualisation(
-                    profondeur,
-                    match.get("places", []),
-                    taille,
-                    vue_compacte,
-                    origine_tableau,
-                    pas_colonne,
-                )
-                coordonnees_matchs[int(match["numero"])] = (x, y)
+                    x = abscisse_match_visualisation(
+                        profondeur,
+                        match.get("places", []),
+                        taille,
+                        True,
+                        origine_tableau,
+                        pas_colonne,
+                    )
+                coordonnees_matchs[numero_match] = (x, y)
                 direction = -1 if not vue_compacte and zone.startswith("gauche") else 1
                 for index, (source_x, source_y) in enumerate(sources, start=1):
                     reference = match.get("participant_{}".format(index), {})
@@ -1263,7 +1460,6 @@ class EditeurConfiguration(tk.Toplevel):
                 contour = "#dc2626" if contraintes_match else "#3f3f46"
                 if selectionne:
                     contour = "#ea580c"
-                numero_match = int(match["numero"])
                 if numero_match in matchs_selectionnes:
                     contour = "#0284c7"
                 tags_match = (
