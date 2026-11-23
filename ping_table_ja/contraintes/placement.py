@@ -30,24 +30,37 @@ class PositionImposee(Contrainte):
 
 
 class RangsPositionImposes(Contrainte):
-    """Limite les rangs de poule autorisés à une position du tableau."""
+    """Limite les rangs et, facultativement, les poules d'une position."""
 
-    def __init__(self, position, rangs):
+    def __init__(self, position, rangs, poules=None):
         self.position = int(position)
         self.rangs = {int(rang) for rang in rangs}
+        self.poules = {int(poule) for poule in (poules or [])}
+
+    def _joueur_valide(self, joueur):
+        return (
+            int(joueur["rang_poule"]) in self.rangs
+            and (
+                not self.poules
+                or int(joueur["poule"]) in self.poules
+            )
+        )
 
     def est_compatible(self, placement):
         joueur = placement[self.position - 1]
-        return joueur is None or int(joueur["rang_poule"]) in self.rangs
+        return joueur is None or self._joueur_valide(joueur)
 
     def est_respectee(self, placement):
         joueur = placement[self.position - 1]
-        return joueur is not None and int(joueur["rang_poule"]) in self.rangs
+        return joueur is not None and self._joueur_valide(joueur)
 
     def description(self):
-        return "La position {} doit recevoir un joueur de rang {}".format(
+        texte = "La position {} doit recevoir un joueur de rang {}".format(
             self.position, sorted(self.rangs)
         )
+        if self.poules:
+            texte += " appartenant à la poule {}".format(sorted(self.poules))
+        return texte
 
 
 class ClubsDifferents(Contrainte):
