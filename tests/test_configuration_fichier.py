@@ -274,6 +274,27 @@ class TestConfigurationFichier(unittest.TestCase):
             configuration = charger_configuration(chemin)
         self.assertEqual(len(configuration.contraintes), 10)
 
+    def test_rang_position_peut_limiter_les_poules(self):
+        donnees = generer_configuration_standard(8, classement_integral=False)
+        donnees["contraintes"] = [{
+            "type": "rangs_position",
+            "cible": {"type": "position", "numero": 1},
+            "rangs": [1],
+            "poules": [3, 4],
+        }]
+        with tempfile.TemporaryDirectory() as dossier:
+            chemin = Path(dossier) / "rang_et_poules.json"
+            enregistrer_configuration(chemin, donnees)
+            configuration = charger_configuration(chemin)
+        contrainte = configuration.contraintes[0]
+        placement = [None] * 8
+        placement[0] = {"poule": 3, "rang_poule": 1}
+        self.assertTrue(contrainte.est_respectee(placement))
+        placement[0] = {"poule": 2, "rang_poule": 1}
+        self.assertFalse(contrainte.est_respectee(placement))
+        placement[0] = {"poule": 3, "rang_poule": 2}
+        self.assertFalse(contrainte.est_respectee(placement))
+
     def test_contrainte_groupee_refuse_des_niveaux_differents(self):
         donnees = generer_configuration_standard(
             8, classement_integral=False, barrages_1_contre_4=True

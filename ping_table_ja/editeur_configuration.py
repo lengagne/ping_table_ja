@@ -21,8 +21,9 @@ TYPES_CONTRAINTES = (
 
 DESCRIPTIONS_CONTRAINTES = {
     "rangs_position": (
-        "Limite le rang de poule du joueur placé à cette position.",
-        "Exemple : cible position 1, rangs 1,2 — la place 1 recevra un 1er ou un 2e de poule.",
+        "Limite le rang et, si souhaité, la poule du joueur placé à cette position.",
+        "Exemple : position 1, rang 1, poule 1 — la place 1 recevra le premier de la poule 1. "
+        "Laissez les poules vides pour accepter toutes les poules.",
     ),
     "poules_differentes": (
         "Interdit que les deux participants possibles d'un match proviennent de la même poule.",
@@ -296,7 +297,7 @@ class DialogueContrainte(_DialogueBase):
         self.resizable(True, True)
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
-        self.corps.rowconfigure(7, weight=1)
+        self.corps.rowconfigure(8, weight=1)
         contrainte = contrainte or {}
         cible = contrainte.get("cible", cible_initiale or {})
         type_par_defaut = (
@@ -321,6 +322,9 @@ class DialogueContrainte(_DialogueBase):
         self.valeur_cible = tk.StringVar(value=str(valeur_cible))
         self.rangs = tk.StringVar(
             value=",".join(str(v) for v in contrainte.get("rangs", []))
+        )
+        self.poules = tk.StringVar(
+            value=",".join(str(v) for v in contrainte.get("poules", []))
         )
         self.rangs_1 = tk.StringVar(
             value=",".join(str(v) for v in contrainte.get("participant_1", []))
@@ -348,6 +352,7 @@ class DialogueContrainte(_DialogueBase):
         self.entree_cible.grid(row=2, column=1, padx=(12, 0), pady=4, sticky="ew")
         champs = (
             ("Rangs du match", self.rangs),
+            ("Poules autorisées", self.poules),
             ("Rangs participant 1", self.rangs_1),
             ("Rangs participant 2", self.rangs_2),
             ("Matchs exclus du niveau", self.exclusions_var),
@@ -362,7 +367,7 @@ class DialogueContrainte(_DialogueBase):
             )
             self.entrees_parametres.append((variable, etiquette, entree))
         cadre_aide = ttk.LabelFrame(self.corps, text="Comment remplir cette contrainte", padding=10)
-        cadre_aide.grid(row=7, column=0, columnspan=2, sticky="ew", pady=(12, 0))
+        cadre_aide.grid(row=8, column=0, columnspan=2, sticky="ew", pady=(12, 0))
         self.aide_var = tk.StringVar()
         ttk.Label(
             cadre_aide,
@@ -421,7 +426,7 @@ class DialogueContrainte(_DialogueBase):
             etat = "normal"
         self.entree_cible.configure(values=valeurs, state=etat)
         champs_actifs = {
-            "rangs_position": [self.rangs],
+            "rangs_position": [self.rangs, self.poules],
             "rangs_match": [self.rangs],
             "rangs_participants": [self.rangs_1, self.rangs_2],
         }.get(type_contrainte, [])
@@ -482,6 +487,10 @@ class DialogueContrainte(_DialogueBase):
                 if resultat["type"] == "rangs_match" and len(rangs) != 2:
                     raise ValueError("Indiquez exactement deux rangs")
                 resultat["rangs"] = rangs
+                if resultat["type"] == "rangs_position":
+                    poules = _liste_entiers(self.poules.get())
+                    if poules:
+                        resultat["poules"] = sorted(set(poules))
             elif resultat["type"] == "rangs_participants":
                 resultat["participant_1"] = _liste_entiers(
                     self.rangs_1.get(), obligatoire=True
@@ -1237,6 +1246,14 @@ class EditeurConfiguration(tk.Toplevel):
 
     def _description_contrainte(self, contrainte):
         type_contrainte = contrainte.get("type")
+        if type_contrainte == "rangs_position":
+            texte = "Rangs : {}".format(
+                ", ".join(map(str, contrainte.get("rangs", [])))
+            )
+            poules = contrainte.get("poules", [])
+            if poules:
+                texte += " ; poules : {}".format(", ".join(map(str, poules)))
+            return texte
         if type_contrainte == "rangs_match":
             return "Rangs : {}".format(", ".join(map(str, contrainte.get("rangs", []))))
         if type_contrainte == "rangs_participants":

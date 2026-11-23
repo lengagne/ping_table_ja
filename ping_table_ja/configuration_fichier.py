@@ -151,7 +151,10 @@ def _contraintes_depuis_json(definitions, matchs, taille_tableau):
             rangs = definition.get("rangs", [])
             if not rangs:
                 raise ValueError("La contrainte rangs_position attend au moins un rang")
-            resultat.append(RangsPositionImposes(position, rangs))
+            poules = [int(poule) for poule in definition.get("poules", [])]
+            if any(poule <= 0 for poule in poules):
+                raise ValueError("Les numéros de poules doivent être positifs")
+            resultat.append(RangsPositionImposes(position, rangs, poules))
             continue
         cibles = _matchs_cibles(cible, matchs)
         for match in cibles:
