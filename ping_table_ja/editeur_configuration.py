@@ -1165,6 +1165,7 @@ class EditeurConfiguration(tk.Toplevel):
                 souhaits.append((sum(source[1] for source in sources) / 2, match, sources))
             souhaits.sort(key=lambda element: element[0])
             precedents_y_principaux = {
+                "compact": marge_y - espace_match,
                 "centre": marge_y - espace_match,
                 "gauche_principal": marge_y - espace_match,
                 "droite_principal": marge_y - espace_match,
@@ -1196,7 +1197,11 @@ class EditeurConfiguration(tk.Toplevel):
                         precedent_y_classement_droite = y
                         index_classement_droite += 1
                 else:
-                    cle_principale = zone if zone in precedents_y_principaux else "centre"
+                    cle_principale = (
+                        "compact"
+                        if vue_compacte
+                        else zone if zone in precedents_y_principaux else "centre"
+                    )
                     y = max(
                         souhaite_y,
                         precedents_y_principaux[cle_principale] + espace_match,
