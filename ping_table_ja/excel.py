@@ -141,8 +141,9 @@ def _creer_onglet_tableau(classeur, solution, matchs):
     feuille["A1"] = "Tableau des matchs"
     feuille["A1"].font = Font(size=15, bold=True)
     feuille["A2"] = (
-        "Pour chaque match, choisissez ☑ sur une seule ligne. "
-        "Les vainqueurs et perdants alimentent automatiquement les matchs suivants."
+        '=IF(\'Tirage choisi\'!$B$4="VERROUILLÉ",'
+        '"Choisissez le vainqueur de chaque match.",'
+        '"Verrouillez d’abord le tirage dans l’onglet Tirage choisi.")'
     )
     feuille["A2"].font = Font(italic=True, color="666666")
 
@@ -160,9 +161,25 @@ def _creer_onglet_tableau(classeur, solution, matchs):
         return profondeurs[match.numero]
 
     ordre = sorted(matchs.values(), key=lambda match: (profondeur(match), match.numero))
-    par_niveau = {}
-    for match in ordre:
-        par_niveau.setdefault(profondeurs[match.numero], []).append(match)
+    principaux = [match for match in ordre if min(match.places or (1,)) == 1]
+    classements = [match for match in ordre if match not in principaux]
+    principal_par_niveau = {}
+    classement_par_niveau = {}
+    for match in principaux:
+        principal_par_niveau.setdefault(profondeurs[match.numero], []).append(match)
+    for match in classements:
+        classement_par_niveau.setdefault(profondeurs[match.numero], []).append(match)
+    maximum_principal = max(
+        (len(liste) for liste in principal_par_niveau.values()), default=1
+    )
+    debut_classements = 7 + maximum_principal * 6 + 3
+    lignes_matchs = {}
+    for niveau, liste in principal_par_niveau.items():
+        for index, match in enumerate(liste):
+            lignes_matchs[match.numero] = 5 + index * 6
+    for niveau, liste in classement_par_niveau.items():
+        for index, match in enumerate(liste):
+            lignes_matchs[match.numero] = debut_classements + index * 6
 
     cellules_resultats = {}
 
@@ -182,27 +199,45 @@ def _creer_onglet_tableau(classeur, solution, matchs):
         cellule = cellules_resultats[(int(precedent.numero), resultat)]
         return "='Tableau'!{}".format(cellule)
 
-    validation = DataValidation(type="list", formula1='"☐,☑"', allow_blank=False)
+    feuille_listes = classeur.create_sheet("_Listes")
+    feuille_listes["A1"], feuille_listes["A2"] = "☐", "☑"
+    feuille_listes["B1"] = ""
+    feuille_listes.sheet_state = "hidden"
+    validation = DataValidation(
+        type="list",
+        formula1='=IF(\'Tirage choisi\'!$B$4="VERROUILLÉ",\'_Listes\'!$A$1:$A$2,\'_Listes\'!$B$1)',
+        allow_blank=True,
+    )
     validation.promptTitle = "Choisir le vainqueur"
-    validation.prompt = "Sélectionnez ☑ pour le vainqueur et laissez ☐ pour le perdant."
+    validation.prompt = "Après verrouillage du tirage, sélectionnez ☑ pour le vainqueur."
     validation.errorTitle = "Valeur invalide"
     validation.error = "Choisissez uniquement ☐ ou ☑."
     validation.showInputMessage = True
     validation.showErrorMessage = True
     feuille.add_data_validation(validation)
 
-    for niveau, liste_matchs in sorted(par_niveau.items()):
+    feuille.cell(debut_classements - 3, 1, "TABLEAUX DE CLASSEMENT").font = Font(
+        size=13, bold=True, color="9A3412"
+    )
+    for niveau in sorted(set(profondeurs.values())):
         colonne = 2 + (niveau - 1) * 6
-        lettre = get_column_letter(colonne)
-        feuille.cell(3, colonne, "NIVEAU {}".format(niveau)).font = Font(
-            bold=True, color="FFFFFF"
-        )
-        feuille.cell(3, colonne).fill = PatternFill(
-            fill_type="solid", fgColor=COULEUR_ENTETE
-        )
-        feuille.merge_cells(start_row=3, start_column=colonne, end_row=3, end_column=colonne + 3)
-        for index, match in enumerate(liste_matchs):
-            ligne = 5 + index * 6
+        for ligne_entete, liste in (
+            (3, principal_par_niveau.get(niveau, [])),
+            (debut_classements - 1, classement_par_niveau.get(niveau, [])),
+        ):
+            if not liste:
+                continue
+            cellule_entete = feuille.cell(
+                ligne_entete, colonne, "NIVEAU {}".format(niveau)
+            )
+            cellule_entete.font = Font(bold=True, color="FFFFFF")
+            cellule_entete.fill = PatternFill(fill_type="solid", fgColor=COULEUR_ENTETE)
+            feuille.merge_cells(
+                start_row=ligne_entete, start_column=colonne,
+                end_row=ligne_entete, end_column=colonne + 3,
+            )
+        for match in [m for m in ordre if profondeurs[m.numero] == niveau]:
+            ligne = lignes_matchs[match.numero]
             entete = feuille.cell(
                 ligne, colonne, "MATCH {} — {}".format(match.numero, match.niveau or "")
             )
@@ -222,8 +257,8 @@ def _creer_onglet_tableau(classeur, solution, matchs):
                 start_row=ligne + 2, start_column=colonne,
                 end_row=ligne + 2, end_column=colonne + 2,
             )
-            case_1 = feuille.cell(ligne + 1, colonne + 3, "☐")
-            case_2 = feuille.cell(ligne + 2, colonne + 3, "☐")
+            case_1 = feuille.cell(ligne + 1, colonne + 3, "")
+            case_2 = feuille.cell(ligne + 2, colonne + 3, "")
             for case in (case_1, case_2):
                 case.fill = PatternFill(fill_type="solid", fgColor=COULEUR_SELECTION)
                 case.alignment = Alignment(horizontal="center")
@@ -234,14 +269,14 @@ def _creer_onglet_tableau(classeur, solution, matchs):
             gagnant = feuille.cell(
                 ligne + 3,
                 colonne + 1,
-                '=IF(COUNTIF({0}:{1},"☑")<>1,"",IF({0}="☑",{2},{3}))'.format(
+                '=IF(\'Tirage choisi\'!$B$4<>"VERROUILLÉ","",IF(COUNTIF({0}:{1},"☑")<>1,"",IF({0}="☑",{2},{3})))'.format(
                     adresse_c1, adresse_c2, adresse_p1, adresse_p2
                 ),
             )
             perdant = feuille.cell(
                 ligne + 4,
                 colonne + 1,
-                '=IF(COUNTIF({0}:{1},"☑")<>1,"",IF({0}="☑",{3},{2}))'.format(
+                '=IF(\'Tirage choisi\'!$B$4<>"VERROUILLÉ","",IF(COUNTIF({0}:{1},"☑")<>1,"",IF({0}="☑",{3},{2})))'.format(
                     adresse_c1, adresse_c2, adresse_p1, adresse_p2
                 ),
             )
@@ -393,6 +428,28 @@ def creer_fichier_solution(
     feuille_tirage.add_data_validation(validation)
     validation.add(feuille_tirage["B3"])
 
+    feuille_tirage["A4"] = "Verrouiller le tirage"
+    feuille_tirage["A4"].font = Font(bold=True)
+    feuille_tirage["B4"] = "NON VERROUILLÉ"
+    feuille_tirage["B4"].fill = PatternFill(fill_type="solid", fgColor="F4B183")
+    feuille_tirage["B4"].font = Font(bold=True)
+    feuille_tirage["B4"].alignment = Alignment(horizontal="center")
+    verrouillage = DataValidation(
+        type="list",
+        formula1='"NON VERROUILLÉ,VERROUILLÉ"',
+        allow_blank=False,
+    )
+    verrouillage.promptTitle = "Verrouiller le tirage"
+    verrouillage.prompt = (
+        "Choisissez VERROUILLÉ avant de saisir les vainqueurs dans l’onglet Tableau."
+    )
+    verrouillage.errorTitle = "Choix invalide"
+    verrouillage.error = "Choisissez NON VERROUILLÉ ou VERROUILLÉ."
+    verrouillage.showInputMessage = True
+    verrouillage.showErrorMessage = True
+    feuille_tirage.add_data_validation(verrouillage)
+    verrouillage.add(feuille_tirage["B4"])
+
     feuille_tirage["A5"] = '="TIRAGE "&$B$3'
     feuille_tirage["A5"].font = Font(size=14, bold=True)
     feuille_tirage["A6"] = "POULES"
@@ -502,6 +559,7 @@ def mettre_a_jour_tirage_choisi(fichier_excel, numero_tirage):
                 "Le numéro du tirage doit être compris entre 1 et {}.".format(nombre_tirages)
             )
         feuille["B3"] = numero_tirage
+        feuille["B4"] = "NON VERROUILLÉ"
         try:
             classeur.calculation.fullCalcOnLoad = True
             classeur.calculation.forceFullCalc = True

@@ -147,14 +147,8 @@ def calculer_profondeurs_matchs(matchs):
 def abscisse_match_visualisation(
     profondeur, places, taille_tableau, vue_compacte, origine, pas_colonne
 ):
-    """Place un match à droite ou à gauche dans la vue développée."""
-    if vue_compacte:
-        return origine + (profondeur - 1) * pas_colonne
-    if profondeur == 1:
-        return origine
-    premiere_place = min((int(place) for place in places), default=1)
-    direction = -1 if premiere_place > int(taille_tableau) // 2 else 1
-    return origine + direction * (profondeur - 1) * pas_colonne
+    """Aligne les niveaux horizontalement dans les deux modes de visualisation."""
+    return origine + (profondeur - 1) * pas_colonne
 
 
 def indices_contraintes_du_match(match, contraintes, profondeur=None):
@@ -984,12 +978,8 @@ class EditeurConfiguration(tk.Toplevel):
         pas_colonne, espace_match = 235 * z, 56 * z
         profondeur_max = max(profondeurs.values(), default=1)
         vue_compacte = self.vue_compacte_var.get()
-        origine_tableau = (
-            marge_x + 85 * z
-            if vue_compacte
-            else marge_x + profondeur_max * pas_colonne
-        )
-        x_positions = marge_x if vue_compacte else origine_tableau - 85 * z
+        origine_tableau = marge_x + 85 * z
+        x_positions = marge_x
         positions_coordonnees = {
             numero: (x_positions, marge_y + (numero - 1) * pas_joueur)
             for numero in range(1, taille + 1)
@@ -1081,23 +1071,10 @@ class EditeurConfiguration(tk.Toplevel):
                 "cible_cliquable",
                 "cible:niveau:{}".format(profondeur),
             )
-            if vue_compacte or profondeur == 1:
-                groupes_entetes = [(origine_tableau + (profondeur - 1) * pas_colonne, groupe)]
-            else:
-                droite = [
-                    match for match in groupe
-                    if min(match.get("places", [1])) <= taille // 2
-                ]
-                gauche = [match for match in groupe if match not in droite]
-                groupes_entetes = []
-                if gauche:
-                    groupes_entetes.append((
-                        origine_tableau - (profondeur - 1) * pas_colonne, gauche
-                    ))
-                if droite:
-                    groupes_entetes.append((
-                        origine_tableau + (profondeur - 1) * pas_colonne, droite
-                    ))
+            groupes_entetes = [(
+                origine_tableau + (profondeur - 1) * pas_colonne,
+                groupe,
+            )]
             for x_colonne, groupe_entete in groupes_entetes:
                 numeros_entete = {
                     int(match["numero"]) for match in groupe_entete
@@ -1145,9 +1122,11 @@ class EditeurConfiguration(tk.Toplevel):
                 ]
                 souhaits.append((sum(source[1] for source in sources) / 2, match, sources))
             souhaits.sort(key=lambda element: element[0])
-            precedent_y = marge_y - espace_match
+            precedent_y_principal = marge_y - espace_match
+            precedent_y_classement = debut_classements = (
+                marge_y + taille * pas_joueur + 120 * z
+            ) - espace_match
             index_classement = 0
-            debut_classements = marge_y + taille * pas_joueur + 120 * z
             for souhaite_y, match, sources in souhaits:
                 est_classement = (
                     not vue_compacte
@@ -1157,12 +1136,13 @@ class EditeurConfiguration(tk.Toplevel):
                     y = max(
                         souhaite_y,
                         debut_classements + index_classement * espace_match,
-                        precedent_y + espace_match,
+                        precedent_y_classement + espace_match,
                     )
+                    precedent_y_classement = y
                     index_classement += 1
                 else:
-                    y = max(souhaite_y, precedent_y + espace_match)
-                precedent_y = y
+                    y = max(souhaite_y, precedent_y_principal + espace_match)
+                    precedent_y_principal = y
                 x = abscisse_match_visualisation(
                     profondeur,
                     match.get("places", []),
@@ -1263,11 +1243,7 @@ class EditeurConfiguration(tk.Toplevel):
             marge_y + taille * pas_joueur,
             max((y for _x, y in coordonnees_matchs.values()), default=0) + 100 * z,
         )
-        largeur = (
-            marge_x + 150 * z + profondeur_max * pas_colonne
-            if vue_compacte
-            else origine_tableau * 2 + largeur_match + marge_x
-        )
+        largeur = marge_x + 150 * z + profondeur_max * pas_colonne
         canvas.configure(scrollregion=(0, 0, largeur, hauteur))
         canvas.tag_bind(
             "cible_cliquable",
