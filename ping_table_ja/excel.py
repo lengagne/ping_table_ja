@@ -4,6 +4,7 @@ import re
 from pathlib import Path
 
 from openpyxl import Workbook, load_workbook
+from openpyxl.formatting.rule import FormulaRule
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
@@ -330,7 +331,7 @@ def _creer_onglet_tableau(classeur, solution, matchs):
     for match in matchs.values():
         profondeur(match)
     profondeur_max = max(profondeurs.values(), default=1)
-    largeur_match, pas_colonne = 4, 7
+    largeur_match, pas_colonne = 6, 10
     origine = 8 + profondeur_max * pas_colonne
     coordonnees, bandes, fin_y = calculer_disposition_non_compacte(
         definitions, taille, origine, pas_colonne, largeur_match,
@@ -340,8 +341,8 @@ def _creer_onglet_tableau(classeur, solution, matchs):
         numero: (int(round(x)), int(round(y)))
         for numero, (x, y) in coordonnees.items()
     }
-    min_colonne = max(1, min(x for x, _y in coordonnees.values()) - 5)
-    max_colonne = max(x for x, _y in coordonnees.values()) + largeur_match + 5
+    min_colonne = max(1, min(x for x, _y in coordonnees.values()) - 7)
+    max_colonne = max(x for x, _y in coordonnees.values()) + largeur_match + 11
 
     bord_fin = Side(style="thin", color="64748B")
     bord_match = Border(left=bord_fin, right=bord_fin, top=bord_fin, bottom=bord_fin)
@@ -361,7 +362,7 @@ def _creer_onglet_tableau(classeur, solution, matchs):
             feuille.cell(haut - 1, colonne).fill = couleur_bande
             feuille.merge_cells(
                 start_row=haut - 1, start_column=colonne,
-                end_row=haut - 1, end_column=colonne + 3,
+                end_row=haut - 1, end_column=colonne + 5,
             )
         ligne_separation = bas + 4
         for colonne in range(min_colonne, max_colonne + 1):
@@ -369,12 +370,16 @@ def _creer_onglet_tableau(classeur, solution, matchs):
                 fill_type="solid", fgColor="E7EBEF"
             )
 
-    def texte_position(position):
+    def valeurs_position(position):
         joueur = solution[position - 1]
         if joueur is None or joueur.get("absent"):
-            return "Position {} — absent".format(position)
-        return "{} — Poule {}, rang {}".format(
-            joueur.get("nom", ""), joueur.get("poule", ""), joueur.get("rang_poule", "")
+            return "Position {} — absent".format(position), ""
+        return (
+            "{} — Poule {}, rang {}".format(
+                joueur.get("nom", ""), joueur.get("poule", ""),
+                joueur.get("rang_poule", ""),
+            ),
+            joueur.get("club", ""),
         )
 
     feuille_listes = classeur.create_sheet("_Listes")
@@ -395,12 +400,14 @@ def _creer_onglet_tableau(classeur, solution, matchs):
     feuille.add_data_validation(validation)
     cellules_resultats = {}
 
-    def valeur_participant(participant):
+    def valeurs_participant(participant):
         if hasattr(participant, "position"):
-            return texte_position(int(participant.position))
+            return valeurs_position(int(participant.position))
         precedent = participant.match
-        return "='Tableau'!{}".format(
-            cellules_resultats[(int(precedent.numero), participant.resultat)]
+        cle = (int(precedent.numero), participant.resultat)
+        return (
+            "='Tableau'!{}".format(cellules_resultats[cle + ("nom",)]),
+            "='Tableau'!{}".format(cellules_resultats[cle + ("club",)]),
         )
 
     ordre = sorted(matchs.values(), key=lambda match: (profondeurs[match.numero], match.numero))
@@ -414,45 +421,93 @@ def _creer_onglet_tableau(classeur, solution, matchs):
         entete.fill = PatternFill(fill_type="solid", fgColor=COULEUR_ENTETE)
         feuille.merge_cells(
             start_row=ligne, start_column=colonne,
-            end_row=ligne, end_column=colonne + 3,
+            end_row=ligne, end_column=colonne + 5,
         )
-        cellule_p1 = feuille.cell(ligne + 1, colonne, valeur_participant(match.participant_1))
-        cellule_p2 = feuille.cell(ligne + 2, colonne, valeur_participant(match.participant_2))
+        nom_1, club_1 = valeurs_participant(match.participant_1)
+        nom_2, club_2 = valeurs_participant(match.participant_2)
+        cellule_p1 = feuille.cell(ligne + 1, colonne, nom_1)
+        cellule_p2 = feuille.cell(ligne + 2, colonne, nom_2)
         feuille.merge_cells(
             start_row=ligne + 1, start_column=colonne,
-            end_row=ligne + 1, end_column=colonne + 2,
+            end_row=ligne + 1, end_column=colonne + 3,
         )
         feuille.merge_cells(
             start_row=ligne + 2, start_column=colonne,
-            end_row=ligne + 2, end_column=colonne + 2,
+            end_row=ligne + 2, end_column=colonne + 3,
         )
-        case_1 = feuille.cell(ligne + 1, colonne + 3, "")
-        case_2 = feuille.cell(ligne + 2, colonne + 3, "")
+        cellule_club_1 = feuille.cell(ligne + 1, colonne + 4, club_1)
+        cellule_club_2 = feuille.cell(ligne + 2, colonne + 4, club_2)
+        for cellule_club in (cellule_club_1, cellule_club_2):
+            cellule_club.fill = PatternFill(fill_type="solid", fgColor="E2F0D9")
+            cellule_club.alignment = Alignment(horizontal="center")
+        adresse_club_1_absolue = "${}${}".format(
+            get_column_letter(cellule_club_1.column), cellule_club_1.row
+        )
+        adresse_club_2_absolue = "${}${}".format(
+            get_column_letter(cellule_club_2.column), cellule_club_2.row
+        )
+        formule_meme_club = 'AND({0}<>"",{0}={1})'.format(
+            adresse_club_1_absolue, adresse_club_2_absolue
+        )
+        feuille.conditional_formatting.add(
+            "{}:{}".format(cellule_club_1.coordinate, cellule_club_2.coordinate),
+            FormulaRule(
+                formula=[formule_meme_club],
+                fill=PatternFill(fill_type="solid", fgColor="FFC7CE"),
+                font=Font(color="9C0006", bold=True),
+            ),
+        )
+        case_1 = feuille.cell(ligne + 1, colonne + 5, "")
+        case_2 = feuille.cell(ligne + 2, colonne + 5, "")
         for case in (case_1, case_2):
             case.fill = PatternFill(fill_type="solid", fgColor=COULEUR_SELECTION)
             case.alignment = Alignment(horizontal="center")
             case.font = Font(size=14, bold=True)
             validation.add(case)
         adresse_p1, adresse_p2 = cellule_p1.coordinate, cellule_p2.coordinate
+        adresse_club_1 = cellule_club_1.coordinate
+        adresse_club_2 = cellule_club_2.coordinate
         adresse_c1, adresse_c2 = case_1.coordinate, case_2.coordinate
-        gagnant = feuille.cell(
+        gagnant_nom = feuille.cell(
             ligne + 3, colonne + 1,
             '=IF(\'Tirage choisi\'!$B$4<>"VERROUILLÉ","",IF(COUNTIF({0}:{1},"☑")<>1,"",IF({0}="☑",{2},{3})))'.format(
                 adresse_c1, adresse_c2, adresse_p1, adresse_p2
             ),
         )
-        perdant = feuille.cell(
+        gagnant_club = feuille.cell(
+            ligne + 3, colonne + 4,
+            '=IF(\'Tirage choisi\'!$B$4<>"VERROUILLÉ","",IF(COUNTIF({0}:{1},"☑")<>1,"",IF({0}="☑",{2},{3})))'.format(
+                adresse_c1, adresse_c2, adresse_club_1, adresse_club_2
+            ),
+        )
+        perdant_nom = feuille.cell(
             ligne + 4, colonne + 1,
             '=IF(\'Tirage choisi\'!$B$4<>"VERROUILLÉ","",IF(COUNTIF({0}:{1},"☑")<>1,"",IF({0}="☑",{3},{2})))'.format(
                 adresse_c1, adresse_c2, adresse_p1, adresse_p2
             ),
         )
+        perdant_club = feuille.cell(
+            ligne + 4, colonne + 4,
+            '=IF(\'Tirage choisi\'!$B$4<>"VERROUILLÉ","",IF(COUNTIF({0}:{1},"☑")<>1,"",IF({0}="☑",{3},{2})))'.format(
+                adresse_c1, adresse_c2, adresse_club_1, adresse_club_2
+            ),
+        )
+        feuille.merge_cells(
+            start_row=ligne + 3, start_column=colonne + 1,
+            end_row=ligne + 3, end_column=colonne + 3,
+        )
+        feuille.merge_cells(
+            start_row=ligne + 4, start_column=colonne + 1,
+            end_row=ligne + 4, end_column=colonne + 3,
+        )
         feuille.cell(ligne + 3, colonne, "Vainqueur").font = Font(bold=True)
         feuille.cell(ligne + 4, colonne, "Perdant").font = Font(bold=True)
-        cellules_resultats[(match.numero, "vainqueur")] = gagnant.coordinate
-        cellules_resultats[(match.numero, "perdant")] = perdant.coordinate
+        cellules_resultats[(match.numero, "vainqueur", "nom")] = gagnant_nom.coordinate
+        cellules_resultats[(match.numero, "vainqueur", "club")] = gagnant_club.coordinate
+        cellules_resultats[(match.numero, "perdant", "nom")] = perdant_nom.coordinate
+        cellules_resultats[(match.numero, "perdant", "club")] = perdant_club.coordinate
         for row in range(ligne, ligne + 5):
-            for col in range(colonne, colonne + 4):
+            for col in range(colonne, colonne + 6):
                 feuille.cell(row, col).border = bord_match
 
         definition = definitions_par_numero[match.numero]
@@ -460,15 +515,20 @@ def _creer_onglet_tableau(classeur, solution, matchs):
         if classement:
             cote, _ordre, _plage = bloc_match_visualisation(definition, taille)
             if cote == "gauche":
-                colonne_nom, colonne_rang = colonne - 4, colonne - 1
+                colonne_nom, colonne_club, colonne_rang = colonne - 5, colonne - 2, colonne - 1
             else:
-                colonne_rang, colonne_nom = colonne + 4, colonne + 5
-            for rang, adresse, row in (
-                (classement[0], gagnant.coordinate, ligne + 1),
-                (classement[1], perdant.coordinate, ligne + 2),
+                colonne_rang, colonne_nom, colonne_club = colonne + 6, colonne + 7, colonne + 10
+            for rang, adresse_nom, adresse_club, row in (
+                (classement[0], gagnant_nom.coordinate, gagnant_club.coordinate, ligne + 1),
+                (classement[1], perdant_nom.coordinate, perdant_club.coordinate, ligne + 2),
             ):
                 feuille.cell(row, colonne_rang, "{}{}".format(rang, "er" if rang == 1 else "e")).font = Font(bold=True)
-                feuille.cell(row, colonne_nom, "='Tableau'!{}".format(adresse))
+                feuille.cell(row, colonne_nom, "='Tableau'!{}".format(adresse_nom))
+                feuille.merge_cells(
+                    start_row=row, start_column=colonne_nom,
+                    end_row=row, end_column=colonne_nom + 2,
+                )
+                feuille.cell(row, colonne_club, "='Tableau'!{}".format(adresse_club))
 
     for colonne in range(min_colonne, max_colonne + 1):
         feuille.column_dimensions[get_column_letter(colonne)].width = 13
