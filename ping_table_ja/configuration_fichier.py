@@ -67,6 +67,27 @@ def _matchs_depuis_json(donnees, taille_tableau):
     return matchs
 
 
+def _niveaux_graphiques_matchs(matchs):
+    """Calcule le numéro de colonne de chaque match du modèle chargé."""
+    niveaux = {}
+
+    def niveau(numero):
+        if numero in niveaux:
+            return niveaux[numero]
+        match = matchs[numero]
+        dependances = []
+        for participant in (match.participant_1, match.participant_2):
+            match_precedent = getattr(participant, "match", None)
+            if match_precedent is not None:
+                dependances.append(niveau(int(match_precedent.numero)))
+        niveaux[numero] = 1 + max(dependances, default=0)
+        return niveaux[numero]
+
+    for numero in matchs:
+        niveau(numero)
+    return niveaux
+
+
 def _matchs_cibles(cible, matchs):
     type_cible = cible.get("type")
     if type_cible == "match":
@@ -75,24 +96,30 @@ def _matchs_cibles(cible, matchs):
             raise ValueError("Match ciblé introuvable : {}".format(numero))
         return [matchs[numero]]
     if type_cible == "niveau":
-        niveau = str(cible.get("niveau", ""))
         exclusions = {int(numero) for numero in cible.get("exclusions_matchs", [])}
-        invalides = [
-            numero for numero in exclusions
-            if numero not in matchs or matchs[numero].niveau != niveau
-        ]
+        if "numero" in cible:
+            numero_niveau = int(cible.get("numero", 0))
+            niveaux = _niveaux_graphiques_matchs(matchs)
+            appartient = lambda numero: niveaux.get(numero) == numero_niveau
+            description = "Niveau {}".format(numero_niveau)
+        else:
+            # Compatibilité avec les anciens JSON ciblant le nom métier 1/8, 1/4…
+            nom_niveau = str(cible.get("niveau", ""))
+            appartient = lambda numero: matchs[numero].niveau == nom_niveau
+            description = nom_niveau
+        invalides = [numero for numero in exclusions if numero not in matchs or not appartient(numero)]
         if invalides:
             raise ValueError(
                 "Exclusion(s) invalide(s) pour le niveau {} : {}".format(
-                    niveau, sorted(invalides)
+                    description, sorted(invalides)
                 )
             )
         resultat = [
-            match for match in matchs.values()
-            if match.niveau == niveau and match.numero not in exclusions
+            match for numero, match in matchs.items()
+            if appartient(numero) and numero not in exclusions
         ]
         if not resultat:
-            raise ValueError("Niveau ciblé introuvable : {!r}".format(niveau))
+            raise ValueError("Niveau ciblé introuvable : {!r}".format(description))
         return resultat
     if type_cible == "matchs":
         numeros = [int(numero) for numero in cible.get("numeros", [])]
