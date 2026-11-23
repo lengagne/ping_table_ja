@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "nom": "Tableau intégral 128 joueurs",
+  "nom": "Tableau intégral 128 joueurs — contraintes simplifiées",
   "format": "standard",
   "taille_tableau": 128,
   "classement_integral": true,
@@ -6666,6 +6666,7 @@
   ],
   "contraintes": [
     {
+      "nom": "Barrages : le participant 1 est 2e, le participant 2 est 3e",
       "type": "rangs_match",
       "cible": {
         "type": "niveau",
@@ -6674,58 +6675,124 @@
       "rangs": [
         2,
         3
+      ],
+      "ordonne": true
+    },
+    {
+      "nom": "Entrées du tableau haut : positions réservées aux 1ers de poule",
+      "type": "rangs_position",
+      "cible": {
+        "type": "positions",
+        "numeros": [
+          1,
+          8,
+          9,
+          16,
+          17,
+          24,
+          25,
+          32,
+          33,
+          40,
+          41,
+          48,
+          49,
+          56,
+          57,
+          64,
+          65,
+          72,
+          73,
+          80,
+          81,
+          88,
+          89,
+          96,
+          97,
+          104,
+          105,
+          112,
+          113,
+          120,
+          121,
+          128
+        ]
+      },
+      "rangs": [
+        1
       ]
     },
     {
+      "nom": "Entrées du tableau bas : positions réservées aux 4es de poule",
+      "type": "rangs_position",
+      "cible": {
+        "type": "positions",
+        "numeros": [
+          2,
+          7,
+          10,
+          15,
+          18,
+          23,
+          26,
+          31,
+          34,
+          39,
+          42,
+          47,
+          50,
+          55,
+          58,
+          63,
+          66,
+          71,
+          74,
+          79,
+          82,
+          87,
+          90,
+          95,
+          98,
+          103,
+          106,
+          111,
+          114,
+          119,
+          122,
+          127
+        ]
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "nom": "Pas de rencontre entre joueurs de la même poule aux niveaux 1 à 5",
       "type": "poules_differentes",
       "cible": {
-        "type": "niveau",
-        "numero": 1
+        "type": "niveaux",
+        "numeros": [
+          1,
+          2,
+          3,
+          4,
+          5
+        ]
       }
     },
     {
-      "type": "poules_differentes",
-      "cible": {
-        "type": "niveau",
-        "numero": 2
-      }
-    },
-    {
-      "type": "poules_differentes",
-      "cible": {
-        "type": "niveau",
-        "numero": 3
-      }
-    },
-    {
-      "type": "poules_differentes",
-      "cible": {
-        "type": "niveau",
-        "numero": 4
-      }
-    },
-    {
-      "type": "poules_differentes",
-      "cible": {
-        "type": "niveau",
-        "numero": 5
-      }
-    },
-    {
+      "nom": "Clubs différents pendant les deux premiers niveaux",
       "type": "clubs_differents",
       "cible": {
-        "type": "niveau",
-        "numero": 1
+        "type": "niveaux",
+        "numeros": [
+          1,
+          2
+        ]
       }
     },
     {
-      "type": "clubs_differents",
-      "cible": {
-        "type": "niveau",
-        "numero": 2
-      }
-    },
-    {
+      "nom": "Le 1er et le 2e d'une poule ne peuvent se retrouver qu'en finale",
       "type": "rangs_meme_poule_interdits",
       "cible": {
         "type": "niveau",
@@ -6737,6 +6804,7 @@
       ]
     },
     {
+      "nom": "Le 3e et le 4e d'une poule ne peuvent se retrouver qu'en finale du tableau bas",
       "type": "rangs_meme_poule_interdits",
       "cible": {
         "type": "niveau",
@@ -6748,6 +6816,7 @@
       ]
     },
     {
+      "nom": "Tête de série 1 : le 1er de la poule 1 est en position 1",
       "type": "rangs_position",
       "cible": {
         "type": "position",
@@ -6761,6 +6830,7 @@
       ]
     },
     {
+      "nom": "Tête de série 2 : le 1er de la poule 2 est en position 128",
       "type": "rangs_position",
       "cible": {
         "type": "position",
@@ -6774,630 +6844,20 @@
       ]
     },
     {
+      "nom": "Têtes de série 3 et 4 : les 1ers des poules 3 et 4 occupent les deux positions centrales",
       "type": "rangs_position",
       "cible": {
-        "type": "position",
-        "numero": 64
+        "type": "positions",
+        "numeros": [
+          64,
+          65
+        ]
       },
       "rangs": [
         1
       ],
       "poules": [
         3,
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 65
-      },
-      "rangs": [
-        1
-      ],
-      "poules": [
-        3,
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 2
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 7
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 8
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 9
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 10
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 15
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 16
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 17
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 18
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 23
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 24
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 25
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 26
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 31
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 32
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 33
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 34
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 39
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 40
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 41
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 42
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 47
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 48
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 49
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 50
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 55
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 56
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 57
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 58
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 63
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 66
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 71
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 72
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 73
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 74
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 79
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 80
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 81
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 82
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 87
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 88
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 89
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 90
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 95
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 96
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 97
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 98
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 103
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 104
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 105
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 106
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 111
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 112
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 113
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 114
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 119
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 120
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 121
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 122
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 127
-      },
-      "rangs": [
         4
       ]
     }

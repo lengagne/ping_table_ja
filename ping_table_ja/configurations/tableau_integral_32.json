@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "nom": "Tableau standard 32 joueurs",
+  "nom": "Tableau intégral 32 joueurs — contraintes simplifiées",
   "format": "standard",
   "taille_tableau": 32,
   "classement_integral": true,
@@ -1162,6 +1162,7 @@
   ],
   "contraintes": [
     {
+      "nom": "Barrages : le participant 1 est 2e, le participant 2 est 3e",
       "type": "rangs_match",
       "cible": {
         "type": "niveau",
@@ -1170,44 +1171,74 @@
       "rangs": [
         2,
         3
+      ],
+      "ordonne": true
+    },
+    {
+      "nom": "Entrées du tableau haut : positions réservées aux 1ers de poule",
+      "type": "rangs_position",
+      "cible": {
+        "type": "positions",
+        "numeros": [
+          1,
+          8,
+          9,
+          16,
+          17,
+          24,
+          25,
+          32
+        ]
+      },
+      "rangs": [
+        1
       ]
     },
     {
+      "nom": "Entrées du tableau bas : positions réservées aux 4es de poule",
+      "type": "rangs_position",
+      "cible": {
+        "type": "positions",
+        "numeros": [
+          2,
+          7,
+          10,
+          15,
+          18,
+          23,
+          26,
+          31
+        ]
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "nom": "Pas de rencontre entre joueurs de la même poule aux niveaux 1 à 3",
       "type": "poules_differentes",
       "cible": {
-        "type": "niveau",
-        "numero": 1
+        "type": "niveaux",
+        "numeros": [
+          1,
+          2,
+          3
+        ]
       }
     },
     {
+      "nom": "Clubs différents pendant les deux premiers niveaux",
       "type": "clubs_differents",
       "cible": {
-        "type": "niveau",
-        "numero": 1
+        "type": "niveaux",
+        "numeros": [
+          1,
+          2
+        ]
       }
     },
     {
-      "type": "clubs_differents",
-      "cible": {
-        "type": "niveau",
-        "numero": 2
-      }
-    },
-    {
-      "type": "poules_differentes",
-      "cible": {
-        "type": "niveau",
-        "numero": 2
-      }
-    },
-    {
-      "type": "poules_differentes",
-      "cible": {
-        "type": "niveau",
-        "numero": 3
-      }
-    },
-    {
+      "nom": "Le 1er et le 2e d'une poule ne peuvent se retrouver qu'en finale",
       "type": "rangs_meme_poule_interdits",
       "cible": {
         "type": "niveau",
@@ -1219,6 +1250,7 @@
       ]
     },
     {
+      "nom": "Le 3e et le 4e d'une poule ne peuvent se retrouver qu'en finale du tableau bas",
       "type": "rangs_meme_poule_interdits",
       "cible": {
         "type": "niveau",
@@ -1230,6 +1262,7 @@
       ]
     },
     {
+      "nom": "Tête de série 1 : le 1er de la poule 1 est en position 1",
       "type": "rangs_position",
       "cible": {
         "type": "position",
@@ -1243,6 +1276,7 @@
       ]
     },
     {
+      "nom": "Tête de série 2 : le 1er de la poule 2 est en position 32",
       "type": "rangs_position",
       "cible": {
         "type": "position",
@@ -1256,150 +1290,20 @@
       ]
     },
     {
+      "nom": "Têtes de série 3 et 4 : les 1ers des poules 3 et 4 occupent les deux positions centrales",
       "type": "rangs_position",
       "cible": {
-        "type": "position",
-        "numero": 16
+        "type": "positions",
+        "numeros": [
+          16,
+          17
+        ]
       },
       "rangs": [
         1
       ],
       "poules": [
         3,
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 17
-      },
-      "rangs": [
-        1
-      ],
-      "poules": [
-        3,
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 2
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 7
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 8
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 9
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 10
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 24
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 23
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 25
-      },
-      "rangs": [
-        1
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 26
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 31
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 15
-      },
-      "rangs": [
-        4
-      ]
-    },
-    {
-      "type": "rangs_position",
-      "cible": {
-        "type": "position",
-        "numero": 18
-      },
-      "rangs": [
         4
       ]
     }
