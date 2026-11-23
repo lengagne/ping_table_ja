@@ -5,6 +5,7 @@ from pathlib import Path
 
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Alignment, Font, PatternFill
+from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
 
 from .utilitaires import nettoyer
@@ -133,6 +134,129 @@ def _positions_par_poule(tirage):
     }
 
 
+def _creer_onglet_tableau(classeur, solution, matchs):
+    """Crée le tableau interactif et propage vainqueurs et perdants par formules."""
+    feuille = classeur.create_sheet("Tableau")
+    feuille.sheet_view.showGridLines = False
+    feuille["A1"] = "Tableau des matchs"
+    feuille["A1"].font = Font(size=15, bold=True)
+    feuille["A2"] = (
+        "Pour chaque match, choisissez ☑ sur une seule ligne. "
+        "Les vainqueurs et perdants alimentent automatiquement les matchs suivants."
+    )
+    feuille["A2"].font = Font(italic=True, color="666666")
+
+    profondeurs = {}
+
+    def profondeur(match):
+        if match.numero in profondeurs:
+            return profondeurs[match.numero]
+        precedents = []
+        for participant in (match.participant_1, match.participant_2):
+            precedent = getattr(participant, "match", None)
+            if precedent is not None:
+                precedents.append(profondeur(precedent))
+        profondeurs[match.numero] = 1 + max(precedents, default=0)
+        return profondeurs[match.numero]
+
+    ordre = sorted(matchs.values(), key=lambda match: (profondeur(match), match.numero))
+    par_niveau = {}
+    for match in ordre:
+        par_niveau.setdefault(profondeurs[match.numero], []).append(match)
+
+    cellules_resultats = {}
+
+    def texte_position(position):
+        joueur = solution[position - 1]
+        if joueur is None or joueur.get("absent"):
+            return "Position {} — absent".format(position)
+        return "{} — Poule {}, rang {}".format(
+            joueur.get("nom", ""), joueur.get("poule", ""), joueur.get("rang_poule", "")
+        )
+
+    def valeur_participant(participant):
+        if hasattr(participant, "position"):
+            return texte_position(int(participant.position))
+        precedent = getattr(participant, "match", None)
+        resultat = getattr(participant, "resultat", "")
+        cellule = cellules_resultats[(int(precedent.numero), resultat)]
+        return "='Tableau'!{}".format(cellule)
+
+    validation = DataValidation(type="list", formula1='"☐,☑"', allow_blank=False)
+    validation.promptTitle = "Choisir le vainqueur"
+    validation.prompt = "Sélectionnez ☑ pour le vainqueur et laissez ☐ pour le perdant."
+    validation.errorTitle = "Valeur invalide"
+    validation.error = "Choisissez uniquement ☐ ou ☑."
+    validation.showInputMessage = True
+    validation.showErrorMessage = True
+    feuille.add_data_validation(validation)
+
+    for niveau, liste_matchs in sorted(par_niveau.items()):
+        colonne = 2 + (niveau - 1) * 6
+        lettre = get_column_letter(colonne)
+        feuille.cell(3, colonne, "NIVEAU {}".format(niveau)).font = Font(
+            bold=True, color="FFFFFF"
+        )
+        feuille.cell(3, colonne).fill = PatternFill(
+            fill_type="solid", fgColor=COULEUR_ENTETE
+        )
+        feuille.merge_cells(start_row=3, start_column=colonne, end_row=3, end_column=colonne + 3)
+        for index, match in enumerate(liste_matchs):
+            ligne = 5 + index * 6
+            entete = feuille.cell(
+                ligne, colonne, "MATCH {} — {}".format(match.numero, match.niveau or "")
+            )
+            entete.font = Font(bold=True, color="FFFFFF")
+            entete.fill = PatternFill(fill_type="solid", fgColor=COULEUR_ENTETE)
+            feuille.merge_cells(
+                start_row=ligne, start_column=colonne,
+                end_row=ligne, end_column=colonne + 3,
+            )
+            cellule_p1 = feuille.cell(ligne + 1, colonne, valeur_participant(match.participant_1))
+            cellule_p2 = feuille.cell(ligne + 2, colonne, valeur_participant(match.participant_2))
+            feuille.merge_cells(
+                start_row=ligne + 1, start_column=colonne,
+                end_row=ligne + 1, end_column=colonne + 2,
+            )
+            feuille.merge_cells(
+                start_row=ligne + 2, start_column=colonne,
+                end_row=ligne + 2, end_column=colonne + 2,
+            )
+            case_1 = feuille.cell(ligne + 1, colonne + 3, "☐")
+            case_2 = feuille.cell(ligne + 2, colonne + 3, "☐")
+            for case in (case_1, case_2):
+                case.fill = PatternFill(fill_type="solid", fgColor=COULEUR_SELECTION)
+                case.alignment = Alignment(horizontal="center")
+                case.font = Font(size=14, bold=True)
+                validation.add(case)
+            adresse_p1, adresse_p2 = cellule_p1.coordinate, cellule_p2.coordinate
+            adresse_c1, adresse_c2 = case_1.coordinate, case_2.coordinate
+            gagnant = feuille.cell(
+                ligne + 3,
+                colonne + 1,
+                '=IF(COUNTIF({0}:{1},"☑")<>1,"",IF({0}="☑",{2},{3}))'.format(
+                    adresse_c1, adresse_c2, adresse_p1, adresse_p2
+                ),
+            )
+            perdant = feuille.cell(
+                ligne + 4,
+                colonne + 1,
+                '=IF(COUNTIF({0}:{1},"☑")<>1,"",IF({0}="☑",{3},{2}))'.format(
+                    adresse_c1, adresse_c2, adresse_p1, adresse_p2
+                ),
+            )
+            feuille.cell(ligne + 3, colonne, "Vainqueur").font = Font(bold=True)
+            feuille.cell(ligne + 4, colonne, "Perdant").font = Font(bold=True)
+            cellules_resultats[(match.numero, "vainqueur")] = gagnant.coordinate
+            cellules_resultats[(match.numero, "perdant")] = perdant.coordinate
+        for decalage in range(4):
+            feuille.column_dimensions[get_column_letter(colonne + decalage)].width = (
+                19 if decalage < 3 else 7
+            )
+    feuille.freeze_panes = "B4"
+    return feuille
+
+
 def creer_fichier_solution(
     fichier_sortie,
     solution,
@@ -140,6 +264,7 @@ def creer_fichier_solution(
     solutions=None,
     recap=None,
     numero_tirage_choisi=1,
+    matchs=None,
 ):
     """Crée un classeur autonome contenant récapitulatif et tirages.
 
@@ -346,6 +471,9 @@ def creer_fichier_solution(
     for colonne in range(2, len(poules) + 2):
         feuille_tous.column_dimensions[feuille_tous.cell(1, colonne).column_letter].width = 11
     feuille_tous.freeze_panes = "B4"
+
+    if matchs:
+        _creer_onglet_tableau(classeur, solutions[numero_tirage_choisi - 1], matchs)
 
     try:
         classeur.calculation.fullCalcOnLoad = True

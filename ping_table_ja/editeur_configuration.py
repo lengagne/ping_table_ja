@@ -144,6 +144,19 @@ def calculer_profondeurs_matchs(matchs):
     return profondeurs
 
 
+def abscisse_match_visualisation(
+    profondeur, places, taille_tableau, vue_compacte, origine, pas_colonne
+):
+    """Place un match à droite ou à gauche dans la vue développée."""
+    if vue_compacte:
+        return origine + (profondeur - 1) * pas_colonne
+    if profondeur == 1:
+        return origine
+    premiere_place = min((int(place) for place in places), default=1)
+    direction = -1 if premiere_place > int(taille_tableau) // 2 else 1
+    return origine + direction * (profondeur - 1) * pas_colonne
+
+
 def indices_contraintes_du_match(match, contraintes, profondeur=None):
     """Retourne les contraintes visant directement le match ou son niveau."""
     resultat = []
@@ -744,6 +757,13 @@ class EditeurConfiguration(tk.Toplevel):
             side="right"
         )
         self.zoom_visualisation = 1.0
+        self.vue_compacte_var = tk.BooleanVar(value=True)
+        ttk.Checkbutton(
+            outils,
+            text="Vue compacte",
+            variable=self.vue_compacte_var,
+            command=self._rafraichir_visualisation,
+        ).pack(side="right", padx=(12, 8))
         self.canvas_tableau = tk.Canvas(
             self.onglet_visualisation,
             background="white",
@@ -962,8 +982,16 @@ class EditeurConfiguration(tk.Toplevel):
         pas_joueur = 36 * z
         largeur_match, hauteur_match = 150 * z, 42 * z
         pas_colonne, espace_match = 235 * z, 56 * z
+        profondeur_max = max(profondeurs.values(), default=1)
+        vue_compacte = self.vue_compacte_var.get()
+        origine_tableau = (
+            marge_x + 85 * z
+            if vue_compacte
+            else marge_x + profondeur_max * pas_colonne
+        )
+        x_positions = marge_x if vue_compacte else origine_tableau - 85 * z
         positions_coordonnees = {
-            numero: (marge_x, marge_y + (numero - 1) * pas_joueur)
+            numero: (x_positions, marge_y + (numero - 1) * pas_joueur)
             for numero in range(1, taille + 1)
         }
         contraintes = self.donnees.get("contraintes", [])
@@ -1044,50 +1072,71 @@ class EditeurConfiguration(tk.Toplevel):
             x, y = coordonnees_matchs[numero_match]
             return x + largeur_match, y
 
-        profondeur_max = max(profondeurs.values(), default=1)
         for profondeur in range(1, profondeur_max + 1):
             groupe = [
                 match for match in matchs
                 if profondeurs[int(match["numero"])] == profondeur
             ]
-            numeros_colonne = sorted(int(match["numero"]) for match in groupe)
-            x_colonne = marge_x + 85 * z + (profondeur - 1) * pas_colonne
             tags_colonne = (
                 "cible_cliquable",
                 "cible:niveau:{}".format(profondeur),
             )
-            noms_niveaux = list(dict.fromkeys(
-                str(match.get("niveau", "")) for match in groupe
-            ))
-            niveaux_principaux = [
-                nom for nom in noms_niveaux
-                if nom.startswith("1/") or nom == "finale"
-            ]
-            libelle_tour = ", ".join(niveaux_principaux)
-            if not libelle_tour:
-                if noms_niveaux == ["barrage_2_3"]:
-                    libelle_tour = "Barrages 2–3"
-                else:
-                    libelle_tour = "Classement"
-            canvas.create_rectangle(
-                x_colonne,
-                8 * z,
-                x_colonne + largeur_match,
-                42 * z,
-                fill="#e0f2fe" if set(numeros_colonne) == matchs_selectionnes else "#f4f4f5",
-                outline="#0284c7" if set(numeros_colonne) == matchs_selectionnes else "#a1a1aa",
-                tags=tags_colonne,
-            )
-            canvas.create_text(
-                x_colonne + largeur_match / 2,
-                25 * z,
-                text="NIVEAU {} — {}\n{} match(s)".format(
-                    profondeur, libelle_tour, len(groupe)
-                ),
-                justify="center",
-                font=("TkDefaultFont", max(7, int(8 * z)), "bold"),
-                tags=tags_colonne,
-            )
+            if vue_compacte or profondeur == 1:
+                groupes_entetes = [(origine_tableau + (profondeur - 1) * pas_colonne, groupe)]
+            else:
+                droite = [
+                    match for match in groupe
+                    if min(match.get("places", [1])) <= taille // 2
+                ]
+                gauche = [match for match in groupe if match not in droite]
+                groupes_entetes = []
+                if gauche:
+                    groupes_entetes.append((
+                        origine_tableau - (profondeur - 1) * pas_colonne, gauche
+                    ))
+                if droite:
+                    groupes_entetes.append((
+                        origine_tableau + (profondeur - 1) * pas_colonne, droite
+                    ))
+            for x_colonne, groupe_entete in groupes_entetes:
+                numeros_entete = {
+                    int(match["numero"]) for match in groupe_entete
+                }
+                noms_niveaux = list(dict.fromkeys(
+                    str(match.get("niveau", "")) for match in groupe_entete
+                ))
+                niveaux_principaux = [
+                    nom for nom in noms_niveaux
+                    if nom.startswith("1/") or nom == "finale"
+                ]
+                libelle_tour = ", ".join(niveaux_principaux)
+                if not libelle_tour:
+                    if noms_niveaux == ["barrage_2_3"]:
+                        libelle_tour = "Barrages 2–3"
+                    else:
+                        libelle_tour = "Classement"
+                entete_selectionne = bool(numeros_entete) and numeros_entete.issubset(
+                    matchs_selectionnes
+                )
+                canvas.create_rectangle(
+                    x_colonne,
+                    8 * z,
+                    x_colonne + largeur_match,
+                    42 * z,
+                    fill="#e0f2fe" if entete_selectionne else "#f4f4f5",
+                    outline="#0284c7" if entete_selectionne else "#a1a1aa",
+                    tags=tags_colonne,
+                )
+                canvas.create_text(
+                    x_colonne + largeur_match / 2,
+                    25 * z,
+                    text="NIVEAU {} — {}\n{} match(s)".format(
+                        profondeur, libelle_tour, len(groupe_entete)
+                    ),
+                    justify="center",
+                    font=("TkDefaultFont", max(7, int(8 * z)), "bold"),
+                    tags=tags_colonne,
+                )
             souhaits = []
             for match in groupe:
                 sources = [
@@ -1100,7 +1149,14 @@ class EditeurConfiguration(tk.Toplevel):
             for souhaite_y, match, sources in souhaits:
                 y = max(souhaite_y, precedent_y + espace_match)
                 precedent_y = y
-                x = marge_x + 85 * z + (profondeur - 1) * pas_colonne
+                x = abscisse_match_visualisation(
+                    profondeur,
+                    match.get("places", []),
+                    taille,
+                    vue_compacte,
+                    origine_tableau,
+                    pas_colonne,
+                )
                 coordonnees_matchs[int(match["numero"])] = (x, y)
                 for index, (source_x, source_y) in enumerate(sources, start=1):
                     cible_y = y - hauteur_match * 0.23 if index == 1 else y + hauteur_match * 0.23
@@ -1174,7 +1230,11 @@ class EditeurConfiguration(tk.Toplevel):
             marge_y + taille * pas_joueur,
             max((y for _x, y in coordonnees_matchs.values()), default=0) + 100 * z,
         )
-        largeur = marge_x + 150 * z + profondeur_max * pas_colonne
+        largeur = (
+            marge_x + 150 * z + profondeur_max * pas_colonne
+            if vue_compacte
+            else origine_tableau * 2 + largeur_match + marge_x
+        )
         canvas.configure(scrollregion=(0, 0, largeur, hauteur))
         canvas.tag_bind(
             "cible_cliquable",
