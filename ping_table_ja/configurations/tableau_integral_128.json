@@ -1,0 +1,7405 @@
+{
+  "version": 2,
+  "nom": "Tableau intégral 128 joueurs",
+  "format": "standard",
+  "taille_tableau": 128,
+  "classement_integral": true,
+  "barrages_1_contre_4": false,
+  "onglet_excel": "classement poules",
+  "matchs": [
+    {
+      "numero": 1,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 3
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 4
+      }
+    },
+    {
+      "numero": 2,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 5
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 6
+      }
+    },
+    {
+      "numero": 3,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 11
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 12
+      }
+    },
+    {
+      "numero": 4,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 13
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 14
+      }
+    },
+    {
+      "numero": 5,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 19
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 20
+      }
+    },
+    {
+      "numero": 6,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 21
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 22
+      }
+    },
+    {
+      "numero": 7,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 27
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 28
+      }
+    },
+    {
+      "numero": 8,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 29
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 30
+      }
+    },
+    {
+      "numero": 9,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 35
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 36
+      }
+    },
+    {
+      "numero": 10,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 37
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 38
+      }
+    },
+    {
+      "numero": 11,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 43
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 44
+      }
+    },
+    {
+      "numero": 12,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 45
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 46
+      }
+    },
+    {
+      "numero": 13,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 51
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 52
+      }
+    },
+    {
+      "numero": 14,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 53
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 54
+      }
+    },
+    {
+      "numero": 15,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 59
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 60
+      }
+    },
+    {
+      "numero": 16,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 61
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 62
+      }
+    },
+    {
+      "numero": 17,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 67
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 68
+      }
+    },
+    {
+      "numero": 18,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 69
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 70
+      }
+    },
+    {
+      "numero": 19,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 75
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 76
+      }
+    },
+    {
+      "numero": 20,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 77
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 78
+      }
+    },
+    {
+      "numero": 21,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 83
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 84
+      }
+    },
+    {
+      "numero": 22,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 85
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 86
+      }
+    },
+    {
+      "numero": 23,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 91
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 92
+      }
+    },
+    {
+      "numero": 24,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 93
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 94
+      }
+    },
+    {
+      "numero": 25,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 99
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 100
+      }
+    },
+    {
+      "numero": 26,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 101
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 102
+      }
+    },
+    {
+      "numero": 27,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 107
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 108
+      }
+    },
+    {
+      "numero": 28,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 109
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 110
+      }
+    },
+    {
+      "numero": 29,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 115
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 116
+      }
+    },
+    {
+      "numero": 30,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 117
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 118
+      }
+    },
+    {
+      "numero": 31,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 123
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 124
+      }
+    },
+    {
+      "numero": 32,
+      "niveau": "barrage_2_3",
+      "places": [
+        1,
+        128
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 125
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 126
+      }
+    },
+    {
+      "numero": 33,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 1
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 1
+      }
+    },
+    {
+      "numero": 34,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 1
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 2
+      }
+    },
+    {
+      "numero": 35,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 8
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 2
+      }
+    },
+    {
+      "numero": 36,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 2
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 7
+      }
+    },
+    {
+      "numero": 37,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 9
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 3
+      }
+    },
+    {
+      "numero": 38,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 3
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 10
+      }
+    },
+    {
+      "numero": 39,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 16
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 4
+      }
+    },
+    {
+      "numero": 40,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 4
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 15
+      }
+    },
+    {
+      "numero": 41,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 17
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 5
+      }
+    },
+    {
+      "numero": 42,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 5
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 18
+      }
+    },
+    {
+      "numero": 43,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 24
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 6
+      }
+    },
+    {
+      "numero": 44,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 6
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 23
+      }
+    },
+    {
+      "numero": 45,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 25
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 7
+      }
+    },
+    {
+      "numero": 46,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 7
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 26
+      }
+    },
+    {
+      "numero": 47,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 32
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 8
+      }
+    },
+    {
+      "numero": 48,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 8
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 31
+      }
+    },
+    {
+      "numero": 49,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 33
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 9
+      }
+    },
+    {
+      "numero": 50,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 9
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 34
+      }
+    },
+    {
+      "numero": 51,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 40
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 10
+      }
+    },
+    {
+      "numero": 52,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 10
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 39
+      }
+    },
+    {
+      "numero": 53,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 41
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 11
+      }
+    },
+    {
+      "numero": 54,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 11
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 42
+      }
+    },
+    {
+      "numero": 55,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 48
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 12
+      }
+    },
+    {
+      "numero": 56,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 12
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 47
+      }
+    },
+    {
+      "numero": 57,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 49
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 13
+      }
+    },
+    {
+      "numero": 58,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 13
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 50
+      }
+    },
+    {
+      "numero": 59,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 56
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 14
+      }
+    },
+    {
+      "numero": 60,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 14
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 55
+      }
+    },
+    {
+      "numero": 61,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 57
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 15
+      }
+    },
+    {
+      "numero": 62,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 15
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 58
+      }
+    },
+    {
+      "numero": 63,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 64
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 16
+      }
+    },
+    {
+      "numero": 64,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 16
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 63
+      }
+    },
+    {
+      "numero": 65,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 65
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 17
+      }
+    },
+    {
+      "numero": 66,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 17
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 66
+      }
+    },
+    {
+      "numero": 67,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 72
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 18
+      }
+    },
+    {
+      "numero": 68,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 18
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 71
+      }
+    },
+    {
+      "numero": 69,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 73
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 19
+      }
+    },
+    {
+      "numero": 70,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 19
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 74
+      }
+    },
+    {
+      "numero": 71,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 80
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 20
+      }
+    },
+    {
+      "numero": 72,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 20
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 79
+      }
+    },
+    {
+      "numero": 73,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 81
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 21
+      }
+    },
+    {
+      "numero": 74,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 21
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 82
+      }
+    },
+    {
+      "numero": 75,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 88
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 22
+      }
+    },
+    {
+      "numero": 76,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 22
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 87
+      }
+    },
+    {
+      "numero": 77,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 89
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 23
+      }
+    },
+    {
+      "numero": 78,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 23
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 90
+      }
+    },
+    {
+      "numero": 79,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 96
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 24
+      }
+    },
+    {
+      "numero": 80,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 24
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 95
+      }
+    },
+    {
+      "numero": 81,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 97
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 25
+      }
+    },
+    {
+      "numero": 82,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 25
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 98
+      }
+    },
+    {
+      "numero": 83,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 104
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 26
+      }
+    },
+    {
+      "numero": 84,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 26
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 103
+      }
+    },
+    {
+      "numero": 85,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 105
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 27
+      }
+    },
+    {
+      "numero": 86,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 27
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 106
+      }
+    },
+    {
+      "numero": 87,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 112
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 28
+      }
+    },
+    {
+      "numero": 88,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 28
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 111
+      }
+    },
+    {
+      "numero": 89,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 113
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 29
+      }
+    },
+    {
+      "numero": 90,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 29
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 114
+      }
+    },
+    {
+      "numero": 91,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 120
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 30
+      }
+    },
+    {
+      "numero": 92,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 30
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 119
+      }
+    },
+    {
+      "numero": 93,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 121
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 31
+      }
+    },
+    {
+      "numero": 94,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 31
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 122
+      }
+    },
+    {
+      "numero": 95,
+      "niveau": "1/32",
+      "places": [
+        1,
+        64
+      ],
+      "participant_1": {
+        "type": "position",
+        "numero": 128
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 32
+      }
+    },
+    {
+      "numero": 96,
+      "niveau": "places_65_128",
+      "places": [
+        65,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 32
+      },
+      "participant_2": {
+        "type": "position",
+        "numero": 127
+      }
+    },
+    {
+      "numero": 97,
+      "niveau": "1/16",
+      "places": [
+        1,
+        32
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 33
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 35
+      }
+    },
+    {
+      "numero": 98,
+      "niveau": "1/16",
+      "places": [
+        1,
+        32
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 37
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 39
+      }
+    },
+    {
+      "numero": 99,
+      "niveau": "1/16",
+      "places": [
+        1,
+        32
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 41
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 43
+      }
+    },
+    {
+      "numero": 100,
+      "niveau": "1/16",
+      "places": [
+        1,
+        32
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 45
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 47
+      }
+    },
+    {
+      "numero": 101,
+      "niveau": "1/16",
+      "places": [
+        1,
+        32
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 49
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 51
+      }
+    },
+    {
+      "numero": 102,
+      "niveau": "1/16",
+      "places": [
+        1,
+        32
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 53
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 55
+      }
+    },
+    {
+      "numero": 103,
+      "niveau": "1/16",
+      "places": [
+        1,
+        32
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 57
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 59
+      }
+    },
+    {
+      "numero": 104,
+      "niveau": "1/16",
+      "places": [
+        1,
+        32
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 61
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 63
+      }
+    },
+    {
+      "numero": 105,
+      "niveau": "1/16",
+      "places": [
+        1,
+        32
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 65
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 67
+      }
+    },
+    {
+      "numero": 106,
+      "niveau": "1/16",
+      "places": [
+        1,
+        32
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 69
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 71
+      }
+    },
+    {
+      "numero": 107,
+      "niveau": "1/16",
+      "places": [
+        1,
+        32
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 73
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 75
+      }
+    },
+    {
+      "numero": 108,
+      "niveau": "1/16",
+      "places": [
+        1,
+        32
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 77
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 79
+      }
+    },
+    {
+      "numero": 109,
+      "niveau": "1/16",
+      "places": [
+        1,
+        32
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 81
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 83
+      }
+    },
+    {
+      "numero": 110,
+      "niveau": "1/16",
+      "places": [
+        1,
+        32
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 85
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 87
+      }
+    },
+    {
+      "numero": 111,
+      "niveau": "1/16",
+      "places": [
+        1,
+        32
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 89
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 91
+      }
+    },
+    {
+      "numero": 112,
+      "niveau": "1/16",
+      "places": [
+        1,
+        32
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 93
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 95
+      }
+    },
+    {
+      "numero": 113,
+      "niveau": "places_33_64",
+      "places": [
+        33,
+        64
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 33
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 35
+      }
+    },
+    {
+      "numero": 114,
+      "niveau": "places_33_64",
+      "places": [
+        33,
+        64
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 37
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 39
+      }
+    },
+    {
+      "numero": 115,
+      "niveau": "places_33_64",
+      "places": [
+        33,
+        64
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 41
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 43
+      }
+    },
+    {
+      "numero": 116,
+      "niveau": "places_33_64",
+      "places": [
+        33,
+        64
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 45
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 47
+      }
+    },
+    {
+      "numero": 117,
+      "niveau": "places_33_64",
+      "places": [
+        33,
+        64
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 49
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 51
+      }
+    },
+    {
+      "numero": 118,
+      "niveau": "places_33_64",
+      "places": [
+        33,
+        64
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 53
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 55
+      }
+    },
+    {
+      "numero": 119,
+      "niveau": "places_33_64",
+      "places": [
+        33,
+        64
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 57
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 59
+      }
+    },
+    {
+      "numero": 120,
+      "niveau": "places_33_64",
+      "places": [
+        33,
+        64
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 61
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 63
+      }
+    },
+    {
+      "numero": 121,
+      "niveau": "places_33_64",
+      "places": [
+        33,
+        64
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 65
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 67
+      }
+    },
+    {
+      "numero": 122,
+      "niveau": "places_33_64",
+      "places": [
+        33,
+        64
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 69
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 71
+      }
+    },
+    {
+      "numero": 123,
+      "niveau": "places_33_64",
+      "places": [
+        33,
+        64
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 73
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 75
+      }
+    },
+    {
+      "numero": 124,
+      "niveau": "places_33_64",
+      "places": [
+        33,
+        64
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 77
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 79
+      }
+    },
+    {
+      "numero": 125,
+      "niveau": "places_33_64",
+      "places": [
+        33,
+        64
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 81
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 83
+      }
+    },
+    {
+      "numero": 126,
+      "niveau": "places_33_64",
+      "places": [
+        33,
+        64
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 85
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 87
+      }
+    },
+    {
+      "numero": 127,
+      "niveau": "places_33_64",
+      "places": [
+        33,
+        64
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 89
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 91
+      }
+    },
+    {
+      "numero": 128,
+      "niveau": "places_33_64",
+      "places": [
+        33,
+        64
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 93
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 95
+      }
+    },
+    {
+      "numero": 129,
+      "niveau": "places_65_96",
+      "places": [
+        65,
+        96
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 34
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 36
+      }
+    },
+    {
+      "numero": 130,
+      "niveau": "places_65_96",
+      "places": [
+        65,
+        96
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 38
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 40
+      }
+    },
+    {
+      "numero": 131,
+      "niveau": "places_65_96",
+      "places": [
+        65,
+        96
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 42
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 44
+      }
+    },
+    {
+      "numero": 132,
+      "niveau": "places_65_96",
+      "places": [
+        65,
+        96
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 46
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 48
+      }
+    },
+    {
+      "numero": 133,
+      "niveau": "places_65_96",
+      "places": [
+        65,
+        96
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 50
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 52
+      }
+    },
+    {
+      "numero": 134,
+      "niveau": "places_65_96",
+      "places": [
+        65,
+        96
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 54
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 56
+      }
+    },
+    {
+      "numero": 135,
+      "niveau": "places_65_96",
+      "places": [
+        65,
+        96
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 58
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 60
+      }
+    },
+    {
+      "numero": 136,
+      "niveau": "places_65_96",
+      "places": [
+        65,
+        96
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 62
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 64
+      }
+    },
+    {
+      "numero": 137,
+      "niveau": "places_65_96",
+      "places": [
+        65,
+        96
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 66
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 68
+      }
+    },
+    {
+      "numero": 138,
+      "niveau": "places_65_96",
+      "places": [
+        65,
+        96
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 70
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 72
+      }
+    },
+    {
+      "numero": 139,
+      "niveau": "places_65_96",
+      "places": [
+        65,
+        96
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 74
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 76
+      }
+    },
+    {
+      "numero": 140,
+      "niveau": "places_65_96",
+      "places": [
+        65,
+        96
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 78
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 80
+      }
+    },
+    {
+      "numero": 141,
+      "niveau": "places_65_96",
+      "places": [
+        65,
+        96
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 82
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 84
+      }
+    },
+    {
+      "numero": 142,
+      "niveau": "places_65_96",
+      "places": [
+        65,
+        96
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 86
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 88
+      }
+    },
+    {
+      "numero": 143,
+      "niveau": "places_65_96",
+      "places": [
+        65,
+        96
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 90
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 92
+      }
+    },
+    {
+      "numero": 144,
+      "niveau": "places_65_96",
+      "places": [
+        65,
+        96
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 94
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 96
+      }
+    },
+    {
+      "numero": 145,
+      "niveau": "places_97_128",
+      "places": [
+        97,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 34
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 36
+      }
+    },
+    {
+      "numero": 146,
+      "niveau": "places_97_128",
+      "places": [
+        97,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 38
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 40
+      }
+    },
+    {
+      "numero": 147,
+      "niveau": "places_97_128",
+      "places": [
+        97,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 42
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 44
+      }
+    },
+    {
+      "numero": 148,
+      "niveau": "places_97_128",
+      "places": [
+        97,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 46
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 48
+      }
+    },
+    {
+      "numero": 149,
+      "niveau": "places_97_128",
+      "places": [
+        97,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 50
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 52
+      }
+    },
+    {
+      "numero": 150,
+      "niveau": "places_97_128",
+      "places": [
+        97,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 54
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 56
+      }
+    },
+    {
+      "numero": 151,
+      "niveau": "places_97_128",
+      "places": [
+        97,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 58
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 60
+      }
+    },
+    {
+      "numero": 152,
+      "niveau": "places_97_128",
+      "places": [
+        97,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 62
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 64
+      }
+    },
+    {
+      "numero": 153,
+      "niveau": "places_97_128",
+      "places": [
+        97,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 66
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 68
+      }
+    },
+    {
+      "numero": 154,
+      "niveau": "places_97_128",
+      "places": [
+        97,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 70
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 72
+      }
+    },
+    {
+      "numero": 155,
+      "niveau": "places_97_128",
+      "places": [
+        97,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 74
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 76
+      }
+    },
+    {
+      "numero": 156,
+      "niveau": "places_97_128",
+      "places": [
+        97,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 78
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 80
+      }
+    },
+    {
+      "numero": 157,
+      "niveau": "places_97_128",
+      "places": [
+        97,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 82
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 84
+      }
+    },
+    {
+      "numero": 158,
+      "niveau": "places_97_128",
+      "places": [
+        97,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 86
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 88
+      }
+    },
+    {
+      "numero": 159,
+      "niveau": "places_97_128",
+      "places": [
+        97,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 90
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 92
+      }
+    },
+    {
+      "numero": 160,
+      "niveau": "places_97_128",
+      "places": [
+        97,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 94
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 96
+      }
+    },
+    {
+      "numero": 161,
+      "niveau": "1/8",
+      "places": [
+        1,
+        16
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 97
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 98
+      }
+    },
+    {
+      "numero": 162,
+      "niveau": "1/8",
+      "places": [
+        1,
+        16
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 99
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 100
+      }
+    },
+    {
+      "numero": 163,
+      "niveau": "1/8",
+      "places": [
+        1,
+        16
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 101
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 102
+      }
+    },
+    {
+      "numero": 164,
+      "niveau": "1/8",
+      "places": [
+        1,
+        16
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 103
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 104
+      }
+    },
+    {
+      "numero": 165,
+      "niveau": "1/8",
+      "places": [
+        1,
+        16
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 105
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 106
+      }
+    },
+    {
+      "numero": 166,
+      "niveau": "1/8",
+      "places": [
+        1,
+        16
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 107
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 108
+      }
+    },
+    {
+      "numero": 167,
+      "niveau": "1/8",
+      "places": [
+        1,
+        16
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 109
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 110
+      }
+    },
+    {
+      "numero": 168,
+      "niveau": "1/8",
+      "places": [
+        1,
+        16
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 111
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 112
+      }
+    },
+    {
+      "numero": 169,
+      "niveau": "places_17_32",
+      "places": [
+        17,
+        32
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 97
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 98
+      }
+    },
+    {
+      "numero": 170,
+      "niveau": "places_17_32",
+      "places": [
+        17,
+        32
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 99
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 100
+      }
+    },
+    {
+      "numero": 171,
+      "niveau": "places_17_32",
+      "places": [
+        17,
+        32
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 101
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 102
+      }
+    },
+    {
+      "numero": 172,
+      "niveau": "places_17_32",
+      "places": [
+        17,
+        32
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 103
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 104
+      }
+    },
+    {
+      "numero": 173,
+      "niveau": "places_17_32",
+      "places": [
+        17,
+        32
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 105
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 106
+      }
+    },
+    {
+      "numero": 174,
+      "niveau": "places_17_32",
+      "places": [
+        17,
+        32
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 107
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 108
+      }
+    },
+    {
+      "numero": 175,
+      "niveau": "places_17_32",
+      "places": [
+        17,
+        32
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 109
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 110
+      }
+    },
+    {
+      "numero": 176,
+      "niveau": "places_17_32",
+      "places": [
+        17,
+        32
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 111
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 112
+      }
+    },
+    {
+      "numero": 177,
+      "niveau": "places_33_48",
+      "places": [
+        33,
+        48
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 113
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 114
+      }
+    },
+    {
+      "numero": 178,
+      "niveau": "places_33_48",
+      "places": [
+        33,
+        48
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 115
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 116
+      }
+    },
+    {
+      "numero": 179,
+      "niveau": "places_33_48",
+      "places": [
+        33,
+        48
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 117
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 118
+      }
+    },
+    {
+      "numero": 180,
+      "niveau": "places_33_48",
+      "places": [
+        33,
+        48
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 119
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 120
+      }
+    },
+    {
+      "numero": 181,
+      "niveau": "places_33_48",
+      "places": [
+        33,
+        48
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 121
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 122
+      }
+    },
+    {
+      "numero": 182,
+      "niveau": "places_33_48",
+      "places": [
+        33,
+        48
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 123
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 124
+      }
+    },
+    {
+      "numero": 183,
+      "niveau": "places_33_48",
+      "places": [
+        33,
+        48
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 125
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 126
+      }
+    },
+    {
+      "numero": 184,
+      "niveau": "places_33_48",
+      "places": [
+        33,
+        48
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 127
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 128
+      }
+    },
+    {
+      "numero": 185,
+      "niveau": "places_49_64",
+      "places": [
+        49,
+        64
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 113
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 114
+      }
+    },
+    {
+      "numero": 186,
+      "niveau": "places_49_64",
+      "places": [
+        49,
+        64
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 115
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 116
+      }
+    },
+    {
+      "numero": 187,
+      "niveau": "places_49_64",
+      "places": [
+        49,
+        64
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 117
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 118
+      }
+    },
+    {
+      "numero": 188,
+      "niveau": "places_49_64",
+      "places": [
+        49,
+        64
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 119
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 120
+      }
+    },
+    {
+      "numero": 189,
+      "niveau": "places_49_64",
+      "places": [
+        49,
+        64
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 121
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 122
+      }
+    },
+    {
+      "numero": 190,
+      "niveau": "places_49_64",
+      "places": [
+        49,
+        64
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 123
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 124
+      }
+    },
+    {
+      "numero": 191,
+      "niveau": "places_49_64",
+      "places": [
+        49,
+        64
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 125
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 126
+      }
+    },
+    {
+      "numero": 192,
+      "niveau": "places_49_64",
+      "places": [
+        49,
+        64
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 127
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 128
+      }
+    },
+    {
+      "numero": 193,
+      "niveau": "places_65_80",
+      "places": [
+        65,
+        80
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 129
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 130
+      }
+    },
+    {
+      "numero": 194,
+      "niveau": "places_65_80",
+      "places": [
+        65,
+        80
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 131
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 132
+      }
+    },
+    {
+      "numero": 195,
+      "niveau": "places_65_80",
+      "places": [
+        65,
+        80
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 133
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 134
+      }
+    },
+    {
+      "numero": 196,
+      "niveau": "places_65_80",
+      "places": [
+        65,
+        80
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 135
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 136
+      }
+    },
+    {
+      "numero": 197,
+      "niveau": "places_65_80",
+      "places": [
+        65,
+        80
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 137
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 138
+      }
+    },
+    {
+      "numero": 198,
+      "niveau": "places_65_80",
+      "places": [
+        65,
+        80
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 139
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 140
+      }
+    },
+    {
+      "numero": 199,
+      "niveau": "places_65_80",
+      "places": [
+        65,
+        80
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 141
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 142
+      }
+    },
+    {
+      "numero": 200,
+      "niveau": "places_65_80",
+      "places": [
+        65,
+        80
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 143
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 144
+      }
+    },
+    {
+      "numero": 201,
+      "niveau": "places_81_96",
+      "places": [
+        81,
+        96
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 129
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 130
+      }
+    },
+    {
+      "numero": 202,
+      "niveau": "places_81_96",
+      "places": [
+        81,
+        96
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 131
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 132
+      }
+    },
+    {
+      "numero": 203,
+      "niveau": "places_81_96",
+      "places": [
+        81,
+        96
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 133
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 134
+      }
+    },
+    {
+      "numero": 204,
+      "niveau": "places_81_96",
+      "places": [
+        81,
+        96
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 135
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 136
+      }
+    },
+    {
+      "numero": 205,
+      "niveau": "places_81_96",
+      "places": [
+        81,
+        96
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 137
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 138
+      }
+    },
+    {
+      "numero": 206,
+      "niveau": "places_81_96",
+      "places": [
+        81,
+        96
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 139
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 140
+      }
+    },
+    {
+      "numero": 207,
+      "niveau": "places_81_96",
+      "places": [
+        81,
+        96
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 141
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 142
+      }
+    },
+    {
+      "numero": 208,
+      "niveau": "places_81_96",
+      "places": [
+        81,
+        96
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 143
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 144
+      }
+    },
+    {
+      "numero": 209,
+      "niveau": "places_97_112",
+      "places": [
+        97,
+        112
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 145
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 146
+      }
+    },
+    {
+      "numero": 210,
+      "niveau": "places_97_112",
+      "places": [
+        97,
+        112
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 147
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 148
+      }
+    },
+    {
+      "numero": 211,
+      "niveau": "places_97_112",
+      "places": [
+        97,
+        112
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 149
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 150
+      }
+    },
+    {
+      "numero": 212,
+      "niveau": "places_97_112",
+      "places": [
+        97,
+        112
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 151
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 152
+      }
+    },
+    {
+      "numero": 213,
+      "niveau": "places_97_112",
+      "places": [
+        97,
+        112
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 153
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 154
+      }
+    },
+    {
+      "numero": 214,
+      "niveau": "places_97_112",
+      "places": [
+        97,
+        112
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 155
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 156
+      }
+    },
+    {
+      "numero": 215,
+      "niveau": "places_97_112",
+      "places": [
+        97,
+        112
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 157
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 158
+      }
+    },
+    {
+      "numero": 216,
+      "niveau": "places_97_112",
+      "places": [
+        97,
+        112
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 159
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 160
+      }
+    },
+    {
+      "numero": 217,
+      "niveau": "places_113_128",
+      "places": [
+        113,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 145
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 146
+      }
+    },
+    {
+      "numero": 218,
+      "niveau": "places_113_128",
+      "places": [
+        113,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 147
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 148
+      }
+    },
+    {
+      "numero": 219,
+      "niveau": "places_113_128",
+      "places": [
+        113,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 149
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 150
+      }
+    },
+    {
+      "numero": 220,
+      "niveau": "places_113_128",
+      "places": [
+        113,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 151
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 152
+      }
+    },
+    {
+      "numero": 221,
+      "niveau": "places_113_128",
+      "places": [
+        113,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 153
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 154
+      }
+    },
+    {
+      "numero": 222,
+      "niveau": "places_113_128",
+      "places": [
+        113,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 155
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 156
+      }
+    },
+    {
+      "numero": 223,
+      "niveau": "places_113_128",
+      "places": [
+        113,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 157
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 158
+      }
+    },
+    {
+      "numero": 224,
+      "niveau": "places_113_128",
+      "places": [
+        113,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 159
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 160
+      }
+    },
+    {
+      "numero": 225,
+      "niveau": "1/4",
+      "places": [
+        1,
+        8
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 161
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 162
+      }
+    },
+    {
+      "numero": 226,
+      "niveau": "1/4",
+      "places": [
+        1,
+        8
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 163
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 164
+      }
+    },
+    {
+      "numero": 227,
+      "niveau": "1/4",
+      "places": [
+        1,
+        8
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 165
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 166
+      }
+    },
+    {
+      "numero": 228,
+      "niveau": "1/4",
+      "places": [
+        1,
+        8
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 167
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 168
+      }
+    },
+    {
+      "numero": 229,
+      "niveau": "places_9_16",
+      "places": [
+        9,
+        16
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 161
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 162
+      }
+    },
+    {
+      "numero": 230,
+      "niveau": "places_9_16",
+      "places": [
+        9,
+        16
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 163
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 164
+      }
+    },
+    {
+      "numero": 231,
+      "niveau": "places_9_16",
+      "places": [
+        9,
+        16
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 165
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 166
+      }
+    },
+    {
+      "numero": 232,
+      "niveau": "places_9_16",
+      "places": [
+        9,
+        16
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 167
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 168
+      }
+    },
+    {
+      "numero": 233,
+      "niveau": "places_17_24",
+      "places": [
+        17,
+        24
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 169
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 170
+      }
+    },
+    {
+      "numero": 234,
+      "niveau": "places_17_24",
+      "places": [
+        17,
+        24
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 171
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 172
+      }
+    },
+    {
+      "numero": 235,
+      "niveau": "places_17_24",
+      "places": [
+        17,
+        24
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 173
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 174
+      }
+    },
+    {
+      "numero": 236,
+      "niveau": "places_17_24",
+      "places": [
+        17,
+        24
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 175
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 176
+      }
+    },
+    {
+      "numero": 237,
+      "niveau": "places_25_32",
+      "places": [
+        25,
+        32
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 169
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 170
+      }
+    },
+    {
+      "numero": 238,
+      "niveau": "places_25_32",
+      "places": [
+        25,
+        32
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 171
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 172
+      }
+    },
+    {
+      "numero": 239,
+      "niveau": "places_25_32",
+      "places": [
+        25,
+        32
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 173
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 174
+      }
+    },
+    {
+      "numero": 240,
+      "niveau": "places_25_32",
+      "places": [
+        25,
+        32
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 175
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 176
+      }
+    },
+    {
+      "numero": 241,
+      "niveau": "places_33_40",
+      "places": [
+        33,
+        40
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 177
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 178
+      }
+    },
+    {
+      "numero": 242,
+      "niveau": "places_33_40",
+      "places": [
+        33,
+        40
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 179
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 180
+      }
+    },
+    {
+      "numero": 243,
+      "niveau": "places_33_40",
+      "places": [
+        33,
+        40
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 181
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 182
+      }
+    },
+    {
+      "numero": 244,
+      "niveau": "places_33_40",
+      "places": [
+        33,
+        40
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 183
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 184
+      }
+    },
+    {
+      "numero": 245,
+      "niveau": "places_41_48",
+      "places": [
+        41,
+        48
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 177
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 178
+      }
+    },
+    {
+      "numero": 246,
+      "niveau": "places_41_48",
+      "places": [
+        41,
+        48
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 179
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 180
+      }
+    },
+    {
+      "numero": 247,
+      "niveau": "places_41_48",
+      "places": [
+        41,
+        48
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 181
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 182
+      }
+    },
+    {
+      "numero": 248,
+      "niveau": "places_41_48",
+      "places": [
+        41,
+        48
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 183
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 184
+      }
+    },
+    {
+      "numero": 249,
+      "niveau": "places_49_56",
+      "places": [
+        49,
+        56
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 185
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 186
+      }
+    },
+    {
+      "numero": 250,
+      "niveau": "places_49_56",
+      "places": [
+        49,
+        56
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 187
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 188
+      }
+    },
+    {
+      "numero": 251,
+      "niveau": "places_49_56",
+      "places": [
+        49,
+        56
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 189
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 190
+      }
+    },
+    {
+      "numero": 252,
+      "niveau": "places_49_56",
+      "places": [
+        49,
+        56
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 191
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 192
+      }
+    },
+    {
+      "numero": 253,
+      "niveau": "places_57_64",
+      "places": [
+        57,
+        64
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 185
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 186
+      }
+    },
+    {
+      "numero": 254,
+      "niveau": "places_57_64",
+      "places": [
+        57,
+        64
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 187
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 188
+      }
+    },
+    {
+      "numero": 255,
+      "niveau": "places_57_64",
+      "places": [
+        57,
+        64
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 189
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 190
+      }
+    },
+    {
+      "numero": 256,
+      "niveau": "places_57_64",
+      "places": [
+        57,
+        64
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 191
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 192
+      }
+    },
+    {
+      "numero": 257,
+      "niveau": "places_65_72",
+      "places": [
+        65,
+        72
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 193
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 194
+      }
+    },
+    {
+      "numero": 258,
+      "niveau": "places_65_72",
+      "places": [
+        65,
+        72
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 195
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 196
+      }
+    },
+    {
+      "numero": 259,
+      "niveau": "places_65_72",
+      "places": [
+        65,
+        72
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 197
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 198
+      }
+    },
+    {
+      "numero": 260,
+      "niveau": "places_65_72",
+      "places": [
+        65,
+        72
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 199
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 200
+      }
+    },
+    {
+      "numero": 261,
+      "niveau": "places_73_80",
+      "places": [
+        73,
+        80
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 193
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 194
+      }
+    },
+    {
+      "numero": 262,
+      "niveau": "places_73_80",
+      "places": [
+        73,
+        80
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 195
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 196
+      }
+    },
+    {
+      "numero": 263,
+      "niveau": "places_73_80",
+      "places": [
+        73,
+        80
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 197
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 198
+      }
+    },
+    {
+      "numero": 264,
+      "niveau": "places_73_80",
+      "places": [
+        73,
+        80
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 199
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 200
+      }
+    },
+    {
+      "numero": 265,
+      "niveau": "places_81_88",
+      "places": [
+        81,
+        88
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 201
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 202
+      }
+    },
+    {
+      "numero": 266,
+      "niveau": "places_81_88",
+      "places": [
+        81,
+        88
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 203
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 204
+      }
+    },
+    {
+      "numero": 267,
+      "niveau": "places_81_88",
+      "places": [
+        81,
+        88
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 205
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 206
+      }
+    },
+    {
+      "numero": 268,
+      "niveau": "places_81_88",
+      "places": [
+        81,
+        88
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 207
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 208
+      }
+    },
+    {
+      "numero": 269,
+      "niveau": "places_89_96",
+      "places": [
+        89,
+        96
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 201
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 202
+      }
+    },
+    {
+      "numero": 270,
+      "niveau": "places_89_96",
+      "places": [
+        89,
+        96
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 203
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 204
+      }
+    },
+    {
+      "numero": 271,
+      "niveau": "places_89_96",
+      "places": [
+        89,
+        96
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 205
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 206
+      }
+    },
+    {
+      "numero": 272,
+      "niveau": "places_89_96",
+      "places": [
+        89,
+        96
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 207
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 208
+      }
+    },
+    {
+      "numero": 273,
+      "niveau": "places_97_104",
+      "places": [
+        97,
+        104
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 209
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 210
+      }
+    },
+    {
+      "numero": 274,
+      "niveau": "places_97_104",
+      "places": [
+        97,
+        104
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 211
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 212
+      }
+    },
+    {
+      "numero": 275,
+      "niveau": "places_97_104",
+      "places": [
+        97,
+        104
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 213
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 214
+      }
+    },
+    {
+      "numero": 276,
+      "niveau": "places_97_104",
+      "places": [
+        97,
+        104
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 215
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 216
+      }
+    },
+    {
+      "numero": 277,
+      "niveau": "places_105_112",
+      "places": [
+        105,
+        112
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 209
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 210
+      }
+    },
+    {
+      "numero": 278,
+      "niveau": "places_105_112",
+      "places": [
+        105,
+        112
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 211
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 212
+      }
+    },
+    {
+      "numero": 279,
+      "niveau": "places_105_112",
+      "places": [
+        105,
+        112
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 213
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 214
+      }
+    },
+    {
+      "numero": 280,
+      "niveau": "places_105_112",
+      "places": [
+        105,
+        112
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 215
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 216
+      }
+    },
+    {
+      "numero": 281,
+      "niveau": "places_113_120",
+      "places": [
+        113,
+        120
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 217
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 218
+      }
+    },
+    {
+      "numero": 282,
+      "niveau": "places_113_120",
+      "places": [
+        113,
+        120
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 219
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 220
+      }
+    },
+    {
+      "numero": 283,
+      "niveau": "places_113_120",
+      "places": [
+        113,
+        120
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 221
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 222
+      }
+    },
+    {
+      "numero": 284,
+      "niveau": "places_113_120",
+      "places": [
+        113,
+        120
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 223
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 224
+      }
+    },
+    {
+      "numero": 285,
+      "niveau": "places_121_128",
+      "places": [
+        121,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 217
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 218
+      }
+    },
+    {
+      "numero": 286,
+      "niveau": "places_121_128",
+      "places": [
+        121,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 219
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 220
+      }
+    },
+    {
+      "numero": 287,
+      "niveau": "places_121_128",
+      "places": [
+        121,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 221
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 222
+      }
+    },
+    {
+      "numero": 288,
+      "niveau": "places_121_128",
+      "places": [
+        121,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 223
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 224
+      }
+    },
+    {
+      "numero": 289,
+      "niveau": "1/2",
+      "places": [
+        1,
+        4
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 225
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 226
+      }
+    },
+    {
+      "numero": 290,
+      "niveau": "1/2",
+      "places": [
+        1,
+        4
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 227
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 228
+      }
+    },
+    {
+      "numero": 291,
+      "niveau": "places_5_8",
+      "places": [
+        5,
+        8
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 225
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 226
+      }
+    },
+    {
+      "numero": 292,
+      "niveau": "places_5_8",
+      "places": [
+        5,
+        8
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 227
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 228
+      }
+    },
+    {
+      "numero": 293,
+      "niveau": "places_9_12",
+      "places": [
+        9,
+        12
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 229
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 230
+      }
+    },
+    {
+      "numero": 294,
+      "niveau": "places_9_12",
+      "places": [
+        9,
+        12
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 231
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 232
+      }
+    },
+    {
+      "numero": 295,
+      "niveau": "places_13_16",
+      "places": [
+        13,
+        16
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 229
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 230
+      }
+    },
+    {
+      "numero": 296,
+      "niveau": "places_13_16",
+      "places": [
+        13,
+        16
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 231
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 232
+      }
+    },
+    {
+      "numero": 297,
+      "niveau": "places_17_20",
+      "places": [
+        17,
+        20
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 233
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 234
+      }
+    },
+    {
+      "numero": 298,
+      "niveau": "places_17_20",
+      "places": [
+        17,
+        20
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 235
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 236
+      }
+    },
+    {
+      "numero": 299,
+      "niveau": "places_21_24",
+      "places": [
+        21,
+        24
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 233
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 234
+      }
+    },
+    {
+      "numero": 300,
+      "niveau": "places_21_24",
+      "places": [
+        21,
+        24
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 235
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 236
+      }
+    },
+    {
+      "numero": 301,
+      "niveau": "places_25_28",
+      "places": [
+        25,
+        28
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 237
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 238
+      }
+    },
+    {
+      "numero": 302,
+      "niveau": "places_25_28",
+      "places": [
+        25,
+        28
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 239
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 240
+      }
+    },
+    {
+      "numero": 303,
+      "niveau": "places_29_32",
+      "places": [
+        29,
+        32
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 237
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 238
+      }
+    },
+    {
+      "numero": 304,
+      "niveau": "places_29_32",
+      "places": [
+        29,
+        32
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 239
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 240
+      }
+    },
+    {
+      "numero": 305,
+      "niveau": "places_33_36",
+      "places": [
+        33,
+        36
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 241
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 242
+      }
+    },
+    {
+      "numero": 306,
+      "niveau": "places_33_36",
+      "places": [
+        33,
+        36
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 243
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 244
+      }
+    },
+    {
+      "numero": 307,
+      "niveau": "places_37_40",
+      "places": [
+        37,
+        40
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 241
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 242
+      }
+    },
+    {
+      "numero": 308,
+      "niveau": "places_37_40",
+      "places": [
+        37,
+        40
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 243
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 244
+      }
+    },
+    {
+      "numero": 309,
+      "niveau": "places_41_44",
+      "places": [
+        41,
+        44
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 245
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 246
+      }
+    },
+    {
+      "numero": 310,
+      "niveau": "places_41_44",
+      "places": [
+        41,
+        44
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 247
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 248
+      }
+    },
+    {
+      "numero": 311,
+      "niveau": "places_45_48",
+      "places": [
+        45,
+        48
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 245
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 246
+      }
+    },
+    {
+      "numero": 312,
+      "niveau": "places_45_48",
+      "places": [
+        45,
+        48
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 247
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 248
+      }
+    },
+    {
+      "numero": 313,
+      "niveau": "places_49_52",
+      "places": [
+        49,
+        52
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 249
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 250
+      }
+    },
+    {
+      "numero": 314,
+      "niveau": "places_49_52",
+      "places": [
+        49,
+        52
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 251
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 252
+      }
+    },
+    {
+      "numero": 315,
+      "niveau": "places_53_56",
+      "places": [
+        53,
+        56
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 249
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 250
+      }
+    },
+    {
+      "numero": 316,
+      "niveau": "places_53_56",
+      "places": [
+        53,
+        56
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 251
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 252
+      }
+    },
+    {
+      "numero": 317,
+      "niveau": "places_57_60",
+      "places": [
+        57,
+        60
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 253
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 254
+      }
+    },
+    {
+      "numero": 318,
+      "niveau": "places_57_60",
+      "places": [
+        57,
+        60
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 255
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 256
+      }
+    },
+    {
+      "numero": 319,
+      "niveau": "places_61_64",
+      "places": [
+        61,
+        64
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 253
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 254
+      }
+    },
+    {
+      "numero": 320,
+      "niveau": "places_61_64",
+      "places": [
+        61,
+        64
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 255
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 256
+      }
+    },
+    {
+      "numero": 321,
+      "niveau": "places_65_68",
+      "places": [
+        65,
+        68
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 257
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 258
+      }
+    },
+    {
+      "numero": 322,
+      "niveau": "places_65_68",
+      "places": [
+        65,
+        68
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 259
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 260
+      }
+    },
+    {
+      "numero": 323,
+      "niveau": "places_69_72",
+      "places": [
+        69,
+        72
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 257
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 258
+      }
+    },
+    {
+      "numero": 324,
+      "niveau": "places_69_72",
+      "places": [
+        69,
+        72
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 259
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 260
+      }
+    },
+    {
+      "numero": 325,
+      "niveau": "places_73_76",
+      "places": [
+        73,
+        76
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 261
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 262
+      }
+    },
+    {
+      "numero": 326,
+      "niveau": "places_73_76",
+      "places": [
+        73,
+        76
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 263
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 264
+      }
+    },
+    {
+      "numero": 327,
+      "niveau": "places_77_80",
+      "places": [
+        77,
+        80
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 261
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 262
+      }
+    },
+    {
+      "numero": 328,
+      "niveau": "places_77_80",
+      "places": [
+        77,
+        80
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 263
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 264
+      }
+    },
+    {
+      "numero": 329,
+      "niveau": "places_81_84",
+      "places": [
+        81,
+        84
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 265
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 266
+      }
+    },
+    {
+      "numero": 330,
+      "niveau": "places_81_84",
+      "places": [
+        81,
+        84
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 267
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 268
+      }
+    },
+    {
+      "numero": 331,
+      "niveau": "places_85_88",
+      "places": [
+        85,
+        88
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 265
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 266
+      }
+    },
+    {
+      "numero": 332,
+      "niveau": "places_85_88",
+      "places": [
+        85,
+        88
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 267
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 268
+      }
+    },
+    {
+      "numero": 333,
+      "niveau": "places_89_92",
+      "places": [
+        89,
+        92
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 269
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 270
+      }
+    },
+    {
+      "numero": 334,
+      "niveau": "places_89_92",
+      "places": [
+        89,
+        92
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 271
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 272
+      }
+    },
+    {
+      "numero": 335,
+      "niveau": "places_93_96",
+      "places": [
+        93,
+        96
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 269
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 270
+      }
+    },
+    {
+      "numero": 336,
+      "niveau": "places_93_96",
+      "places": [
+        93,
+        96
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 271
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 272
+      }
+    },
+    {
+      "numero": 337,
+      "niveau": "places_97_100",
+      "places": [
+        97,
+        100
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 273
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 274
+      }
+    },
+    {
+      "numero": 338,
+      "niveau": "places_97_100",
+      "places": [
+        97,
+        100
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 275
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 276
+      }
+    },
+    {
+      "numero": 339,
+      "niveau": "places_101_104",
+      "places": [
+        101,
+        104
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 273
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 274
+      }
+    },
+    {
+      "numero": 340,
+      "niveau": "places_101_104",
+      "places": [
+        101,
+        104
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 275
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 276
+      }
+    },
+    {
+      "numero": 341,
+      "niveau": "places_105_108",
+      "places": [
+        105,
+        108
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 277
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 278
+      }
+    },
+    {
+      "numero": 342,
+      "niveau": "places_105_108",
+      "places": [
+        105,
+        108
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 279
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 280
+      }
+    },
+    {
+      "numero": 343,
+      "niveau": "places_109_112",
+      "places": [
+        109,
+        112
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 277
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 278
+      }
+    },
+    {
+      "numero": 344,
+      "niveau": "places_109_112",
+      "places": [
+        109,
+        112
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 279
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 280
+      }
+    },
+    {
+      "numero": 345,
+      "niveau": "places_113_116",
+      "places": [
+        113,
+        116
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 281
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 282
+      }
+    },
+    {
+      "numero": 346,
+      "niveau": "places_113_116",
+      "places": [
+        113,
+        116
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 283
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 284
+      }
+    },
+    {
+      "numero": 347,
+      "niveau": "places_117_120",
+      "places": [
+        117,
+        120
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 281
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 282
+      }
+    },
+    {
+      "numero": 348,
+      "niveau": "places_117_120",
+      "places": [
+        117,
+        120
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 283
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 284
+      }
+    },
+    {
+      "numero": 349,
+      "niveau": "places_121_124",
+      "places": [
+        121,
+        124
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 285
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 286
+      }
+    },
+    {
+      "numero": 350,
+      "niveau": "places_121_124",
+      "places": [
+        121,
+        124
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 287
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 288
+      }
+    },
+    {
+      "numero": 351,
+      "niveau": "places_125_128",
+      "places": [
+        125,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 285
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 286
+      }
+    },
+    {
+      "numero": 352,
+      "niveau": "places_125_128",
+      "places": [
+        125,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 287
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 288
+      }
+    },
+    {
+      "numero": 353,
+      "niveau": "finale",
+      "places": [
+        1,
+        2
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 289
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 290
+      }
+    },
+    {
+      "numero": 354,
+      "niveau": "places_3_4",
+      "places": [
+        3,
+        4
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 289
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 290
+      }
+    },
+    {
+      "numero": 355,
+      "niveau": "places_5_6",
+      "places": [
+        5,
+        6
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 291
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 292
+      }
+    },
+    {
+      "numero": 356,
+      "niveau": "places_7_8",
+      "places": [
+        7,
+        8
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 291
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 292
+      }
+    },
+    {
+      "numero": 357,
+      "niveau": "places_9_10",
+      "places": [
+        9,
+        10
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 293
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 294
+      }
+    },
+    {
+      "numero": 358,
+      "niveau": "places_11_12",
+      "places": [
+        11,
+        12
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 293
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 294
+      }
+    },
+    {
+      "numero": 359,
+      "niveau": "places_13_14",
+      "places": [
+        13,
+        14
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 295
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 296
+      }
+    },
+    {
+      "numero": 360,
+      "niveau": "places_15_16",
+      "places": [
+        15,
+        16
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 295
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 296
+      }
+    },
+    {
+      "numero": 361,
+      "niveau": "places_17_18",
+      "places": [
+        17,
+        18
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 297
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 298
+      }
+    },
+    {
+      "numero": 362,
+      "niveau": "places_19_20",
+      "places": [
+        19,
+        20
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 297
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 298
+      }
+    },
+    {
+      "numero": 363,
+      "niveau": "places_21_22",
+      "places": [
+        21,
+        22
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 299
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 300
+      }
+    },
+    {
+      "numero": 364,
+      "niveau": "places_23_24",
+      "places": [
+        23,
+        24
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 299
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 300
+      }
+    },
+    {
+      "numero": 365,
+      "niveau": "places_25_26",
+      "places": [
+        25,
+        26
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 301
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 302
+      }
+    },
+    {
+      "numero": 366,
+      "niveau": "places_27_28",
+      "places": [
+        27,
+        28
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 301
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 302
+      }
+    },
+    {
+      "numero": 367,
+      "niveau": "places_29_30",
+      "places": [
+        29,
+        30
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 303
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 304
+      }
+    },
+    {
+      "numero": 368,
+      "niveau": "places_31_32",
+      "places": [
+        31,
+        32
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 303
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 304
+      }
+    },
+    {
+      "numero": 369,
+      "niveau": "places_33_34",
+      "places": [
+        33,
+        34
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 305
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 306
+      }
+    },
+    {
+      "numero": 370,
+      "niveau": "places_35_36",
+      "places": [
+        35,
+        36
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 305
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 306
+      }
+    },
+    {
+      "numero": 371,
+      "niveau": "places_37_38",
+      "places": [
+        37,
+        38
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 307
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 308
+      }
+    },
+    {
+      "numero": 372,
+      "niveau": "places_39_40",
+      "places": [
+        39,
+        40
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 307
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 308
+      }
+    },
+    {
+      "numero": 373,
+      "niveau": "places_41_42",
+      "places": [
+        41,
+        42
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 309
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 310
+      }
+    },
+    {
+      "numero": 374,
+      "niveau": "places_43_44",
+      "places": [
+        43,
+        44
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 309
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 310
+      }
+    },
+    {
+      "numero": 375,
+      "niveau": "places_45_46",
+      "places": [
+        45,
+        46
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 311
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 312
+      }
+    },
+    {
+      "numero": 376,
+      "niveau": "places_47_48",
+      "places": [
+        47,
+        48
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 311
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 312
+      }
+    },
+    {
+      "numero": 377,
+      "niveau": "places_49_50",
+      "places": [
+        49,
+        50
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 313
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 314
+      }
+    },
+    {
+      "numero": 378,
+      "niveau": "places_51_52",
+      "places": [
+        51,
+        52
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 313
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 314
+      }
+    },
+    {
+      "numero": 379,
+      "niveau": "places_53_54",
+      "places": [
+        53,
+        54
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 315
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 316
+      }
+    },
+    {
+      "numero": 380,
+      "niveau": "places_55_56",
+      "places": [
+        55,
+        56
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 315
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 316
+      }
+    },
+    {
+      "numero": 381,
+      "niveau": "places_57_58",
+      "places": [
+        57,
+        58
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 317
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 318
+      }
+    },
+    {
+      "numero": 382,
+      "niveau": "places_59_60",
+      "places": [
+        59,
+        60
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 317
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 318
+      }
+    },
+    {
+      "numero": 383,
+      "niveau": "places_61_62",
+      "places": [
+        61,
+        62
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 319
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 320
+      }
+    },
+    {
+      "numero": 384,
+      "niveau": "places_63_64",
+      "places": [
+        63,
+        64
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 319
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 320
+      }
+    },
+    {
+      "numero": 385,
+      "niveau": "places_65_66",
+      "places": [
+        65,
+        66
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 321
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 322
+      }
+    },
+    {
+      "numero": 386,
+      "niveau": "places_67_68",
+      "places": [
+        67,
+        68
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 321
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 322
+      }
+    },
+    {
+      "numero": 387,
+      "niveau": "places_69_70",
+      "places": [
+        69,
+        70
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 323
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 324
+      }
+    },
+    {
+      "numero": 388,
+      "niveau": "places_71_72",
+      "places": [
+        71,
+        72
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 323
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 324
+      }
+    },
+    {
+      "numero": 389,
+      "niveau": "places_73_74",
+      "places": [
+        73,
+        74
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 325
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 326
+      }
+    },
+    {
+      "numero": 390,
+      "niveau": "places_75_76",
+      "places": [
+        75,
+        76
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 325
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 326
+      }
+    },
+    {
+      "numero": 391,
+      "niveau": "places_77_78",
+      "places": [
+        77,
+        78
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 327
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 328
+      }
+    },
+    {
+      "numero": 392,
+      "niveau": "places_79_80",
+      "places": [
+        79,
+        80
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 327
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 328
+      }
+    },
+    {
+      "numero": 393,
+      "niveau": "places_81_82",
+      "places": [
+        81,
+        82
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 329
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 330
+      }
+    },
+    {
+      "numero": 394,
+      "niveau": "places_83_84",
+      "places": [
+        83,
+        84
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 329
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 330
+      }
+    },
+    {
+      "numero": 395,
+      "niveau": "places_85_86",
+      "places": [
+        85,
+        86
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 331
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 332
+      }
+    },
+    {
+      "numero": 396,
+      "niveau": "places_87_88",
+      "places": [
+        87,
+        88
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 331
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 332
+      }
+    },
+    {
+      "numero": 397,
+      "niveau": "places_89_90",
+      "places": [
+        89,
+        90
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 333
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 334
+      }
+    },
+    {
+      "numero": 398,
+      "niveau": "places_91_92",
+      "places": [
+        91,
+        92
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 333
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 334
+      }
+    },
+    {
+      "numero": 399,
+      "niveau": "places_93_94",
+      "places": [
+        93,
+        94
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 335
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 336
+      }
+    },
+    {
+      "numero": 400,
+      "niveau": "places_95_96",
+      "places": [
+        95,
+        96
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 335
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 336
+      }
+    },
+    {
+      "numero": 401,
+      "niveau": "places_97_98",
+      "places": [
+        97,
+        98
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 337
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 338
+      }
+    },
+    {
+      "numero": 402,
+      "niveau": "places_99_100",
+      "places": [
+        99,
+        100
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 337
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 338
+      }
+    },
+    {
+      "numero": 403,
+      "niveau": "places_101_102",
+      "places": [
+        101,
+        102
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 339
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 340
+      }
+    },
+    {
+      "numero": 404,
+      "niveau": "places_103_104",
+      "places": [
+        103,
+        104
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 339
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 340
+      }
+    },
+    {
+      "numero": 405,
+      "niveau": "places_105_106",
+      "places": [
+        105,
+        106
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 341
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 342
+      }
+    },
+    {
+      "numero": 406,
+      "niveau": "places_107_108",
+      "places": [
+        107,
+        108
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 341
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 342
+      }
+    },
+    {
+      "numero": 407,
+      "niveau": "places_109_110",
+      "places": [
+        109,
+        110
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 343
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 344
+      }
+    },
+    {
+      "numero": 408,
+      "niveau": "places_111_112",
+      "places": [
+        111,
+        112
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 343
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 344
+      }
+    },
+    {
+      "numero": 409,
+      "niveau": "places_113_114",
+      "places": [
+        113,
+        114
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 345
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 346
+      }
+    },
+    {
+      "numero": 410,
+      "niveau": "places_115_116",
+      "places": [
+        115,
+        116
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 345
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 346
+      }
+    },
+    {
+      "numero": 411,
+      "niveau": "places_117_118",
+      "places": [
+        117,
+        118
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 347
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 348
+      }
+    },
+    {
+      "numero": 412,
+      "niveau": "places_119_120",
+      "places": [
+        119,
+        120
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 347
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 348
+      }
+    },
+    {
+      "numero": 413,
+      "niveau": "places_121_122",
+      "places": [
+        121,
+        122
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 349
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 350
+      }
+    },
+    {
+      "numero": 414,
+      "niveau": "places_123_124",
+      "places": [
+        123,
+        124
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 349
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 350
+      }
+    },
+    {
+      "numero": 415,
+      "niveau": "places_125_126",
+      "places": [
+        125,
+        126
+      ],
+      "participant_1": {
+        "type": "vainqueur",
+        "match": 351
+      },
+      "participant_2": {
+        "type": "vainqueur",
+        "match": 352
+      }
+    },
+    {
+      "numero": 416,
+      "niveau": "places_127_128",
+      "places": [
+        127,
+        128
+      ],
+      "participant_1": {
+        "type": "perdant",
+        "match": 351
+      },
+      "participant_2": {
+        "type": "perdant",
+        "match": 352
+      }
+    }
+  ],
+  "contraintes": [
+    {
+      "type": "rangs_match",
+      "cible": {
+        "type": "niveau",
+        "niveau": "barrage_2_3"
+      },
+      "rangs": [
+        2,
+        3
+      ]
+    },
+    {
+      "type": "poules_differentes",
+      "cible": {
+        "type": "niveau",
+        "numero": 1
+      }
+    },
+    {
+      "type": "poules_differentes",
+      "cible": {
+        "type": "niveau",
+        "numero": 2
+      }
+    },
+    {
+      "type": "poules_differentes",
+      "cible": {
+        "type": "niveau",
+        "numero": 3
+      }
+    },
+    {
+      "type": "poules_differentes",
+      "cible": {
+        "type": "niveau",
+        "numero": 4
+      }
+    },
+    {
+      "type": "poules_differentes",
+      "cible": {
+        "type": "niveau",
+        "numero": 5
+      }
+    },
+    {
+      "type": "clubs_differents",
+      "cible": {
+        "type": "niveau",
+        "numero": 1
+      }
+    },
+    {
+      "type": "clubs_differents",
+      "cible": {
+        "type": "niveau",
+        "numero": 2
+      }
+    },
+    {
+      "type": "rangs_meme_poule_interdits",
+      "cible": {
+        "type": "niveau",
+        "numero": 6
+      },
+      "rangs": [
+        1,
+        2
+      ]
+    },
+    {
+      "type": "rangs_meme_poule_interdits",
+      "cible": {
+        "type": "niveau",
+        "numero": 6
+      },
+      "rangs": [
+        3,
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 1
+      },
+      "rangs": [
+        1
+      ],
+      "poules": [
+        1
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 128
+      },
+      "rangs": [
+        1
+      ],
+      "poules": [
+        2
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 64
+      },
+      "rangs": [
+        1
+      ],
+      "poules": [
+        3,
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 65
+      },
+      "rangs": [
+        1
+      ],
+      "poules": [
+        3,
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 2
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 7
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 8
+      },
+      "rangs": [
+        1
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 9
+      },
+      "rangs": [
+        1
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 10
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 15
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 16
+      },
+      "rangs": [
+        1
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 17
+      },
+      "rangs": [
+        1
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 18
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 23
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 24
+      },
+      "rangs": [
+        1
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 25
+      },
+      "rangs": [
+        1
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 26
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 31
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 32
+      },
+      "rangs": [
+        1
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 33
+      },
+      "rangs": [
+        1
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 34
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 39
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 40
+      },
+      "rangs": [
+        1
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 41
+      },
+      "rangs": [
+        1
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 42
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 47
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 48
+      },
+      "rangs": [
+        1
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 49
+      },
+      "rangs": [
+        1
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 50
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 55
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 56
+      },
+      "rangs": [
+        1
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 57
+      },
+      "rangs": [
+        1
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 58
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 63
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 66
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 71
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 72
+      },
+      "rangs": [
+        1
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 73
+      },
+      "rangs": [
+        1
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 74
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 79
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 80
+      },
+      "rangs": [
+        1
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 81
+      },
+      "rangs": [
+        1
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 82
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 87
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 88
+      },
+      "rangs": [
+        1
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 89
+      },
+      "rangs": [
+        1
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 90
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 95
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 96
+      },
+      "rangs": [
+        1
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 97
+      },
+      "rangs": [
+        1
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 98
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 103
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 104
+      },
+      "rangs": [
+        1
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 105
+      },
+      "rangs": [
+        1
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 106
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 111
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 112
+      },
+      "rangs": [
+        1
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 113
+      },
+      "rangs": [
+        1
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 114
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 119
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 120
+      },
+      "rangs": [
+        1
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 121
+      },
+      "rangs": [
+        1
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 122
+      },
+      "rangs": [
+        4
+      ]
+    },
+    {
+      "type": "rangs_position",
+      "cible": {
+        "type": "position",
+        "numero": 127
+      },
+      "rangs": [
+        4
+      ]
+    }
+  ]
+}
