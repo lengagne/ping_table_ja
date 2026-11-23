@@ -24,6 +24,15 @@ TYPES_CONTRAINTES = (
     "rangs_participants",
 )
 
+LIBELLES_CONTRAINTES = {
+    "rangs_position": "Rang et poule autorisés à une position",
+    "poules_differentes": "Joueurs de poules différentes",
+    "clubs_differents": "Joueurs de clubs différents",
+    "rangs_meme_poule_interdits": "Retrouvailles de poule interdites",
+    "rangs_match": "Rangs imposés au match",
+    "rangs_participants": "Rangs imposés de chaque côté",
+}
+
 
 DESCRIPTIONS_CONTRAINTES = {
     "rangs_position": (
@@ -45,8 +54,10 @@ DESCRIPTIONS_CONTRAINTES = {
         "s'ils viennent de poules différentes.",
     ),
     "rangs_match": (
-        "Impose les deux rangs présents dans un match, sans imposer leur côté.",
-        "Exemple : rangs 1,4 — le match opposera un 1er à un 4e de poule.",
+        "Impose les deux rangs présents dans un match.",
+        "Exemple : 1,4 impose un 1er contre un 4e. "
+        "Cochez « ordre imposé » pour placer le premier rang côté participant 1 "
+        "et le second côté participant 2. Sans cette option, les deux côtés sont interchangeables.",
     ),
     "rangs_participants": (
         "Définit séparément les rangs autorisés pour le participant 1 et le participant 2.",
@@ -57,19 +68,26 @@ DESCRIPTIONS_CONTRAINTES = {
 
 DESCRIPTIONS_CIBLES = {
     "position": "La valeur de cible est le numéro de la position, par exemple 12.",
+    "positions": "Saisissez plusieurs positions séparées par des virgules : 2,7,10,15.",
     "match": "La valeur de cible est le numéro d'un match, par exemple 7.",
     "matchs": "Saisissez plusieurs numéros de matchs séparés par des virgules : 3,7,12.",
     "niveau": (
         "Choisissez la colonne graphique complète : Niveau 1, Niveau 2, etc. "
         "Le champ « Matchs exclus » permet de surcharger la règle pour certains matchs."
     ),
+    "niveaux": (
+        "Saisissez plusieurs colonnes graphiques séparées par des virgules : 1,2,3. "
+        "Une seule règle sera appliquée à tous les matchs de ces niveaux."
+    ),
 }
 
 LIBELLES_CIBLES = {
     "position": "Position",
+    "positions": "Plusieurs positions",
     "match": "Un seul match",
     "matchs": "Plusieurs matchs",
     "niveau": "Niveau complet",
+    "niveaux": "Plusieurs niveaux",
 }
 TYPES_CIBLES_PAR_LIBELLE = {libelle: cle for cle, libelle in LIBELLES_CIBLES.items()}
 
@@ -197,6 +215,14 @@ def indices_contraintes_du_match(match, contraintes, profondeur=None):
             and int(match["numero"]) not in {
                 int(numero) for numero in cible.get("exclusions_matchs", [])
             }
+        ) or (
+            cible.get("type") == "niveaux"
+            and profondeur in {
+                int(numero) for numero in cible.get("numeros", [])
+            }
+            and int(match["numero"]) not in {
+                int(numero) for numero in cible.get("exclusions_matchs", [])
+            }
         )
         if correspond:
             resultat.append(index)
@@ -207,8 +233,17 @@ def indices_contraintes_de_position(numero_position, contraintes):
     return [
         index
         for index, contrainte in enumerate(contraintes)
-        if contrainte.get("cible", {}).get("type") == "position"
-        and int(contrainte.get("cible", {}).get("numero", 0)) == int(numero_position)
+        if (
+            contrainte.get("cible", {}).get("type") == "position"
+            and int(contrainte.get("cible", {}).get("numero", 0))
+            == int(numero_position)
+        ) or (
+            contrainte.get("cible", {}).get("type") == "positions"
+            and int(numero_position) in {
+                int(numero)
+                for numero in contrainte.get("cible", {}).get("numeros", [])
+            }
+        )
     ]
 
 
@@ -339,19 +374,23 @@ class DialogueContrainte(_DialogueBase):
         self.resizable(True, True)
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
-        self.corps.rowconfigure(8, weight=1)
+        self.corps.rowconfigure(10, weight=1)
         contrainte = contrainte or {}
         cible = contrainte.get("cible", cible_initiale or {})
         type_par_defaut = (
-            "rangs_position" if cible.get("type") == "position" else "poules_differentes"
+            "rangs_position"
+            if cible.get("type") in ("position", "positions")
+            else "poules_differentes"
         )
+        self.nom = tk.StringVar(value=str(contrainte.get("nom", "")))
         self.type_contrainte = tk.StringVar(
             value=contrainte.get("type", type_par_defaut)
         )
         self.type_cible = tk.StringVar(value=cible.get("type", "match"))
         self.type_cible_affiche = tk.StringVar(
-            value=LIBELLES_CIBLES[self.type_cible.get()]
+            value=LIBELLES_CIBLES.get(self.type_cible.get(), "Un seul match")
         )
+        self.ordonne = tk.BooleanVar(value=bool(contrainte.get("ordonne", False)))
         self.exclusions_matchs = list(cible.get("exclusions_matchs", []))
         self.exclusions_var = tk.StringVar(
             value=",".join(str(numero) for numero in self.exclusions_matchs)
@@ -360,6 +399,8 @@ class DialogueContrainte(_DialogueBase):
         if cible.get("type") == "niveau" and "numero" in cible:
             valeur_cible = "Niveau {}".format(cible["numero"])
         if cible.get("type") == "matchs":
+            valeur_cible = ",".join(str(n) for n in cible.get("numeros", []))
+        if cible.get("type") in ("positions", "niveaux"):
             valeur_cible = ",".join(str(n) for n in cible.get("numeros", []))
         self.valeur_cible = tk.StringVar(value=str(valeur_cible))
         self.rangs = tk.StringVar(
@@ -374,24 +415,32 @@ class DialogueContrainte(_DialogueBase):
         self.rangs_2 = tk.StringVar(
             value=",".join(str(v) for v in contrainte.get("participant_2", []))
         )
-        ttk.Label(self.corps, text="Type").grid(row=0, column=0, sticky="w", pady=4)
+        ttk.Label(self.corps, text="Nom de la règle").grid(
+            row=0, column=0, sticky="w", pady=4
+        )
+        ttk.Entry(self.corps, textvariable=self.nom, width=46).grid(
+            row=0, column=1, padx=(12, 0), pady=4, sticky="ew"
+        )
+        ttk.Label(self.corps, text="Type technique").grid(
+            row=1, column=0, sticky="w", pady=4
+        )
         ttk.Combobox(
             self.corps, textvariable=self.type_contrainte, values=TYPES_CONTRAINTES,
             state="readonly", width=30,
-        ).grid(row=0, column=1, padx=(12, 0), pady=4, sticky="ew")
-        ttk.Label(self.corps, text="Cible").grid(row=1, column=0, sticky="w", pady=4)
+        ).grid(row=1, column=1, padx=(12, 0), pady=4, sticky="ew")
+        ttk.Label(self.corps, text="Cible").grid(row=2, column=0, sticky="w", pady=4)
         ttk.Combobox(
             self.corps,
             textvariable=self.type_cible_affiche,
             values=tuple(LIBELLES_CIBLES.values()),
             state="readonly", width=30,
-        ).grid(row=1, column=1, padx=(12, 0), pady=4, sticky="ew")
+        ).grid(row=2, column=1, padx=(12, 0), pady=4, sticky="ew")
         self.libelle_cible = ttk.Label(self.corps, text="Cible")
-        self.libelle_cible.grid(row=2, column=0, sticky="w", pady=4)
+        self.libelle_cible.grid(row=3, column=0, sticky="w", pady=4)
         self.entree_cible = ttk.Combobox(
             self.corps, textvariable=self.valeur_cible, width=33
         )
-        self.entree_cible.grid(row=2, column=1, padx=(12, 0), pady=4, sticky="ew")
+        self.entree_cible.grid(row=3, column=1, padx=(12, 0), pady=4, sticky="ew")
         champs = (
             ("Rangs du match", self.rangs),
             ("Poules autorisées", self.poules),
@@ -400,7 +449,7 @@ class DialogueContrainte(_DialogueBase):
             ("Matchs exclus du niveau", self.exclusions_var),
         )
         self.entrees_parametres = []
-        for ligne, (libelle, variable) in enumerate(champs, start=3):
+        for ligne, (libelle, variable) in enumerate(champs, start=4):
             etiquette = ttk.Label(self.corps, text=libelle)
             etiquette.grid(row=ligne, column=0, sticky="w", pady=4)
             entree = ttk.Entry(self.corps, textvariable=variable, width=33)
@@ -410,8 +459,16 @@ class DialogueContrainte(_DialogueBase):
             self.entrees_parametres.append((variable, etiquette, entree))
             if variable is self.rangs:
                 self.etiquette_rangs = etiquette
+        self.case_ordre = ttk.Checkbutton(
+            self.corps,
+            text="Ordre imposé : 1er rang côté participant 1, 2e rang côté participant 2",
+            variable=self.ordonne,
+        )
+        self.case_ordre.grid(
+            row=9, column=0, columnspan=2, sticky="w", pady=(6, 0)
+        )
         cadre_aide = ttk.LabelFrame(self.corps, text="Comment remplir cette contrainte", padding=10)
-        cadre_aide.grid(row=8, column=0, columnspan=2, sticky="ew", pady=(12, 0))
+        cadre_aide.grid(row=10, column=0, columnspan=2, sticky="ew", pady=(12, 0))
         self.aide_var = tk.StringVar()
         ttk.Label(
             cadre_aide,
@@ -443,9 +500,11 @@ class DialogueContrainte(_DialogueBase):
         matchs = getattr(self.parent_dialogue, "donnees", {}).get("matchs", [])
         libelles = {
             "position": "Numéro de position",
+            "positions": "Numéros des positions",
             "match": "Numéro du match",
             "matchs": "Numéros des matchs",
             "niveau": "Niveau du tableau",
+            "niveaux": "Numéros des niveaux",
         }
         self.libelle_cible.configure(text=libelles[type_cible])
         if type_cible == "niveau":
@@ -485,7 +544,10 @@ class DialogueContrainte(_DialogueBase):
         }.get(type_contrainte, [])
         for variable, etiquette, entree in self.entrees_parametres:
             visible = (
-                (variable is self.exclusions_var and type_cible == "niveau")
+                (
+                    variable is self.exclusions_var
+                    and type_cible in ("niveau", "niveaux")
+                )
                 or any(variable is active for active in champs_actifs)
             )
             if visible:
@@ -494,6 +556,10 @@ class DialogueContrainte(_DialogueBase):
             else:
                 etiquette.grid_remove()
                 entree.grid_remove()
+        if type_contrainte == "rangs_match":
+            self.case_ordre.grid()
+        else:
+            self.case_ordre.grid_remove()
 
     def _valider(self):
         try:
@@ -506,6 +572,10 @@ class DialogueContrainte(_DialogueBase):
                 cible["numero"] = int(valeur)
             elif type_cible == "position":
                 cible["numero"] = int(valeur)
+            elif type_cible in ("positions", "niveaux"):
+                cible["numeros"] = sorted(set(
+                    _liste_entiers(valeur, obligatoire=True)
+                ))
             elif type_cible == "matchs":
                 numeros = _liste_entiers(valeur, obligatoire=True)
                 matchs = {
@@ -530,11 +600,28 @@ class DialogueContrainte(_DialogueBase):
                 exclusions = _liste_entiers(self.exclusions_var.get())
                 if exclusions:
                     cible["exclusions_matchs"] = sorted(set(exclusions))
+            if type_cible == "niveaux":
+                exclusions = _liste_entiers(self.exclusions_var.get())
+                if exclusions:
+                    cible["exclusions_matchs"] = sorted(set(exclusions))
             resultat = {"type": self.type_contrainte.get(), "cible": cible}
-            if resultat["type"] == "rangs_position" and type_cible != "position":
-                raise ValueError("La contrainte rangs_position doit cibler une position")
-            if type_cible == "position" and resultat["type"] != "rangs_position":
-                raise ValueError("Une position accepte actuellement une contrainte de rang")
+            nom = self.nom.get().strip()
+            if nom:
+                resultat["nom"] = nom
+            if (
+                resultat["type"] == "rangs_position"
+                and type_cible not in ("position", "positions")
+            ):
+                raise ValueError(
+                    "La contrainte rangs_position doit cibler une ou plusieurs positions"
+                )
+            if (
+                type_cible in ("position", "positions")
+                and resultat["type"] != "rangs_position"
+            ):
+                raise ValueError(
+                    "Une position accepte actuellement une contrainte de rang"
+                )
             if resultat["type"] in (
                 "rangs_match", "rangs_position", "rangs_meme_poule_interdits"
             ):
@@ -544,6 +631,8 @@ class DialogueContrainte(_DialogueBase):
                 ) and len(rangs) != 2:
                     raise ValueError("Indiquez exactement deux rangs")
                 resultat["rangs"] = rangs
+                if resultat["type"] == "rangs_match" and self.ordonne.get():
+                    resultat["ordonne"] = True
                 if resultat["type"] == "rangs_position":
                     poules = _liste_entiers(self.poules.get())
                     if poules:
@@ -653,8 +742,8 @@ class EditeurConfiguration(tk.Toplevel):
         self.table_contraintes = self._construire_liste(
             self.onglet_contraintes,
             ("type", "cible", "parametres"),
-            ("Type", "Cible", "Paramètres"),
-            (230, 180, 420),
+            ("Règle", "Cible", "Paramètres"),
+            (330, 200, 360),
             self._ajouter_contrainte, self._modifier_contrainte, self._supprimer_contrainte,
         )
         self._construire_visualisation()
@@ -820,9 +909,9 @@ class EditeurConfiguration(tk.Toplevel):
             show="headings",
             selectmode="browse",
         )
-        self.table_contraintes_visu.heading("type", text="Type")
+        self.table_contraintes_visu.heading("type", text="Règle")
         self.table_contraintes_visu.heading("cible", text="Cible")
-        self.table_contraintes_visu.column("type", width=185, minwidth=130)
+        self.table_contraintes_visu.column("type", width=260, minwidth=170)
         self.table_contraintes_visu.column("cible", width=130, minwidth=90)
         self.table_contraintes_visu.grid(row=1, column=0, sticky="nsew")
         barre_contraintes = ttk.Scrollbar(
@@ -1509,7 +1598,11 @@ class EditeurConfiguration(tk.Toplevel):
                 texte += " ; poules : {}".format(", ".join(map(str, poules)))
             return texte
         if type_contrainte == "rangs_match":
-            return "Rangs : {}".format(", ".join(map(str, contrainte.get("rangs", []))))
+            texte = "Rangs : {}".format(
+                ", ".join(map(str, contrainte.get("rangs", [])))
+            )
+            texte += " ; ordre imposé" if contrainte.get("ordonne") else " ; côtés libres"
+            return texte
         if type_contrainte == "rangs_meme_poule_interdits":
             return "Même poule interdite pour les rangs : {}".format(
                 ", ".join(map(str, contrainte.get("rangs", [])))
@@ -1526,6 +1619,11 @@ class EditeurConfiguration(tk.Toplevel):
         type_cible = cible.get("type")
         if type_cible == "position":
             texte = "Position {}".format(cible.get("numero", ""))
+        elif type_cible == "positions":
+            numeros = [int(numero) for numero in cible.get("numeros", [])]
+            texte = "{} positions : {}".format(
+                len(numeros), ", ".join(map(str, numeros))
+            )
         elif type_cible == "match":
             texte = "Directe : match {}".format(cible.get("numero", ""))
         elif type_cible == "matchs":
@@ -1547,6 +1645,12 @@ class EditeurConfiguration(tk.Toplevel):
                 texte = "{} {} (ancienne notation)".format(
                     prefixe, cible.get("niveau", "")
                 )
+        elif type_cible == "niveaux":
+            prefixe = "Héritée des niveaux" if contexte_visualisation else "Niveaux"
+            texte = "{} {}".format(
+                prefixe,
+                ", ".join(map(str, cible.get("numeros", []))),
+            )
         else:
             texte = "Cible inconnue"
         exclusions = cible.get("exclusions_matchs", [])
@@ -1561,7 +1665,10 @@ class EditeurConfiguration(tk.Toplevel):
         for index, contrainte in enumerate(self.donnees.get("contraintes", [])):
             texte_cible = self._texte_cible_contrainte(contrainte)
             self.table_contraintes.insert("", "end", iid=str(index), values=(
-                contrainte.get("type", ""),
+                contrainte.get("nom")
+                or LIBELLES_CONTRAINTES.get(
+                    contrainte.get("type", ""), contrainte.get("type", "")
+                ),
                 texte_cible,
                 self._description_contrainte(contrainte),
             ))
@@ -1589,7 +1696,13 @@ class EditeurConfiguration(tk.Toplevel):
                 "",
                 "end",
                 iid=str(index),
-                values=(contrainte.get("type", ""), texte_cible),
+                values=(
+                    contrainte.get("nom")
+                    or LIBELLES_CONTRAINTES.get(
+                        contrainte.get("type", ""), contrainte.get("type", "")
+                    ),
+                    texte_cible,
+                ),
             )
 
     def _rafraichir_json(self):
@@ -1679,13 +1792,43 @@ class EditeurConfiguration(tk.Toplevel):
             and table is self.table_contraintes_visu
             and self.cible_visualisation
         )
-        if depuis_visualisation and cible.get("type") == "niveau":
+        if depuis_visualisation and cible.get("type") == "positions":
+            position = int((self.cible_visualisation or {}).get("numero", 0))
+            actuelles = [int(numero) for numero in cible.get("numeros", [])]
+            restantes = [numero for numero in actuelles if numero != position]
+            if position in actuelles and messagebox.askyesno(
+                "Retirer une position",
+                "Retirer cette contrainte groupée de la position {} ?".format(position),
+                parent=self,
+            ):
+                if restantes:
+                    cible["numeros"] = restantes
+                else:
+                    del self.donnees["contraintes"][index]
+                self._rafraichir_tout()
+            return
+        if depuis_visualisation and cible.get("type") in ("niveau", "niveaux"):
             numeros = self._numeros_matchs_cible_visualisation()
             matchs = {
                 int(match["numero"]): match for match in self.donnees.get("matchs", [])
             }
             profondeurs = calculer_profondeurs_matchs(self.donnees.get("matchs", []))
-            if "numero" in cible:
+            if cible.get("type") == "niveaux":
+                niveaux_cibles = {
+                    int(numero) for numero in cible.get("numeros", [])
+                }
+                numeros = [
+                    numero for numero in numeros
+                    if profondeurs.get(numero) in niveaux_cibles
+                ]
+                numeros_niveau = {
+                    numero for numero, profondeur in profondeurs.items()
+                    if profondeur in niveaux_cibles
+                }
+                description_niveau = "niveaux {}".format(
+                    ", ".join(map(str, sorted(niveaux_cibles)))
+                )
+            elif "numero" in cible:
                 niveau = int(cible["numero"])
                 numeros = [numero for numero in numeros if profondeurs.get(numero) == niveau]
                 numeros_niveau = {

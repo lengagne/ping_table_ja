@@ -158,15 +158,18 @@ def generer_configuration_standard(
             perdants = [{"type": "perdant", "match": numero} for numero in numeros]
             classer(perdants, premiere_place + len(numeros), True)
 
-    def imposer_rangs_matchs(numeros_matchs, rang_1, rang_2):
+    def imposer_rangs_matchs(numeros_matchs, rang_1, rang_2, nom):
         contraintes.append({
+            "nom": nom,
             "type": "rangs_match",
             "cible": {"type": "matchs", "numeros": list(numeros_matchs)},
             "rangs": [rang_1, rang_2],
+            "ordonne": True,
         })
 
-    def imposer_rangs_participants_niveau(niveau, rangs_1, rangs_2):
+    def imposer_rangs_participants_niveau(niveau, rangs_1, rangs_2, nom):
         contraintes.append({
+            "nom": nom,
             "type": "rangs_participants",
             "cible": {"type": "niveau", "niveau": niveau},
             "participant_1": list(rangs_1),
@@ -201,8 +204,14 @@ def generer_configuration_standard(
                 (matchs_1_4 if type_barrage == "1_4" else matchs_2_3).append(
                     numero_match
                 )
-        imposer_rangs_matchs(matchs_1_4, 1, 4)
-        imposer_rangs_matchs(matchs_2_3, 2, 3)
+        imposer_rangs_matchs(
+            matchs_1_4, 1, 4,
+            "Barrages : le participant 1 est 1er, le participant 2 est 4e",
+        )
+        imposer_rangs_matchs(
+            matchs_2_3, 2, 3,
+            "Barrages : le participant 1 est 2e, le participant 2 est 3e",
+        )
         continuer_apres_premier_tour(
             premiers_matchs, 1, bool(classement_integral)
         )
@@ -243,13 +252,21 @@ def generer_configuration_standard(
 
         contraintes.extend([
             {
+                "nom": "Barrages : le participant 1 est 2e, le participant 2 est 3e",
                 "type": "rangs_match",
                 "cible": {"type": "niveau", "niveau": "barrage_2_3"},
                 "rangs": [2, 3],
+                "ordonne": True,
             },
         ])
-        imposer_rangs_participants_niveau(niveau_superieur, [1], [2, 3])
-        imposer_rangs_participants_niveau(niveau_inferieur, [2, 3], [4])
+        imposer_rangs_participants_niveau(
+            niveau_superieur, [1], [2, 3],
+            "Tableau haut : un 1er contre le vainqueur d'un barrage",
+        )
+        imposer_rangs_participants_niveau(
+            niveau_inferieur, [2, 3], [4],
+            "Tableau bas : le perdant d'un barrage contre un 4e",
+        )
 
         continuer_apres_premier_tour(
             matchs_superieurs, 1, bool(classement_integral)
