@@ -23,6 +23,7 @@ from .excel import (
     lire_classement,
     mettre_a_jour_tirage_choisi,
 )
+from .solveur_bissection import resoudre_par_bissection
 from .solveur import resoudre_plusieurs
 
 
@@ -98,6 +99,7 @@ class Application(ttk.Frame):
         self.parent = parent
         self.config_var = tk.StringVar()
         self.excel_var = tk.StringVar()
+        self.methode_calcul_var = tk.StringVar(value="rapide")
         self.statut_var = tk.StringVar(value="Sélectionnez un fichier Excel pour commencer.")
         self.detail_configuration_var = tk.StringVar(value="—")
         self.detail_excel_var = tk.StringVar(value="—")
@@ -182,32 +184,55 @@ class Application(ttk.Frame):
         for colonne in range(5):
             cadre_actions.columnconfigure(colonne, weight=1)
 
+        cadre_methodes = ttk.LabelFrame(
+            cadre_actions, text="Méthode de résolution", padding=(10, 6)
+        )
+        cadre_methodes.grid(
+            row=0, column=0, columnspan=5, sticky="ew", pady=(0, 10)
+        )
+        cadre_methodes.columnconfigure(0, weight=1)
+        cadre_methodes.columnconfigure(1, weight=1)
+        self.bouton_methode_rapide = ttk.Radiobutton(
+            cadre_methodes,
+            text="Rapide — retour arrière aléatoire",
+            variable=self.methode_calcul_var,
+            value="rapide",
+        )
+        self.bouton_methode_rapide.grid(row=0, column=0, sticky="w", padx=(0, 16))
+        self.bouton_methode_intelligente = ttk.Radiobutton(
+            cadre_methodes,
+            text="Intelligent — Hall + séparation 1/reste",
+            variable=self.methode_calcul_var,
+            value="intelligent",
+        )
+        self.bouton_methode_intelligente.grid(row=0, column=1, sticky="w")
+
         self.bouton_une_solution = ttk.Button(
             cadre_actions,
-            text="Rapide : 1 solution",
+            text="Calculer 1 solution",
             style="Accent.TButton",
             command=lambda: self._demarrer_calcul(mode="une"),
         )
-        self.bouton_une_solution.grid(row=0, column=0, sticky="ew", padx=(0, 6), ipady=7)
+        self.bouton_une_solution.grid(row=1, column=0, sticky="ew", padx=(0, 6), ipady=7)
         self.bouton_n_solutions = ttk.Button(
             cadre_actions,
-            text="Rapide : N solutions",
+            text="Calculer N solutions",
             command=lambda: self._demarrer_calcul(mode="nombre"),
         )
-        self.bouton_n_solutions.grid(row=0, column=1, sticky="ew", padx=6, ipady=7)
+        self.bouton_n_solutions.grid(row=1, column=1, sticky="ew", padx=6, ipady=7)
         self.bouton_toutes_solutions = ttk.Button(
             cadre_actions,
-            text="Intelligent : tout évaluer",
+            text="Calculer toutes les solutions",
             command=lambda: self._demarrer_calcul(mode="toutes"),
         )
-        self.bouton_toutes_solutions.grid(row=0, column=2, sticky="ew", padx=6, ipady=7)
+        self.bouton_toutes_solutions.grid(row=1, column=2, sticky="ew", padx=6, ipady=7)
         self.bouton_solution_aleatoire = ttk.Button(
             cadre_actions,
             text="Choisir une solution aléatoire",
             command=self._choisir_solution_aleatoire,
             state="disabled",
         )
-        self.bouton_solution_aleatoire.grid(row=0, column=3, sticky="ew", padx=(6, 0), ipady=7)
+        self.bouton_solution_aleatoire.grid(row=1, column=3, sticky="ew", padx=(6, 0), ipady=7)
         self.bouton_creer_excel = ttk.Button(
             cadre_actions,
             text="Créer le fichier Excel de solution",
@@ -215,16 +240,16 @@ class Application(ttk.Frame):
             state="disabled",
         )
         self.bouton_creer_excel.grid(
-            row=0, column=4, sticky="ew", padx=(6, 0), ipady=7
+            row=1, column=4, sticky="ew", padx=(6, 0), ipady=7
         )
         ttk.Label(
             cadre_actions,
             text=(
-                "Rapide : explore une partie aléatoire des tirages.  "
-                "Intelligent : recherche exhaustive, plus longue, sans solution omise."
+                "La méthode choisie s'applique à l'objectif 1, N ou toutes.  "
+                "Le mode intelligent contracte les domaines puis fixe un candidat en priorité."
             ),
             wraplength=1000,
-        ).grid(row=1, column=0, columnspan=5, sticky="w", pady=(8, 0))
+        ).grid(row=2, column=0, columnspan=5, sticky="w", pady=(8, 0))
         self.progression = ttk.Progressbar(self, mode="indeterminate")
         self.progression.grid(row=8, column=0, columnspan=2, sticky="ew", pady=(14, 8))
         cadre_statut = ttk.Frame(self)
@@ -337,6 +362,9 @@ class Application(ttk.Frame):
             dernier = Path(donnees.get("dernier_fichier_configuration", ""))
             if dernier.is_file():
                 configuration = dernier
+            methode = donnees.get("methode_calcul", "rapide")
+            if methode in ("rapide", "intelligent"):
+                self.methode_calcul_var.set(methode)
         except (OSError, ValueError, TypeError):
             pass
         self.config_var.set(str(configuration))
@@ -346,7 +374,8 @@ class Application(ttk.Frame):
         try:
             PREFERENCES.parent.mkdir(parents=True, exist_ok=True)
             PREFERENCES.write_text(json.dumps({
-                "dernier_fichier_configuration": self.config_var.get()
+                "dernier_fichier_configuration": self.config_var.get(),
+                "methode_calcul": self.methode_calcul_var.get(),
             }, ensure_ascii=False, indent=2), encoding="utf-8")
         except OSError:
             # L'application reste utilisable même si le dossier personnel
@@ -654,9 +683,38 @@ class Application(ttk.Frame):
     @staticmethod
     def _description_statistiques(statistiques, limite=None):
         solutions = int(statistiques.get("solutions", 0))
+        objectif = " / {}".format(limite) if limite is not None else ""
+        if "boites_explorees" in statistiques:
+            boites = int(statistiques.get("boites_explorees", 0))
+            rejetees = int(statistiques.get("boites_rejetees", 0))
+            bissections = int(statistiques.get("bissections", 0))
+            reductions = int(statistiques.get("reductions_domaines", 0))
+            reductions_hall = int(statistiques.get("reductions_hall", 0))
+            return (
+                "{boites} boîte{pluriel_boites} explorée{pluriel_boites}, "
+                "{rejetees} écartée{pluriel_rejetees}, "
+                "{bissections} séparation{pluriel_bissections} 1/reste, "
+                "{reductions} valeur{pluriel_reductions} retirée{pluriel_reductions} "
+                "des domaines, dont {reductions_hall} par Hall, "
+                "{solutions}{objectif} solution{pluriel_solutions} "
+                "trouvée{pluriel_solutions}."
+            ).format(
+                boites="{:,}".format(boites).replace(",", " "),
+                pluriel_boites="s" if boites != 1 else "",
+                rejetees="{:,}".format(rejetees).replace(",", " "),
+                pluriel_rejetees="s" if rejetees != 1 else "",
+                bissections="{:,}".format(bissections).replace(",", " "),
+                pluriel_bissections="s" if bissections != 1 else "",
+                reductions="{:,}".format(reductions).replace(",", " "),
+                pluriel_reductions="s" if reductions != 1 else "",
+                reductions_hall="{:,}".format(reductions_hall).replace(",", " "),
+                solutions=solutions,
+                objectif=objectif,
+                pluriel_solutions="s" if solutions != 1 else "",
+            )
+
         branches = int(statistiques.get("candidats_testes", 0))
         branches_texte = "{:,}".format(branches).replace(",", " ")
-        objectif = " / {}".format(limite) if limite is not None else ""
         return (
             "{} branche{} évaluée{}, profondeur {}/{}, "
             "{}{} solution{} trouvée{}."
@@ -675,6 +733,10 @@ class Application(ttk.Frame):
     def _demarrer_calcul(self, mode):
         configuration = Path(self.config_var.get()).expanduser()
         excel = Path(self.excel_var.get()).expanduser()
+        methode = self.methode_calcul_var.get()
+        if methode not in ("rapide", "intelligent"):
+            methode = "rapide"
+            self.methode_calcul_var.set(methode)
         if not configuration.is_file():
             messagebox.showerror("Configuration manquante", "Sélectionnez un fichier de configuration valide.")
             return
@@ -685,22 +747,26 @@ class Application(ttk.Frame):
         limite = None
         if mode == "nombre":
             limite = simpledialog.askinteger(
-                "Aperçu rapide",
-                "Combien de solutions faut-il inclure dans l'aperçu rapide ?",
+                "Nombre de solutions",
+                "Après combien de solutions faut-il arrêter automatiquement le calcul ?",
                 initialvalue=10,
                 minvalue=1,
                 parent=self.parent,
             )
             if limite is None:
                 return
+        nom_methode = {
+            "rapide": "rapide par retour arrière aléatoire",
+            "intelligent": "intelligente par contraction de Hall et séparation 1/reste",
+        }[methode]
         if mode == "toutes" and not messagebox.askyesno(
-            "Calcul intelligent et exhaustif",
+            "Calcul exhaustif",
             (
-                "Ce mode évalue tout l'espace de recherche et ne laisse aucune solution de côté.\n\n"
-                "Il peut être très long et utiliser beaucoup de mémoire, surtout pour les grands tableaux. "
+                "La méthode {} va énumérer toutes les solutions.\n\n"
+                "Ce calcul peut être très long et utiliser beaucoup de mémoire, surtout pour les grands tableaux. "
                 "Vous pourrez arrêter le calcul en conservant les solutions déjà trouvées.\n\n"
                 "Continuer ?"
-            ),
+            ).format(nom_methode),
         ):
             return
 
@@ -710,31 +776,38 @@ class Application(ttk.Frame):
         self.bouton_une_solution.state(["disabled"])
         self.bouton_toutes_solutions.state(["disabled"])
         self.bouton_n_solutions.state(["disabled"])
+        self.bouton_methode_rapide.state(["disabled"])
+        self.bouton_methode_intelligente.state(["disabled"])
         self.bouton_arreter.state(["!disabled"])
         self.progression.start(12)
         self._reinitialiser_progression()
-        messages = {
-            "une": "exploration rapide pour trouver une solution.",
-            "toutes": "préparation de la recherche exhaustive.",
-            "nombre": "exploration rapide pour prévisualiser {} solutions.".format(limite),
+        objectifs = {
+            "une": "arrêt à la première solution",
+            "toutes": "énumération exhaustive de toutes les solutions",
+            "nombre": "arrêt automatique après {} solutions".format(limite),
         }
-        noms_modes = {
-            "une": "Rapide — aperçu limité à une solution",
-            "toutes": "Intelligent — recherche exhaustive de toutes les solutions",
-            "nombre": "Rapide — aperçu aléatoire limité à {} solutions".format(limite),
+        noms_methodes = {
+            "rapide": "Rapide — retour arrière aléatoire",
+            "intelligent": "Intelligent — contraction de Hall et séparation 1/reste",
         }
         self.detail_configuration_var.set(str(configuration))
         self.detail_excel_var.set(str(excel))
-        self.detail_mode_var.set(noms_modes[mode])
-        self._mettre_a_jour_etape("preparation", "Préparation", messages[mode])
+        self.detail_mode_var.set(
+            "{} ; {}".format(noms_methodes[methode], objectifs[mode])
+        )
+        self._mettre_a_jour_etape(
+            "preparation",
+            "Préparation",
+            "méthode {} ; {}.".format(nom_methode, objectifs[mode]),
+        )
         self.onglets.select(self.onglet_details)
         threading.Thread(
             target=self._calculer,
-            args=(configuration, excel, mode, limite),
+            args=(configuration, excel, methode, mode, limite),
             daemon=True,
         ).start()
 
-    def _calculer(self, chemin_configuration, chemin_excel, mode, limite):
+    def _calculer(self, chemin_configuration, chemin_excel, methode, mode, limite):
         try:
             debut = time.monotonic()
             self.parent.after(
@@ -790,17 +863,22 @@ class Application(ttk.Frame):
             )
 
             limite_recherche = 1 if mode == "une" else limite
-            mode_rapide = mode in ("une", "nombre")
-            if mode_rapide:
-                description_resolution = "exploration aléatoire limitée à {} solution{}.".format(
-                    limite_recherche,
-                    "s" if limite_recherche and limite_recherche > 1 else "",
-                )
+            if limite_recherche is None:
+                objectif_resolution = "énumération exhaustive de toutes les solutions"
             else:
-                description_resolution = "exploration exhaustive de toutes les solutions."
-            titre_resolution = (
-                "Résolution rapide" if mode_rapide else "Résolution exhaustive"
-            )
+                objectif_resolution = "arrêt automatique après {} solution{}".format(
+                    limite_recherche, "s" if limite_recherche > 1 else ""
+                )
+            if methode == "intelligent":
+                titre_resolution = "Résolution intelligente"
+                description_resolution = (
+                    "contraction de Hall et séparation 1/reste avec jusqu'à 8 régions ; {}."
+                ).format(objectif_resolution)
+            else:
+                titre_resolution = "Résolution rapide"
+                description_resolution = (
+                    "retour arrière avec ordre aléatoire des candidats ; {}."
+                ).format(objectif_resolution)
             self.parent.after(
                 0,
                 self._mettre_a_jour_etape,
@@ -826,19 +904,30 @@ class Application(ttk.Frame):
                     "resolution",
                     titre_resolution,
                     self._description_statistiques(
-                        statistiques, limite_recherche if mode_rapide else None
+                        statistiques, limite_recherche
                     ),
                 )
 
-            solutions, recherche_terminee = resoudre_plusieurs(
-                joueurs,
-                configuration.contraintes,
-                configuration.nombre_positions,
-                limite=limite_recherche,
-                arreter=self.arret_calcul.is_set,
-                melanger_candidats=mode_rapide,
-                notifier_statistiques=notifier_statistiques,
-            )
+            if methode == "intelligent":
+                solutions, recherche_terminee = resoudre_par_bissection(
+                    joueurs,
+                    configuration.contraintes,
+                    configuration.nombre_positions,
+                    limite=limite_recherche,
+                    arreter=self.arret_calcul.is_set,
+                    notifier_statistiques=notifier_statistiques,
+                    nombre_regions=8,
+                )
+            else:
+                solutions, recherche_terminee = resoudre_plusieurs(
+                    joueurs,
+                    configuration.contraintes,
+                    configuration.nombre_positions,
+                    limite=limite_recherche,
+                    arreter=self.arret_calcul.is_set,
+                    melanger_candidats=True,
+                    notifier_statistiques=notifier_statistiques,
+                )
             if not solutions:
                 if self.arret_calcul.is_set():
                     self.parent.after(
@@ -856,7 +945,7 @@ class Application(ttk.Frame):
                 "resolution",
                 titre_resolution,
                 self._description_statistiques(
-                    dernieres_statistiques, limite_recherche if mode_rapide else None
+                    dernieres_statistiques, limite_recherche
                 ),
             )
             suffixe = "_solution.xlsx" if mode == "une" else "_solutions.xlsx"
@@ -868,12 +957,18 @@ class Application(ttk.Frame):
                 "Création du résultat",
                 "écriture du fichier Excel {}.".format(sortie.name),
             )
+            nom_methode_recap = (
+                "Intelligent — contraction de Hall et séparation 1/reste"
+                if methode == "intelligent"
+                else "Rapide — retour arrière aléatoire"
+            )
             if mode == "toutes":
-                mode_recap = "Intelligent — toutes les solutions"
+                objectif_recap = "toutes les solutions"
             elif mode == "nombre":
-                mode_recap = "Rapide — aperçu de {} solutions maximum".format(limite)
+                objectif_recap = "{} solutions maximum".format(limite)
             else:
-                mode_recap = "Rapide — une solution"
+                objectif_recap = "une solution"
+            mode_recap = "{} ; {}".format(nom_methode_recap, objectif_recap)
             creer_fichier_solution(
                 sortie,
                 solutions[0],
@@ -1039,6 +1134,8 @@ class Application(ttk.Frame):
         self.bouton_une_solution.state(["!disabled"])
         self.bouton_toutes_solutions.state(["!disabled"])
         self.bouton_n_solutions.state(["!disabled"])
+        self.bouton_methode_rapide.state(["!disabled"])
+        self.bouton_methode_intelligente.state(["!disabled"])
         self.bouton_arreter.state(["disabled"])
 
 

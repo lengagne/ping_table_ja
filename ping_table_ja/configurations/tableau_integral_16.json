@@ -600,10 +600,22 @@
         "type": "niveau",
         "numero": 3
       },
-      "nom": "Le 2e et le 3e d'une poule ne peuvent se retrouver qu'en finale",
+      "nom": "Le 1er et le 3e d'une poule ne peuvent se retrouver qu'en finale",
+      "rangs": [
+        1,
+        3
+      ]
+    },
+    {
+      "type": "rangs_meme_poule_interdits",
+      "cible": {
+        "type": "niveau",
+        "numero": 3
+      },
+      "nom": "le 2e et le 4e ne peuvent se rencontrer qu'en finale",
       "rangs": [
         2,
-        3
+        4
       ]
     }
   ]

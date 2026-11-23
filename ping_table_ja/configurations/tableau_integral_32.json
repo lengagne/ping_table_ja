@@ -1290,7 +1290,6 @@
       ]
     },
     {
-      "nom": "Têtes de série 3 et 4 : les 1ers des poules 3 et 4 occupent les deux positions centrales",
       "type": "rangs_position",
       "cible": {
         "type": "positions",
@@ -1299,6 +1298,7 @@
           17
         ]
       },
+      "nom": "Têtes de série 3 et 4 : les 1ers des poules 3 et 4 occupent les deux positions centrales",
       "rangs": [
         1
       ],
@@ -1313,9 +1313,9 @@
         "type": "niveau",
         "numero": 4
       },
-      "nom": "Le 2e et le 3e d'une poule ne peuvent se retrouver qu'en finale",
+      "nom": "Le 1er et le 3e d'une poule ne peuvent se retrouver qu'en finale",
       "rangs": [
-        2,
+        1,
         3
       ]
     }

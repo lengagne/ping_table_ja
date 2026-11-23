@@ -56,20 +56,34 @@ L'interface :
 3. permet de choisir le fichier Excel des classements ;
 4. lance la résolution avec le bouton **Calculer**.
 
-Deux stratégies de recherche sont proposées :
+La méthode de recherche et l'objectif du calcul se choisissent séparément :
 
-- **Rapide** explore les branches dans un ordre aléatoire et s'arrête après
-  une solution ou après le nombre de solutions demandé. Elle donne rapidement
-  un aperçu valide, mais ne couvre pas forcément tout l'espace de recherche ;
-- **Intelligent : tout évaluer** effectue une recherche exhaustive. Il garantit
-  qu'aucune solution n'a été omise, mais peut être très long et consommer
-  beaucoup de mémoire sur les grands tableaux.
+- **Rapide — retour arrière aléatoire** utilise le solveur historique et fait
+  varier l'ordre des candidats. Cette méthode convient pour obtenir rapidement
+  un aperçu valide ;
+- **Intelligent — contraction de Hall et séparation 1/reste** représente les
+  positions par des domaines de joueurs possibles. Il retire les valeurs
+  incompatibles, réserve automatiquement les groupes de joueurs imposés par la
+  contrainte `all-different`, puis sépare le domaine le plus contraint en un
+  candidat prioritaire et tous les autres. Cette séparation dissymétrique
+  permet de zoomer rapidement vers une solution. Jusqu'à huit régions sont
+  explorées à tour de rôle afin que les premières solutions proviennent de
+  parties différentes de l'espace de recherche, tout en gardant une file de
+  recherche de taille bornée.
+
+Avec l'une ou l'autre méthode, on peut demander **1 solution**, **N solutions**
+ou **toutes les solutions**. Une limite N arrête automatiquement la recherche
+dès que N tirages ont été conservés. Le bouton d'arrêt reste disponible pendant
+le calcul. L'énumération de toutes les solutions est exhaustive, mais peut être
+très longue et consommer beaucoup de mémoire puisque les tirages sont conservés
+pour l'export Excel.
 
 L'onglet **Détails du calcul** suit séparément le chargement des fichiers, la
 construction du problème, la résolution et la création du résultat. Pendant
-la résolution, il affiche le nombre de branches évaluées, la profondeur
-atteinte et le nombre de solutions trouvées. Le calcul exhaustif peut être
-arrêté en conservant les solutions déjà calculées.
+la résolution, il affiche le nombre de solutions et, selon la méthode, les
+branches évaluées ou les boîtes explorées, les séparations 1/reste et les
+réductions de domaines, dont celles obtenues par la contraction de Hall. Tout
+calcul peut être arrêté en conservant les solutions déjà calculées.
 
 Les boutons **Créer…** et **Éditer…** ouvrent l'éditeur graphique des
 configurations JSON v2. Ses onglets permettent de régler les paramètres
