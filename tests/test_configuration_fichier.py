@@ -133,7 +133,7 @@ class TestConfigurationFichier(unittest.TestCase):
                 sorted(profondeurs.values()),
             )
 
-    def test_vue_developpee_separe_gagnants_et_perdants(self):
+    def test_vue_developpee_aligne_les_niveaux(self):
         origine = 1000
         pas = 200
         self.assertEqual(
@@ -146,7 +146,7 @@ class TestConfigurationFichier(unittest.TestCase):
         )
         self.assertEqual(
             abscisse_match_visualisation(2, [17, 32], 32, False, origine, pas),
-            origine - pas,
+            origine + pas,
         )
         self.assertEqual(
             abscisse_match_visualisation(3, [17, 24], 32, True, origine, pas),
@@ -505,6 +505,9 @@ class TestConfigurationFichier(unittest.TestCase):
             self.assertEqual(classeur["Poules"]["C5"].value, "Benoît — B")
             self.assertEqual(classeur["Tirage choisi"]["B3"].value, 1)
             self.assertEqual(
+                classeur["Tirage choisi"]["B4"].value, "NON VERROUILLÉ"
+            )
+            self.assertEqual(
                 classeur["Tirage choisi"]["C3"].value,
                 "sur 2 tirages disponibles",
             )
@@ -552,9 +555,9 @@ class TestConfigurationFichier(unittest.TestCase):
             self.assertIn("Tableau", classeur.sheetnames)
             feuille = classeur["Tableau"]
             self.assertEqual(feuille["B3"].value, "NIVEAU 1")
-            self.assertEqual(feuille["E6"].value, "☐")
-            self.assertEqual(feuille["E7"].value, "☐")
-            self.assertTrue(feuille["C8"].value.startswith("=IF(COUNTIF"))
+            self.assertIsNone(feuille["E6"].value)
+            self.assertIsNone(feuille["E7"].value)
+            self.assertTrue(feuille["C8"].value.startswith("=IF('Tirage choisi'!"))
             formules_propagation = [
                 cellule.value
                 for ligne in feuille.iter_rows()
@@ -565,8 +568,9 @@ class TestConfigurationFichier(unittest.TestCase):
             self.assertTrue(formules_propagation)
             self.assertEqual(
                 feuille.data_validations.dataValidation[0].formula1,
-                '"☐,☑"',
+                '=IF(\'Tirage choisi\'!$B$4="VERROUILLÉ",\'_Listes\'!$A$1:$A$2,\'_Listes\'!$B$1)',
             )
+            self.assertEqual(classeur["_Listes"].sheet_state, "hidden")
             classeur.close()
 
 
