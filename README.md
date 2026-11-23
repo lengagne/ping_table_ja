@@ -99,6 +99,13 @@ développe en règles par match uniquement en mémoire pendant le calcul.
 L'option générale **Aucune contrainte** enregistre simplement une liste
 `contraintes` vide, sans ajouter de drapeau particulier au JSON.
 
+Une contrainte peut recevoir un champ `nom` lisible, affiché dans l'éditeur à
+la place du type technique. Les cibles `positions` et `niveaux` regroupent
+plusieurs positions ou plusieurs colonnes dans une seule règle. Pour une
+contrainte `rangs_match`, l'option `ordonne: true` signifie que le premier rang
+est imposé au participant 1 et le second au participant 2 ; elle évite de
+compter l'inversion verticale d'un même match comme un nouveau tirage.
+
 L'éditeur prend en charge les tailles 8, 16, 32, 64, 128, 256 ou une puissance
 de deux supérieure et le classement intégral. Si les barrages 1er-4e ne sont
 pas activés, les 2es et 3es jouent un barrage : le gagnant rejoint un 1er dans

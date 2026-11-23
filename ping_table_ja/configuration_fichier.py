@@ -96,9 +96,29 @@ def _matchs_cibles(cible, matchs):
         if numero not in matchs:
             raise ValueError("Match ciblé introuvable : {}".format(numero))
         return [matchs[numero]]
-    if type_cible == "niveau":
+    if type_cible in ("niveau", "niveaux"):
         exclusions = {int(numero) for numero in cible.get("exclusions_matchs", [])}
-        if "numero" in cible:
+        if type_cible == "niveaux":
+            numeros_niveaux = {
+                int(numero) for numero in cible.get("numeros", [])
+            }
+            if not numeros_niveaux or any(numero <= 0 for numero in numeros_niveaux):
+                raise ValueError(
+                    "La cible niveaux attend au moins un numéro de niveau positif"
+                )
+            niveaux = _niveaux_graphiques_matchs(matchs)
+            niveaux_manquants = numeros_niveaux - set(niveaux.values())
+            if niveaux_manquants:
+                raise ValueError(
+                    "Niveau(x) ciblé(s) introuvable(s) : {}".format(
+                        sorted(niveaux_manquants)
+                    )
+                )
+            appartient = lambda numero: niveaux.get(numero) in numeros_niveaux
+            description = "Niveaux {}".format(
+                ", ".join(map(str, sorted(numeros_niveaux)))
+            )
+        elif "numero" in cible:
             numero_niveau = int(cible.get("numero", 0))
             niveaux = _niveaux_graphiques_matchs(matchs)
             appartient = lambda numero: niveaux.get(numero) == numero_niveau
@@ -144,18 +164,38 @@ def _contraintes_depuis_json(definitions, matchs, taille_tableau):
         type_contrainte = definition.get("type")
         cible = definition.get("cible", {})
         if type_contrainte == "rangs_position":
-            if cible.get("type") != "position":
-                raise ValueError("La contrainte rangs_position doit cibler une position")
-            position = int(cible.get("numero", 0))
-            if not 1 <= position <= taille_tableau:
-                raise ValueError("Position ciblée invalide : {}".format(position))
+            if cible.get("type") == "position":
+                positions = [int(cible.get("numero", 0))]
+            elif cible.get("type") == "positions":
+                positions = sorted({
+                    int(numero) for numero in cible.get("numeros", [])
+                })
+                if not positions:
+                    raise ValueError(
+                        "La contrainte rangs_position doit cibler au moins une position"
+                    )
+            else:
+                raise ValueError(
+                    "La contrainte rangs_position doit cibler une ou plusieurs positions"
+                )
+            invalides = [
+                position for position in positions
+                if not 1 <= position <= taille_tableau
+            ]
+            if invalides:
+                raise ValueError(
+                    "Position(s) ciblée(s) invalide(s) : {}".format(invalides)
+                )
             rangs = definition.get("rangs", [])
             if not rangs:
                 raise ValueError("La contrainte rangs_position attend au moins un rang")
             poules = [int(poule) for poule in definition.get("poules", [])]
             if any(poule <= 0 for poule in poules):
                 raise ValueError("Les numéros de poules doivent être positifs")
-            resultat.append(RangsPositionImposes(position, rangs, poules))
+            resultat.extend(
+                RangsPositionImposes(position, rangs, poules)
+                for position in positions
+            )
             continue
         cibles = _matchs_cibles(cible, matchs)
         for match in cibles:
@@ -169,7 +209,12 @@ def _contraintes_depuis_json(definitions, matchs, taille_tableau):
                 rangs = definition.get("rangs", [])
                 if len(rangs) != 2:
                     raise ValueError("La contrainte rangs_match attend exactement deux rangs")
-                resultat.append(RangsMatchImposes(match, rangs[0], rangs[1]))
+                if definition.get("ordonne", False):
+                    resultat.append(RangsParticipantsImposes(
+                        match, [rangs[0]], [rangs[1]]
+                    ))
+                else:
+                    resultat.append(RangsMatchImposes(match, rangs[0], rangs[1]))
             elif type_contrainte == "rangs_meme_poule_interdits":
                 rangs = definition.get("rangs", [])
                 if len(rangs) != 2:
