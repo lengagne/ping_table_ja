@@ -58,9 +58,11 @@ L'interface :
 
 La méthode de recherche et l'objectif du calcul se choisissent séparément :
 
-- **Rapide — retour arrière aléatoire** utilise le solveur historique et fait
-  varier l'ordre des candidats. Cette méthode convient pour obtenir rapidement
-  un aperçu valide ;
+- **Rapide — clubs fréquents d'abord** choisit d'abord la position qui possède
+  le moins de candidats possibles, puis essaie en priorité les joueurs dont le
+  club est encore le plus représenté. Les joueurs à égalité sont mélangés pour
+  varier les tirages. Cette méthode convient pour obtenir rapidement un aperçu
+  valide ;
 - **Intelligent — contraction de Hall et séparation 1/reste** représente les
   positions par des domaines de joueurs possibles. Il retire les valeurs
   incompatibles, réserve automatiquement les groupes de joueurs imposés par la
@@ -79,10 +81,17 @@ très longue et consommer beaucoup de mémoire puisque les tirages sont conserv�
 pour l'export Excel.
 
 Pour obtenir rapidement quelques tirages, utilisez **Rapide** avec **Calculer N
-solutions**. Les contraintes sont indexées par position et les participants
-possibles des matchs sont mémorisés pendant chaque essai. En mode Intelligent,
-un objectif limité suit une seule trajectoire prioritaire ; les huit régions ne
-sont utilisées que pour une exploration exhaustive.
+solutions**. La priorité est recalculée après chaque placement à partir des
+clubs des joueurs encore disponibles. Les contraintes sont indexées par
+position et les participants possibles des matchs sont mémorisés pendant chaque
+essai. En mode Intelligent, un objectif limité suit une seule trajectoire
+prioritaire ; les huit régions ne sont utilisées que pour une exploration
+exhaustive.
+
+Les classeurs `exemple_32_joueurs_clubs_inegaux.xlsx`,
+`exemple_64_joueurs_clubs_inegaux.xlsx` et
+`exemple_128_joueurs_clubs_inegaux.xlsx` permettent de tester ce comportement
+avec plusieurs clubs représentés par des effectifs différents.
 
 Les contraintes équivalentes sont aussi regroupées uniquement en mémoire. Par
 exemple, tant que les résultats ne sont pas connus, le vainqueur et le perdant

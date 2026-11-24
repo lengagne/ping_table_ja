@@ -1,5 +1,6 @@
 """Algorithme de résolution par retour arrière."""
 
+from collections import Counter
 import random
 
 from .evaluation_contraintes import (
@@ -7,9 +8,49 @@ from .evaluation_contraintes import (
     dedupliquer_contraintes,
 )
 from .modele import Placement
+from .utilitaires import normaliser_club
 
 
-def resoudre(joueurs, contraintes, nombre_positions=32, plan_contraintes=None):
+def _ordonner_candidats(
+    candidats,
+    disponibles,
+    generateur_aleatoire=None,
+    prioriser_clubs_frequents=True,
+):
+    """Place d'abord les clubs les plus représentés parmi les joueurs restants.
+
+    Le mélange est effectué avant le tri stable : il ne change donc pas la
+    priorité des clubs, mais évite de toujours explorer les ex æquo dans le
+    même ordre.
+    """
+    if len(candidats) < 2:
+        return candidats
+    if generateur_aleatoire is not None:
+        generateur_aleatoire.shuffle(candidats)
+    if not prioriser_clubs_frequents:
+        return candidats
+
+    frequences = Counter(
+        club
+        for joueur in disponibles
+        if (club := normaliser_club(joueur.get("club")))
+    )
+    candidats.sort(
+        key=lambda joueur: frequences.get(
+            normaliser_club(joueur.get("club")), 0
+        ),
+        reverse=True,
+    )
+    return candidats
+
+
+def resoudre(
+    joueurs,
+    contraintes,
+    nombre_positions=32,
+    plan_contraintes=None,
+    prioriser_clubs_frequents=True,
+):
     contraintes = dedupliquer_contraintes(contraintes)
     plan = plan_contraintes or compiler_plan_contraintes(
         contraintes, nombre_positions
@@ -47,6 +88,11 @@ def resoudre(joueurs, contraintes, nombre_positions=32, plan_contraintes=None):
             if len(meilleurs) == 1:
                 break
 
+        _ordonner_candidats(
+            meilleurs,
+            disponibles,
+            prioriser_clubs_frequents=prioriser_clubs_frequents,
+        )
         for joueur in meilleurs:
             placement[meilleure_position] = joueur
             solution = rechercher([j for j in disponibles if j is not joueur])
@@ -79,13 +125,16 @@ def resoudre_plusieurs(
     graine=None,
     notifier_statistiques=None,
     plan_contraintes=None,
+    prioriser_clubs_frequents=True,
 ):
     """Énumère les solutions, avec limite, progression et arrêt facultatifs.
 
     Retourne ``(solutions, recherche_terminee)``. Le booléen vaut ``False``
     lorsque la limite a été atteinte ou que l'utilisateur a demandé l'arrêt.
-    ``melanger_candidats`` fait varier la partie de l'arbre visitée en premier,
-    ce qui convient à un aperçu rapide limité. ``notifier_statistiques`` reçoit
+    ``prioriser_clubs_frequents`` essaie d'abord les clubs les plus représentés
+    parmi les joueurs encore disponibles. ``melanger_candidats`` fait varier
+    l'ordre des ex æquo et la partie de l'arbre visitée en premier, ce qui
+    convient à un aperçu rapide limité. ``notifier_statistiques`` reçoit
     périodiquement les compteurs de recherche sans modifier le résultat.
     """
     contraintes = dedupliquer_contraintes(contraintes)
@@ -108,6 +157,7 @@ def resoudre_plusieurs(
         "solutions": 0,
         "contraintes_effectives": plan.contraintes_effectives,
         "contraintes_regroupees": plan.contraintes_regroupees,
+        "priorisation_clubs_frequents": prioriser_clubs_frequents,
     }
 
     def publier_statistiques(force=False):
@@ -169,8 +219,12 @@ def resoudre_plusieurs(
             if len(meilleurs) == 1:
                 break
 
-        if generateur_aleatoire is not None and len(meilleurs) > 1:
-            generateur_aleatoire.shuffle(meilleurs)
+        _ordonner_candidats(
+            meilleurs,
+            disponibles,
+            generateur_aleatoire=generateur_aleatoire,
+            prioriser_clubs_frequents=prioriser_clubs_frequents,
+        )
         for joueur in meilleurs:
             if doit_arreter():
                 return

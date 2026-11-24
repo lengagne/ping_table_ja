@@ -206,7 +206,7 @@ class Application(ttk.Frame):
         cadre_methodes.columnconfigure(1, weight=1)
         self.bouton_methode_rapide = ttk.Radiobutton(
             cadre_methodes,
-            text="Rapide — retour arrière aléatoire",
+            text="Rapide — clubs fréquents d'abord",
             variable=self.methode_calcul_var,
             value="rapide",
         )
@@ -810,7 +810,7 @@ class Application(ttk.Frame):
             if limite is None:
                 return
         nom_methode = {
-            "rapide": "rapide par retour arrière aléatoire",
+            "rapide": "rapide avec priorité aux clubs fréquents",
             "intelligent": "intelligente par contraction de Hall et séparation 1/reste",
         }[methode]
         if mode == "toutes" and not messagebox.askyesno(
@@ -842,7 +842,7 @@ class Application(ttk.Frame):
             "nombre": "arrêt automatique après {} solutions".format(limite),
         }
         noms_methodes = {
-            "rapide": "Rapide — retour arrière aléatoire",
+            "rapide": "Rapide — clubs fréquents d'abord",
             "intelligent": "Intelligent — contraction de Hall et séparation 1/reste",
         }
         self.detail_configuration_var.set(str(configuration))
@@ -960,7 +960,8 @@ class Application(ttk.Frame):
             else:
                 titre_resolution = "Résolution rapide"
                 description_resolution = (
-                    "retour arrière avec ordre aléatoire des candidats ; {}."
+                    "position la plus contrainte, clubs fréquents d'abord et "
+                    "ordre aléatoire entre ex æquo ; {}."
                 ).format(objectif_resolution)
             self.parent.after(
                 0,
@@ -1011,6 +1012,7 @@ class Application(ttk.Frame):
                     limite=limite_recherche,
                     arreter=self.arret_calcul.is_set,
                     melanger_candidats=True,
+                    prioriser_clubs_frequents=True,
                     notifier_statistiques=notifier_statistiques,
                     plan_contraintes=plan_contraintes,
                 )
@@ -1046,7 +1048,7 @@ class Application(ttk.Frame):
             nom_methode_recap = (
                 "Intelligent — contraction de Hall et séparation 1/reste"
                 if methode == "intelligent"
-                else "Rapide — retour arrière aléatoire"
+                else "Rapide — clubs fréquents d'abord"
             )
             if mode == "toutes":
                 objectif_recap = "toutes les solutions"
