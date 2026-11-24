@@ -78,6 +78,25 @@ le calcul. L'énumération de toutes les solutions est exhaustive, mais peut êt
 très longue et consommer beaucoup de mémoire puisque les tirages sont conservés
 pour l'export Excel.
 
+Pour obtenir rapidement quelques tirages, utilisez **Rapide** avec **Calculer N
+solutions**. Les contraintes sont indexées par position et les participants
+possibles des matchs sont mémorisés pendant chaque essai. En mode Intelligent,
+un objectif limité suit une seule trajectoire prioritaire ; les huit régions ne
+sont utilisées que pour une exploration exhaustive.
+
+Les contraintes équivalentes sont aussi regroupées uniquement en mémoire. Par
+exemple, tant que les résultats ne sont pas connus, le vainqueur et le perdant
+d'un même match ont le même ensemble de joueurs possibles : une même règle sur
+le match des vainqueurs et sur celui des perdants n'est donc évaluée qu'une
+fois. Les deux définitions restent présentes dans le JSON et dans l'éditeur.
+
+Le bouton **Construire le problème** compile ces règles en relations unaires et
+binaires entre positions, puis crée un fichier `.ptjaplan` à côté du JSON. Ce
+plan dépend uniquement de la configuration : il reste donc utilisable après le
+chargement d'un autre fichier Excel ou le remplacement de tous les joueurs. Il
+est chargé automatiquement pendant les calculs. Une modification du JSON
+invalide son empreinte et provoque sa reconstruction automatique.
+
 L'onglet **Détails du calcul** suit séparément le chargement des fichiers, la
 construction du problème, la résolution et la création du résultat. Pendant
 la résolution, il affiche le nombre de solutions et, selon la méthode, les
@@ -167,7 +186,9 @@ double_ko32/
 ├── configuration_fichier.py # Chargement du JSON de configuration
 ├── configurations/      # Configurations livrées avec l'application
 ├── modele.py             # Match, ResultatMatch, PositionTableau
+├── evaluation_contraintes.py # Compilation et sauvegarde du plan de contraintes
 ├── solveur.py            # Algorithme de placement
+├── solveur_bissection.py # Contraction de Hall et séparation 1/reste
 ├── excel.py              # Entrées/sorties Excel
 ├── utilitaires.py        # Normalisation et nettoyage
 ├── cli.py                # Interface en ligne de commande

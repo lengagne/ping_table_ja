@@ -1,6 +1,30 @@
 """Modèle métier : joueurs, positions et matchs."""
 
 
+class Placement(list):
+    """Liste de placement avec cache invalidé à chaque modification."""
+
+    def __init__(self, valeurs):
+        super().__init__(valeurs)
+        self._cache_joueurs_possibles = {}
+
+    def __setitem__(self, index, valeur):
+        super().__setitem__(index, valeur)
+        self._cache_joueurs_possibles.clear()
+
+    def memoriser_joueurs_possibles(self, participant, calculer):
+        if participant not in self._cache_joueurs_possibles:
+            self._cache_joueurs_possibles[participant] = calculer()
+        return self._cache_joueurs_possibles[participant]
+
+
+def _joueurs_possibles_memorises(participant, placement, calculer):
+    memoriser = getattr(placement, "memoriser_joueurs_possibles", None)
+    if memoriser is None:
+        return calculer()
+    return memoriser(participant, calculer)
+
+
 def identite_joueur(joueur):
     if joueur is None:
         return None
@@ -14,8 +38,11 @@ class PositionTableau:
         self.position = position
 
     def joueurs_possibles(self, placement):
-        joueur = placement[self.position - 1]
-        return [] if joueur is None else [joueur]
+        def calculer():
+            joueur = placement[self.position - 1]
+            return [] if joueur is None else [joueur]
+
+        return _joueurs_possibles_memorises(self, placement, calculer)
 
     def description(self):
         return "position {}".format(self.position)
@@ -36,7 +63,9 @@ class ResultatMatch:
         joueur_reel = self.match.resultat_reel(self.resultat)
         if joueur_reel is not None:
             return [joueur_reel]
-        return self.match.joueurs_possibles(placement)
+        return _joueurs_possibles_memorises(
+            self, placement, lambda: self.match.joueurs_possibles(placement)
+        )
 
     def description(self):
         return "{} du match {}".format(self.resultat, self.match.numero)
@@ -57,15 +86,20 @@ class Match:
         self.perdant = ResultatMatch(self, "perdant")
 
     def joueurs_possibles(self, placement):
-        joueurs = (self.participant_1.joueurs_possibles(placement)
-                   + self.participant_2.joueurs_possibles(placement))
-        resultat, identites = [], set()
-        for joueur in joueurs:
-            identite = identite_joueur(joueur)
-            if identite not in identites:
-                identites.add(identite)
-                resultat.append(joueur)
-        return resultat
+        def calculer():
+            joueurs = (
+                self.participant_1.joueurs_possibles(placement)
+                + self.participant_2.joueurs_possibles(placement)
+            )
+            resultat, identites = [], set()
+            for joueur in joueurs:
+                identite = identite_joueur(joueur)
+                if identite not in identites:
+                    identites.add(identite)
+                    resultat.append(joueur)
+            return resultat
+
+        return _joueurs_possibles_memorises(self, placement, calculer)
 
     def definir_resultat(self, vainqueur, perdant):
         self._vainqueur_reel = vainqueur

@@ -17,6 +17,12 @@ from .disposition_tableau import (
     sorties_classement,
 )
 from .editeur_configuration import ouvrir_editeur
+from .evaluation_contraintes import (
+    charger_plan_contraintes,
+    chemin_plan_contraintes,
+    compiler_plan_contraintes,
+    enregistrer_plan_contraintes,
+)
 from .excel import (
     creer_fichier_solution,
     creer_liste_joueurs,
@@ -149,6 +155,12 @@ class Application(ttk.Frame):
             text="Éditer…",
             command=self._editer_configuration,
         ).grid(row=0, column=2, padx=(5, 0))
+        self.bouton_construire_probleme = ttk.Button(
+            cadre_configuration,
+            text="Construire le problème",
+            command=self._construire_plan_contraintes,
+        )
+        self.bouton_construire_probleme.grid(row=0, column=3, padx=(10, 0))
 
         ttk.Label(self, text="Fichier Excel des classements").grid(row=3, column=0, sticky="w")
         ttk.Entry(self, textvariable=self.excel_var).grid(row=4, column=0, sticky="ew", padx=(0, 8), pady=(4, 20))
@@ -245,8 +257,8 @@ class Application(ttk.Frame):
         ttk.Label(
             cadre_actions,
             text=(
-                "La méthode choisie s'applique à l'objectif 1, N ou toutes.  "
-                "Le mode intelligent contracte les domaines puis fixe un candidat en priorité."
+                "Pour obtenir rapidement quelques tirages : choisissez Rapide puis « Calculer N solutions ».  "
+                "Le mode intelligent effectue des contractions plus coûteuses avant de poursuivre."
             ),
             wraplength=1000,
         ).grid(row=2, column=0, columnspan=5, sticky="w", pady=(8, 0))
@@ -395,6 +407,37 @@ class Application(ttk.Frame):
             self._sauver_preferences()
             if Path(self.excel_var.get()).is_file():
                 self._charger_apercu(Path(self.excel_var.get()))
+
+    def _construire_plan_contraintes(self):
+        chemin_configuration = Path(self.config_var.get()).expanduser()
+        if not chemin_configuration.is_file():
+            messagebox.showerror(
+                "Configuration manquante",
+                "Sélectionnez un fichier de configuration valide.",
+            )
+            return
+        try:
+            configuration = charger_configuration(chemin_configuration)
+            plan = compiler_plan_contraintes(
+                configuration.contraintes, configuration.nombre_positions
+            )
+            chemin_plan = enregistrer_plan_contraintes(
+                chemin_configuration, plan
+            )
+        except Exception as erreur:
+            messagebox.showerror("Construction impossible", str(erreur))
+            return
+        detail = (
+            "Plan construit : {} contraintes JSON, {} règles distinctes, "
+            "{} regroupées. Fichier : {}"
+        ).format(
+            len(configuration.contraintes),
+            plan.contraintes_effectives,
+            plan.contraintes_regroupees,
+            chemin_plan,
+        )
+        self.statut_var.set(detail)
+        messagebox.showinfo("Problème construit", detail)
 
     def _creer_configuration(self):
         ouvrir_editeur(
@@ -684,6 +727,15 @@ class Application(ttk.Frame):
     def _description_statistiques(statistiques, limite=None):
         solutions = int(statistiques.get("solutions", 0))
         objectif = " / {}".format(limite) if limite is not None else ""
+        regroupees = int(statistiques.get("contraintes_regroupees", 0))
+        regroupement = ""
+        if regroupees:
+            regroupement = " {} contrainte{} équivalente{} regroupée{}.".format(
+                regroupees,
+                "s" if regroupees != 1 else "",
+                "s" if regroupees != 1 else "",
+                "s" if regroupees != 1 else "",
+            )
         if "boites_explorees" in statistiques:
             boites = int(statistiques.get("boites_explorees", 0))
             rejetees = int(statistiques.get("boites_rejetees", 0))
@@ -697,7 +749,7 @@ class Application(ttk.Frame):
                 "{reductions} valeur{pluriel_reductions} retirée{pluriel_reductions} "
                 "des domaines, dont {reductions_hall} par Hall, "
                 "{solutions}{objectif} solution{pluriel_solutions} "
-                "trouvée{pluriel_solutions}."
+                "trouvée{pluriel_solutions}.{regroupement}"
             ).format(
                 boites="{:,}".format(boites).replace(",", " "),
                 pluriel_boites="s" if boites != 1 else "",
@@ -711,13 +763,14 @@ class Application(ttk.Frame):
                 solutions=solutions,
                 objectif=objectif,
                 pluriel_solutions="s" if solutions != 1 else "",
+                regroupement=regroupement,
             )
 
         branches = int(statistiques.get("candidats_testes", 0))
         branches_texte = "{:,}".format(branches).replace(",", " ")
         return (
             "{} branche{} évaluée{}, profondeur {}/{}, "
-            "{}{} solution{} trouvée{}."
+            "{}{} solution{} trouvée{}.{}"
         ).format(
             branches_texte,
             "s" if branches > 1 else "",
@@ -728,6 +781,7 @@ class Application(ttk.Frame):
             objectif,
             "s" if solutions > 1 else "",
             "s" if solutions > 1 else "",
+            regroupement,
         )
 
     def _demarrer_calcul(self, mode):
@@ -776,6 +830,7 @@ class Application(ttk.Frame):
         self.bouton_une_solution.state(["disabled"])
         self.bouton_toutes_solutions.state(["disabled"])
         self.bouton_n_solutions.state(["disabled"])
+        self.bouton_construire_probleme.state(["disabled"])
         self.bouton_methode_rapide.state(["disabled"])
         self.bouton_methode_intelligente.state(["disabled"])
         self.bouton_arreter.state(["!disabled"])
@@ -818,6 +873,25 @@ class Application(ttk.Frame):
                 "lecture et validation du fichier de configuration JSON.",
             )
             configuration = charger_configuration(chemin_configuration)
+            plan_contraintes = charger_plan_contraintes(
+                chemin_configuration, configuration.nombre_positions
+            )
+            if plan_contraintes is None:
+                plan_contraintes = compiler_plan_contraintes(
+                    configuration.contraintes, configuration.nombre_positions
+                )
+                try:
+                    chemin_plan = enregistrer_plan_contraintes(
+                        chemin_configuration, plan_contraintes
+                    )
+                    etat_plan = "construit et enregistré dans {}".format(
+                        chemin_plan
+                    )
+                except (OSError, ValueError) as erreur_plan:
+                    etat_plan = "construit en mémoire ({})".format(erreur_plan)
+            else:
+                chemin_plan = chemin_plan_contraintes(chemin_configuration)
+                etat_plan = "chargé depuis {}".format(chemin_plan)
             self.parent.after(
                 0,
                 self._mettre_a_jour_etape,
@@ -854,11 +928,16 @@ class Application(ttk.Frame):
                 self._mettre_a_jour_etape,
                 "construction",
                 "Construction du problème",
-                "{} joueurs, {} positions, {} matchs et {} contraintes actives.".format(
+                (
+                    "{} ; {} joueurs, {} positions, {} matchs, {} contraintes JSON "
+                    "et {} règles distinctes."
+                ).format(
+                    etat_plan,
                     len(joueurs),
                     configuration.nombre_positions,
                     len(configuration.matchs),
                     len(configuration.contraintes),
+                    plan_contraintes.contraintes_effectives,
                 ),
             )
 
@@ -871,9 +950,13 @@ class Application(ttk.Frame):
                 )
             if methode == "intelligent":
                 titre_resolution = "Résolution intelligente"
+                if limite_recherche is None:
+                    strategie_regions = "exploration alternée de 8 régions"
+                else:
+                    strategie_regions = "une trajectoire prioritaire pour atteindre rapidement l'objectif"
                 description_resolution = (
-                    "contraction de Hall et séparation 1/reste avec jusqu'à 8 régions ; {}."
-                ).format(objectif_resolution)
+                    "contraction de Hall et séparation 1/reste, {} ; {}."
+                ).format(strategie_regions, objectif_resolution)
             else:
                 titre_resolution = "Résolution rapide"
                 description_resolution = (
@@ -909,6 +992,7 @@ class Application(ttk.Frame):
                 )
 
             if methode == "intelligent":
+                nombre_regions = 8 if limite_recherche is None else 1
                 solutions, recherche_terminee = resoudre_par_bissection(
                     joueurs,
                     configuration.contraintes,
@@ -916,7 +1000,8 @@ class Application(ttk.Frame):
                     limite=limite_recherche,
                     arreter=self.arret_calcul.is_set,
                     notifier_statistiques=notifier_statistiques,
-                    nombre_regions=8,
+                    nombre_regions=nombre_regions,
+                    plan_contraintes=plan_contraintes,
                 )
             else:
                 solutions, recherche_terminee = resoudre_plusieurs(
@@ -927,6 +1012,7 @@ class Application(ttk.Frame):
                     arreter=self.arret_calcul.is_set,
                     melanger_candidats=True,
                     notifier_statistiques=notifier_statistiques,
+                    plan_contraintes=plan_contraintes,
                 )
             if not solutions:
                 if self.arret_calcul.is_set():
@@ -1134,6 +1220,7 @@ class Application(ttk.Frame):
         self.bouton_une_solution.state(["!disabled"])
         self.bouton_toutes_solutions.state(["!disabled"])
         self.bouton_n_solutions.state(["!disabled"])
+        self.bouton_construire_probleme.state(["!disabled"])
         self.bouton_methode_rapide.state(["!disabled"])
         self.bouton_methode_intelligente.state(["!disabled"])
         self.bouton_arreter.state(["disabled"])

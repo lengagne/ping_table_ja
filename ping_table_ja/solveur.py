@@ -2,18 +2,31 @@
 
 import random
 
+from .evaluation_contraintes import (
+    compiler_plan_contraintes,
+    dedupliquer_contraintes,
+)
+from .modele import Placement
 
-def resoudre(joueurs, contraintes, nombre_positions=32):
-    placement = [None] * nombre_positions
 
-    def compatibles():
-        return all(c.est_compatible(placement) for c in contraintes)
+def resoudre(joueurs, contraintes, nombre_positions=32, plan_contraintes=None):
+    contraintes = dedupliquer_contraintes(contraintes)
+    plan = plan_contraintes or compiler_plan_contraintes(
+        contraintes, nombre_positions
+    )
+    if plan.nombre_positions != nombre_positions:
+        raise ValueError("Le plan compilé ne correspond pas au nombre de positions.")
+    evaluateur = plan.creer_evaluateur(joueurs)
+    placement = Placement([None] * nombre_positions)
+
+    def compatibles(position):
+        return evaluateur.est_compatible(position, placement)
 
     def candidats(position, disponibles):
         resultat = []
         for joueur in disponibles:
             placement[position] = joueur
-            if compatibles():
+            if compatibles(position):
                 resultat.append(joueur)
             placement[position] = None
         return resultat
@@ -65,6 +78,7 @@ def resoudre_plusieurs(
     melanger_candidats=False,
     graine=None,
     notifier_statistiques=None,
+    plan_contraintes=None,
 ):
     """Énumère les solutions, avec limite, progression et arrêt facultatifs.
 
@@ -74,7 +88,14 @@ def resoudre_plusieurs(
     ce qui convient à un aperçu rapide limité. ``notifier_statistiques`` reçoit
     périodiquement les compteurs de recherche sans modifier le résultat.
     """
-    placement = [None] * nombre_positions
+    contraintes = dedupliquer_contraintes(contraintes)
+    plan = plan_contraintes or compiler_plan_contraintes(
+        contraintes, nombre_positions
+    )
+    if plan.nombre_positions != nombre_positions:
+        raise ValueError("Le plan compilé ne correspond pas au nombre de positions.")
+    evaluateur = plan.creer_evaluateur(joueurs)
+    placement = Placement([None] * nombre_positions)
     solutions = []
     recherche_interrompue = False
     generateur_aleatoire = random.Random(graine) if melanger_candidats else None
@@ -85,6 +106,8 @@ def resoudre_plusieurs(
         "profondeur": 0,
         "profondeur_max": 0,
         "solutions": 0,
+        "contraintes_effectives": plan.contraintes_effectives,
+        "contraintes_regroupees": plan.contraintes_regroupees,
     }
 
     def publier_statistiques(force=False):
@@ -102,15 +125,15 @@ def resoudre_plusieurs(
             return True
         return False
 
-    def compatibles():
-        return all(c.est_compatible(placement) for c in contraintes)
+    def compatibles(position):
+        return evaluateur.est_compatible(position, placement)
 
     def candidats(position, disponibles):
         resultat = []
         for joueur in disponibles:
             statistiques["candidats_testes"] += 1
             placement[position] = joueur
-            if compatibles():
+            if compatibles(position):
                 resultat.append(joueur)
             placement[position] = None
         return resultat

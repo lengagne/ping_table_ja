@@ -9,7 +9,11 @@ from .contraintes import (
     RangsParticipantsImposes,
     RangsPositionImposes,
 )
-from .modele import identite_joueur
+from .evaluation_contraintes import (
+    compiler_plan_contraintes,
+    dedupliquer_contraintes,
+)
+from .modele import Placement, identite_joueur
 
 
 class _ArretRecherche(Exception):
@@ -233,7 +237,13 @@ def _contracter_hall(domaines, appariement):
     return reductions
 
 
-def _contracter(domaines, joueurs, contraintes, statistiques, arreter):
+def _contracter(
+    domaines,
+    joueurs,
+    evaluateur,
+    statistiques,
+    arreter,
+):
     """Contracte une boîte sans jamais supprimer une solution potentielle."""
     statistiques["boites_explorees"] += 1
     domaines = [set(domaine) for domaine in domaines]
@@ -276,11 +286,13 @@ def _contracter(domaines, joueurs, contraintes, statistiques, arreter):
                 domaines[position] = {joueur}
                 modifies = True
 
-        placement = [
-            joueurs[next(iter(domaine))] if len(domaine) == 1 else None
-            for domaine in domaines
-        ]
-        if not all(contrainte.est_compatible(placement) for contrainte in contraintes):
+        placement = Placement(
+            [
+                joueurs[next(iter(domaine))] if len(domaine) == 1 else None
+                for domaine in domaines
+            ]
+        )
+        if not evaluateur.placement_compatible(placement):
             statistiques["boites_rejetees"] += 1
             return None
 
@@ -290,10 +302,7 @@ def _contracter(domaines, joueurs, contraintes, statistiques, arreter):
             conserves = set()
             for index_joueur in domaine:
                 placement[position] = joueurs[index_joueur]
-                if all(
-                    contrainte.est_compatible(placement)
-                    for contrainte in contraintes
-                ):
+                if evaluateur.est_compatible(position, placement):
                     conserves.add(index_joueur)
             placement[position] = None
             if conserves != domaine:
@@ -375,6 +384,7 @@ def resoudre_par_bissection(
     arreter=None,
     notifier_statistiques=None,
     nombre_regions=8,
+    plan_contraintes=None,
 ):
     """Résout par contraction de Hall et exploration de régions alternées.
 
@@ -389,6 +399,13 @@ def resoudre_par_bissection(
                 nombre_positions, nombre_positions
             )
         )
+    contraintes = dedupliquer_contraintes(contraintes)
+    plan = plan_contraintes or compiler_plan_contraintes(
+        contraintes, nombre_positions
+    )
+    if plan.nombre_positions != nombre_positions:
+        raise ValueError("Le plan compilé ne correspond pas au nombre de positions.")
+    evaluateur = plan.creer_evaluateur(joueurs)
     solutions = []
     recherche_interrompue = False
     statistiques = {
@@ -401,6 +418,8 @@ def resoudre_par_bissection(
         "profondeur_max": 0,
         "regions": 0,
         "solutions": 0,
+        "contraintes_effectives": plan.contraintes_effectives,
+        "contraintes_regroupees": plan.contraintes_regroupees,
     }
 
     def publier(force=False):
@@ -426,7 +445,7 @@ def resoudre_par_bissection(
         racine = _contracter(
             tuple(frozenset(domaine) for domaine in domaines),
             joueurs,
-            contraintes,
+            evaluateur,
             statistiques,
             arreter,
         )
@@ -447,7 +466,11 @@ def resoudre_par_bissection(
             statistiques["bissections"] += 1
             for enfant in enfants or []:
                 contracte = _contracter(
-                    enfant, joueurs, contraintes, statistiques, arreter
+                    enfant,
+                    joueurs,
+                    evaluateur,
+                    statistiques,
+                    arreter,
                 )
                 if contracte is not None:
                     regions.append((contracte, profondeur + 1))
@@ -478,7 +501,11 @@ def resoudre_par_bissection(
                 contractes = []
                 for enfant in enfants or []:
                     contracte = _contracter(
-                        enfant, joueurs, contraintes, statistiques, arreter
+                        enfant,
+                        joueurs,
+                        evaluateur,
+                        statistiques,
+                        arreter,
                     )
                     if contracte is not None:
                         contractes.append(contracte)
